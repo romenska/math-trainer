@@ -232,9 +232,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Кнопка повернення в меню для Тренування та Перевірки швидкості -->
           <button id="btnMenuReturn" onclick="abortGameToMenu()" title="Повернутися в меню" class="hidden px-3.5 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">🏠 Меню</button>
-          <!-- Кнопка Фініш для Марафону -->
           <button id="btnMarathonFinish" onclick="openSettingsModal()" title="Завершити марафон" class="hidden px-3.5 py-2 text-xs font-bold text-black bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">Фініш 🏁</button>
         </div>
       </footer>
@@ -300,7 +298,7 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzETPb0rXaO7jG0hX-XVi4hseeIr405bpuFbdICzkenftrgeOns3NHnFy6W51ela0BPBg/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5NbynOx14wxSzF7-eED8FB9kvTFixMVE5PXNyh-eeM_XHYoX9smQ4eT5A_broDISxDA/exec';
 
     const CONFIG = {
       levels: {
@@ -477,7 +475,6 @@
         localStorage.setItem('math_trainer_nickname', inputVal);
         saveCombinedLevelToStorage();
 
-        // Первинна реєстрація учня з передачею дії реєстрації
         sendDataToGoogleSheet('register', 'невдача');
       }
 
@@ -543,7 +540,6 @@
       }
     }
 
-    // Головна функція відправки фіксованого результату та оновлення картки учня в Google Таблицю
     function sendDataToGoogleSheet(actionType, successStatus) {
       if (!GOOGLE_SCRIPT_URL || !state.deviceId) return;
 
@@ -557,7 +553,7 @@
       const currentSpeed = state.timerSeconds > 0 ? parseFloat((state.correctCount / state.timerSeconds).toFixed(2)) : 0;
 
       const payload = {
-        action: actionType, // 'register', 'finish', або 'abort'
+        action: actionType,
         deviceId: state.deviceId,
         nickname: state.nickname,
         currentCombinedLevel: state.currentCombinedLevel,
@@ -571,15 +567,15 @@
         score: state.score,
         time: state.timerSeconds,
         speed: currentSpeed,
-        status: successStatus, // 'успіх' або 'невдача'
+        status: successStatus,
         bestScore: bestScore,
         bestSpeed: bestSpeed
       };
 
       fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }).catch(e => console.log('Помилка відправки в Google Таблицю', e));
     }
@@ -752,7 +748,6 @@
       state.inputMode = mode;
       updateToggleUI();
       saveSettingsToLocalStorage();
-      // Зберігаємо зміну вводу в таблицю (якщо учень у меню)
       sendDataToGoogleSheet('updateInputMode', 'невдача');
     };
 
@@ -866,7 +861,6 @@
       const inputNames = { novice: 'Новачок', expert: 'Експерт' };
       document.getElementById('bottomSummaryInputMode').textContent = inputNames[state.inputMode];
 
-      // Налаштування видимості кнопок внизу тренування
       const menuBtn = document.getElementById('btnMenuReturn');
       const marathonBtn = document.getElementById('btnMarathonFinish');
 
@@ -905,10 +899,8 @@
       }
     }
 
-    // Кнопка переривання тренування та повернення в меню
     window.abortGameToMenu = function() {
       clearInterval(state.timerInterval);
-      // Записуємо в таблицю як невдачу через переривання
       sendDataToGoogleSheet('abort', 'невдача');
       openSettingsModal();
     };
@@ -1129,7 +1121,6 @@
         if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       }
 
-      // Визначаємо чи зараховується успіх (якщо пройдено безпомилково/успішно і побито/досягнуто результат)
       let statusResult = (success && isNewRecord) ? 'успіх' : 'невдача';
 
       if (success) {
@@ -1146,7 +1137,6 @@
         }
       }
 
-      // ТІЛЬКИ ТУТ: записуємо в обидві таблиці (статистику та оновлення учня) після завершення тренування
       sendDataToGoogleSheet('finish', statusResult);
 
       document.getElementById('resScoreBig').textContent = `${state.score} балів`;
