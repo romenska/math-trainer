@@ -326,7 +326,7 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyA0ze1G7VPBSZLAQsttdHQMNkQM9eX7Tdm-4l9KE5Zdkw2TEg1UP6kcjndafRkQw4BIg/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWPcelT6UrRYvXTg4wcjXbXUtKddQENeotKywgehQ8WxLOlQ53m6pw2IYjyFW_bkpEtQ/exec';
 
     const CONFIG = {
       levels: {
@@ -557,9 +557,10 @@
     async function loadCloudData() {
       if (!GOOGLE_SCRIPT_URL || !state.deviceId) return;
       try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?deviceId=${state.deviceId}`);
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData&deviceId=${encodeURIComponent(state.deviceId)}`);
         const data = await response.json();
-        if (data) {
+        
+        if (data && data.status === 'success') {
           if (data.records && Object.keys(data.records).length > 0) {
             state.records = data.records;
             saveRecords();
@@ -576,10 +577,15 @@
             saveCombinedLevelToStorage();
           }
           updateModalTitle();
+          updateSettingsUI();
         }
       } catch (e) {
         console.log('Не вдалося підтягнути дані з хмари', e);
       }
+    }
+
+    function saveRecords() {
+      localStorage.setItem('math_trainer_records', JSON.stringify(state.records));
     }
 
     function sendDataToGoogleSheet(actionType, successStatus) {
@@ -611,7 +617,8 @@
         speed: currentSpeed,
         status: successStatus,
         bestScore: bestScore,
-        bestSpeed: bestSpeed
+        bestSpeed: bestSpeed,
+        records: state.records
       };
 
       fetch(GOOGLE_SCRIPT_URL, {
@@ -766,10 +773,6 @@
       }
     }
 
-    function saveRecords() {
-      localStorage.setItem('math_trainer_records', JSON.stringify(state.records));
-    }
-
     function loadSettings() {
       const savedSettings = localStorage.getItem('math_trainer_settings');
       if (savedSettings) {
@@ -835,7 +838,7 @@
 
       const modes = [
         { id: 'training', label: 'Тренування' },
-        { id: 'speed', label: 'Тестування' },
+        { id: 'speed', label: 'Швидкість' },
         { id: 'records', label: 'Марафон' }
       ];
 
