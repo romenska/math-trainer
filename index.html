@@ -326,7 +326,7 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWPcelT6UrRYvXTg4wcjXbXUtKddQENeotKywgehQ8WxLOlQ53m6pw2IYjyFW_bkpEtQ/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyb4dXSj2aadyUYVaIR4Z7cxK1mEf5HdiuZ8qa8DbDmrmn0q5ZE2IshvdFL3ztrY9h2Bg/exec';
 
     const CONFIG = {
       levels: {
@@ -571,10 +571,6 @@
           }
           if (data.inputMode) {
             state.inputMode = data.inputMode;
-          }
-          if (data.currentCombinedLevel) {
-            state.currentCombinedLevel = data.currentCombinedLevel;
-            saveCombinedLevelToStorage();
           }
           updateModalTitle();
           updateSettingsUI();
