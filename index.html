@@ -32,7 +32,7 @@
 
     .trainer-card {
       width: 100%;
-      max-width: 640px;
+      max-width: 680px;
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 24px;
@@ -92,59 +92,52 @@
       background-color: rgba(255, 255, 255, 0.5);
     }
 
-    .level-radio-item {
+    .lesson-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
+      gap: 8px;
+      background: #f9fafb;
       border: 1px solid #e5e7eb;
-      background-color: #f9fafb;
+      border-radius: 16px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+    }
+
+    .lesson-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      min-width: 135px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 10px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4b5563;
       cursor: pointer;
       transition: all 0.2s;
-      font-size: 13px;
-      font-weight: 600;
-      color: #374151;
+      text-align: center;
+      user-select: none;
     }
-    .level-radio-item:hover {
+    .mode-btn:hover {
       background-color: #f3f4f6;
+      border-color: #cbd5e1;
     }
-    .level-radio-item.selected {
+    .mode-btn.selected {
       background-color: #eff6ff;
       border-color: #2563eb;
       color: #1d4ed8;
-    }
-    .level-radio-item.disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-      background-color: #f3f4f6;
-    }
-
-    /* Стилі для статусних бейджів */
-    .status-badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .badge-completed {
-      background-color: #dcfce7;
-      color: #15803d;
-      border: 1px solid #bbf7d0;
-    }
-    .badge-unlocked {
-      background-color: #dbeafe;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
-    }
-    .badge-locked {
-      background-color: #f3f4f6;
-      color: #9ca3af;
-      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
     }
   </style>
 </head>
@@ -163,7 +156,7 @@
 
     <!-- 2. ОКНО НАСТРОЙКИ УРОКА -->
     <div id="settingsModal" class="hidden flex flex-col w-full">
-      <div class="flex justify-between items-center mb-6 pb-3 border-b border-gray-100">
+      <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
         <div class="flex items-center gap-2">
           <button onclick="openRecordsModal()" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition shadow-sm flex items-center justify-center text-sm font-bold" title="Статистика">📊</button>
           <h2 id="modalTitleUser" class="text-xl font-bold text-gray-800 brand-font">Учень</h2>
@@ -176,13 +169,13 @@
         </div>
       </div>
 
-      <!-- Список рівнів зі статусами (Завершено / В процесі / Заблоковано) -->
-      <div class="mb-5 max-h-[300px] overflow-y-auto pr-1 flex flex-col gap-2" id="levelsRadioContainer">
-        <!-- Динамічно заповнюється через JS -->
+      <!-- Список уроків та режимів в один рядок (без блокувань) -->
+      <div class="mb-4 max-h-[320px] overflow-y-auto pr-1 flex flex-col" id="levelsGridContainer">
+        <!-- Заповнюється через JS -->
       </div>
 
-      <!-- Режим вводу -->
-      <div class="mb-6">
+      <!-- Перемикач режиму вводу -->
+      <div class="mb-5">
         <div class="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 gap-1">
           <label id="label_novice" class="radio-option active" onclick="setInputMode('novice')">
             <input type="radio" name="inputModeRadio" id="radio_novice" checked>
@@ -351,7 +344,7 @@
       gameMode: 'training',
       inputMode: 'novice',
       nickname: localStorage.getItem('math_trainer_nickname') || '',
-      currentCombinedLevel: localStorage.getItem('math_trainer_combined_level') || '',
+      currentCombinedLevel: localStorage.getItem('math_trainer_combined_level') || '1_training',
       score: 0,
       errors: 0,
       correctCount: 0,
@@ -375,7 +368,7 @@
     }
 
     function parseCombinedLevel(val) {
-      const parts = val.split('_');
+      const parts = (val || '1_training').split('_');
       return {
         level: parseInt(parts[0], 10) || 1,
         gameMode: parts[1] || 'training'
@@ -389,114 +382,61 @@
       '4_training', '4_speed', '4_records'
     ];
 
-    function getUnlockedSequence() {
-      let maxUnlockedIdx = 0;
-      GAME_SEQUENCE.forEach((seq, idx) => {
-        const parsed = parseCombinedLevel(seq);
-        const key = `L${parsed.level}_${parsed.gameMode}`;
-        if (state.records[key] && state.records[key].score > 0) {
-          if (idx + 1 > maxUnlockedIdx) {
-            maxUnlockedIdx = idx + 1;
-          }
-        }
-      });
-      return { sequence: GAME_SEQUENCE, maxUnlockedIdx };
-    }
-
     function updateSettingsUI() {
-      const { sequence, maxUnlockedIdx } = getUnlockedSequence();
-      const container = document.getElementById('levelsRadioContainer');
+      const container = document.getElementById('levelsGridContainer');
       if (!container) return;
       container.innerHTML = '';
 
-      if (!state.currentCombinedLevel || !sequence.includes(state.currentCombinedLevel)) {
+      if (!state.currentCombinedLevel) {
         state.currentCombinedLevel = '1_training';
         saveCombinedLevelToStorage();
       }
 
-      const lessonNames = {
-        1: 'Урок 1: Множення на 0, 1, 2',
-        2: 'Урок 2: Множення на 3, 4',
-        3: 'Урок 3: Множення на 5, 6',
-        4: 'Урок 4: Множення на 7, 8, 9, 10'
+      const lessonLabels = {
+        1: 'Урок 1 (0-2)',
+        2: 'Урок 2 (3-4)',
+        3: 'Урок 3 (5-6)',
+        4: 'Урок 4 (7-10)'
       };
 
-      const modeNames = {
-        training: 'Тренування',
-        speed: 'Перевірка швидкості',
-        records: 'Марафон'
-      };
+      const modes = [
+        { id: 'training', label: 'Тренування', icon: '📖' },
+        { id: 'speed', label: 'Тестування', icon: '⚡' },
+        { id: 'records', label: 'Марафон', icon: '🏆' }
+      ];
 
       for (let lvl = 1; lvl <= 4; lvl++) {
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'mb-3 last:mb-0';
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'lesson-row';
 
-        const groupTitle = document.createElement('div');
-        groupTitle.className = 'text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1';
-        groupTitle.textContent = lessonNames[lvl];
-        groupDiv.appendChild(groupTitle);
+        const titleSpan = document.createElement('div');
+        titleSpan.className = 'lesson-title';
+        titleSpan.textContent = lessonLabels[lvl];
+        rowDiv.appendChild(titleSpan);
 
-        ['training', 'speed', 'records'].forEach(mode => {
-          const seqVal = `${lvl}_${mode}`;
-          const idx = sequence.indexOf(seqVal);
-          
-          let isUnlocked = (idx <= maxUnlockedIdx);
-          if (mode === 'training' && lvl > 1) {
-            const prevMarathonKey = `L${lvl - 1}_records`;
-            const prevPassed = !!(state.records[prevMarathonKey] && state.records[prevMarathonKey].score > 0);
-            if (prevPassed || idx <= maxUnlockedIdx) isUnlocked = true;
-          }
+        const modesWrapper = document.createElement('div');
+        modesWrapper.className = 'flex gap-1.5 flex-1';
 
-          const recordKey = `L${lvl}_${mode}`;
-          const isCompleted = !!(state.records[recordKey] && state.records[recordKey].score > 0);
-
-          const label = document.createElement('label');
+        modes.forEach(m => {
+          const seqVal = `${lvl}_${m.id}`;
           const isSelected = (state.currentCombinedLevel === seqVal);
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `mode-btn ${isSelected ? 'selected' : ''}`;
+          btn.innerHTML = `<span>${m.icon}</span><span>${m.label}</span>`;
           
-          label.className = `level-radio-item ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'disabled' : ''}`;
-
-          const leftBox = document.createElement('div');
-          leftBox.className = 'flex items-center gap-2';
-
-          const radio = document.createElement('input');
-          radio.type = 'radio';
-          radio.name = 'selectedLevelRadio';
-          radio.value = seqVal;
-          radio.checked = isSelected;
-          radio.disabled = !isUnlocked;
-          radio.onchange = () => {
-            if (isUnlocked) {
-              state.currentCombinedLevel = seqVal;
-              saveCombinedLevelToStorage();
-              updateSettingsUI();
-            }
+          btn.onclick = () => {
+            state.currentCombinedLevel = seqVal;
+            saveCombinedLevelToStorage();
+            updateSettingsUI();
           };
 
-          const textSpan = document.createElement('span');
-          textSpan.textContent = modeNames[mode];
-
-          leftBox.appendChild(radio);
-          leftBox.appendChild(textSpan);
-
-          // Бейдж статусу (Завершено / В процесі / Заблоковано)
-          const badgeSpan = document.createElement('span');
-          if (isCompleted) {
-            badgeSpan.className = 'status-badge badge-completed';
-            badgeSpan.innerHTML = '✅ Завершено';
-          } else if (isUnlocked) {
-            badgeSpan.className = 'status-badge badge-unlocked';
-            badgeSpan.innerHTML = '🌟 Новий';
-          } else {
-            badgeSpan.className = 'status-badge badge-locked';
-            badgeSpan.innerHTML = '🔒 Заблоковано';
-          }
-
-          label.appendChild(leftBox);
-          label.appendChild(badgeSpan);
-          groupDiv.appendChild(label);
+          modesWrapper.appendChild(btn);
         });
 
-        container.appendChild(groupDiv);
+        rowDiv.appendChild(modesWrapper);
+        container.appendChild(rowDiv);
       }
 
       updateToggleUI();
