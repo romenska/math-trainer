@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Тренажер множення</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/canvas-confetti.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -345,16 +345,17 @@
       };
     }
 
-    function getUnlockedSequence() {
-      const sequence = [
-        '1_training', '1_speed', '1_records',
-        '2_training', '2_speed', '2_records',
-        '3_training', '3_speed', '3_records',
-        '4_training', '4_speed', '4_records'
-      ];
+    // Правильна послідовність: Тренування -> Перевірка швидкості -> Марафон
+    const GAME_SEQUENCE = [
+      '1_training', '1_speed', '1_records',
+      '2_training', '2_speed', '2_records',
+      '3_training', '3_speed', '3_records',
+      '4_training', '4_speed', '4_records'
+    ];
 
+    function getUnlockedSequence() {
       let maxUnlockedIdx = 0;
-      sequence.forEach((seq, idx) => {
+      GAME_SEQUENCE.forEach((seq, idx) => {
         const parsed = parseCombinedLevel(seq);
         const key = `L${parsed.level}_${parsed.gameMode}`;
         if (state.records[key] && state.records[key].score > 0) {
@@ -363,8 +364,7 @@
           }
         }
       });
-
-      return { sequence, maxUnlockedIdx };
+      return { sequence: GAME_SEQUENCE, maxUnlockedIdx };
     }
 
     function updateSettingsUI() {
@@ -1124,15 +1124,9 @@
       let statusResult = (success && isNewRecord) ? 'успіх' : 'невдача';
 
       if (success) {
-        const sequence = [
-          '1_training', '1_speed', '1_records',
-          '2_training', '2_speed', '2_records',
-          '3_training', '3_speed', '3_records',
-          '4_training', '4_speed', '4_records'
-        ];
-        let currIdx = sequence.indexOf(state.currentCombinedLevel);
-        if (currIdx !== -1 && currIdx < sequence.length - 1) {
-          state.currentCombinedLevel = sequence[currIdx + 1];
+        let currIdx = GAME_SEQUENCE.indexOf(state.currentCombinedLevel);
+        if (currIdx !== -1 && currIdx < GAME_SEQUENCE.length - 1) {
+          state.currentCombinedLevel = GAME_SEQUENCE[currIdx + 1];
           saveCombinedLevelToStorage();
         }
       }
@@ -1167,16 +1161,9 @@
     window.goToNextLesson = function() {
       document.getElementById('resultModal')?.classList.add('hidden');
 
-      const sequence = [
-        '1_training', '1_speed', '1_records',
-        '2_training', '2_speed', '2_records',
-        '3_training', '3_speed', '3_records',
-        '4_training', '4_speed', '4_records'
-      ];
-
-      let currentIndex = sequence.indexOf(state.currentCombinedLevel);
-      if (currentIndex !== -1 && currentIndex < sequence.length - 1) {
-        state.currentCombinedLevel = sequence[currentIndex + 1];
+      let currentIndex = GAME_SEQUENCE.indexOf(state.currentCombinedLevel);
+      if (currentIndex !== -1 && currentIndex < GAME_SEQUENCE.length - 1) {
+        state.currentCombinedLevel = GAME_SEQUENCE[currentIndex + 1];
       } else {
         state.currentCombinedLevel = '1_training';
       }
