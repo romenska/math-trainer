@@ -92,23 +92,21 @@
       background-color: rgba(255, 255, 255, 0.5);
     }
 
-    .lesson-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+    .lesson-block {
       background: #f9fafb;
       border: 1px solid #e5e7eb;
       border-radius: 16px;
-      padding: 10px 14px;
-      margin-bottom: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
     }
 
-    .lesson-title {
-      font-size: 13px;
+    .lesson-title-header {
+      font-size: 12px;
       font-weight: 700;
-      color: #374151;
-      min-width: 135px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
     }
 
     .mode-btn {
@@ -117,13 +115,13 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 8px 10px;
+      padding: 10px 12px;
       background: #ffffff;
       border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      font-size: 12px;
+      border-radius: 12px;
+      font-size: 13px;
       font-weight: 600;
-      color: #4b5563;
+      color: #374151;
       cursor: pointer;
       transition: all 0.2s;
       text-align: center;
@@ -137,7 +135,7 @@
       background-color: #eff6ff;
       border-color: #2563eb;
       color: #1d4ed8;
-      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.12);
     }
   </style>
 </head>
@@ -169,12 +167,12 @@
         </div>
       </div>
 
-      <!-- Список уроків та режимів в один рядок (без блокувань) -->
-      <div class="mb-4 max-h-[320px] overflow-y-auto pr-1 flex flex-col" id="levelsGridContainer">
-        <!-- Заповнюється через JS -->
+      <!-- Список уроків: назва зверху, 3 рівні знизу -->
+      <div class="mb-4 max-h-[340px] overflow-y-auto pr-1 flex flex-col" id="levelsGridContainer">
+        <!-- Динамічно заповнюється через JS -->
       </div>
 
-      <!-- Перемикач режиму вводу -->
+      <!-- Перемикач "Новачок / Експерт" -->
       <div class="mb-5">
         <div class="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 gap-1">
           <label id="label_novice" class="radio-option active" onclick="setInputMode('novice')">
@@ -393,10 +391,10 @@
       }
 
       const lessonLabels = {
-        1: 'Урок 1 (0-2)',
-        2: 'Урок 2 (3-4)',
-        3: 'Урок 3 (5-6)',
-        4: 'Урок 4 (7-10)'
+        1: 'Урок 1: Множення на 0, 1, 2',
+        2: 'Урок 2: Множення на 3, 4',
+        3: 'Урок 3: Множення на 5, 6',
+        4: 'Урок 4: Множення на 7, 8, 9, 10'
       };
 
       const modes = [
@@ -406,25 +404,30 @@
       ];
 
       for (let lvl = 1; lvl <= 4; lvl++) {
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'lesson-row';
+        const blockDiv = document.createElement('div');
+        blockDiv.className = 'lesson-block';
 
-        const titleSpan = document.createElement('div');
-        titleSpan.className = 'lesson-title';
-        titleSpan.textContent = lessonLabels[lvl];
-        rowDiv.appendChild(titleSpan);
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'lesson-title-header';
+        titleDiv.textContent = lessonLabels[lvl];
+        blockDiv.appendChild(titleDiv);
 
         const modesWrapper = document.createElement('div');
-        modesWrapper.className = 'flex gap-1.5 flex-1';
+        modesWrapper.className = 'flex gap-2';
 
         modes.forEach(m => {
           const seqVal = `${lvl}_${m.id}`;
           const isSelected = (state.currentCombinedLevel === seqVal);
+          
+          const recordKey = `L${lvl}_${m.id}`;
+          const isCompleted = !!(state.records[recordKey] && state.records[recordKey].score > 0);
 
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = `mode-btn ${isSelected ? 'selected' : ''}`;
-          btn.innerHTML = `<span>${m.icon}</span><span>${m.label}</span>`;
+          
+          const starIcon = isCompleted ? '⭐ ' : '';
+          btn.innerHTML = `<span>${starIcon}${m.icon}</span><span>${m.label}</span>`;
           
           btn.onclick = () => {
             state.currentCombinedLevel = seqVal;
@@ -435,8 +438,8 @@
           modesWrapper.appendChild(btn);
         });
 
-        rowDiv.appendChild(modesWrapper);
-        container.appendChild(rowDiv);
+        blockDiv.appendChild(modesWrapper);
+        container.appendChild(blockDiv);
       }
 
       updateToggleUI();
@@ -832,7 +835,7 @@
 
       const modes = [
         { id: 'training', label: 'Тренування' },
-        { id: 'speed', label: 'Швидкість' },
+        { id: 'speed', label: 'Тестування' },
         { id: 'records', label: 'Марафон' }
       ];
 
@@ -893,7 +896,7 @@
       document.getElementById('summaryLesson').textContent = CONFIG.levels[state.level].name;
 
       document.getElementById('bottomSummaryNickname').textContent = state.nickname || 'Учень';
-      const modeNames = { training: 'Тренування', speed: 'Перевірка швидкості', records: 'Марафон' };
+      const modeNames = { training: 'Тренування', speed: 'Тестування', records: 'Марафон' };
       document.getElementById('bottomSummaryGameMode').textContent = modeNames[state.gameMode];
 
       const inputNames = { novice: 'Новачок', expert: 'Експерт' };
