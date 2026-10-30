@@ -99,8 +99,13 @@
 
     <!-- 2. ОКНО НАСТРОЙКИ УРОКА -->
     <div id="settingsModal" class="hidden flex flex-col w-full">
-      <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
-        <h2 id="modalTitleUser" class="text-xl font-bold text-gray-800 brand-font">Учень</h2>
+      <div class="flex justify-between items-center mb-6 pb-3 border-b border-gray-100">
+        <!-- Статистика перенесена перед именем -->
+        <div class="flex items-center gap-2">
+          <button onclick="openRecordsModal()" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition shadow-sm flex items-center justify-center text-sm font-bold" title="Статистика">📊</button>
+          <h2 id="modalTitleUser" class="text-xl font-bold text-gray-800 brand-font">Учень</h2>
+        </div>
+        
         <div class="flex items-center gap-1.5">
           <button onclick="openLogoutPrompt()" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition shadow-sm flex items-center justify-center" title="Вихід з аккаунта">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -108,39 +113,31 @@
         </div>
       </div>
 
-      <!-- ID учня + Кнопки копіювання та статистики -->
-      <div class="mb-4">
-        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">ID учня</label>
-        <div class="flex gap-2">
-          <input type="text" id="inputDeviceId" readonly class="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-mono text-gray-500 bg-gray-100 cursor-not-allowed focus:outline-none" placeholder="ID учня...">
-          <button onclick="copyDeviceId()" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex-shrink-0 flex items-center justify-center" title="Копіювати ID">📋</button>
-          <button onclick="openRecordsModal()" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-bold transition flex-shrink-0 flex items-center justify-center" title="Статистика">📊</button>
-        </div>
-      </div>
+      <!-- Поле ID учня повністю прибрано -->
 
-      <!-- Объединенное поле «Рівень» (Уроки + режимы с вложенными подпунктами) -->
+      <!-- Поле «Рівень» -->
       <div class="mb-5">
         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Рівень</label>
         <select id="selectCombinedLevel" class="w-full p-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:outline-none focus:border-blue-500">
-          <optgroup label="Урок 1: Множення на 0, 1, 2">
-            <option value="1_training">Урок 1 — Тренування</option>
-            <option value="1_speed">Урок 1 — Перевірка швидкості</option>
-            <option value="1_records">Урок 1 — Марафон</option>
+          <optgroup label="Урок 1: Множення на 0, 1, 2" id="group_1">
+            <option value="1_training" id="opt_1_training">Урок 1 — Тренування</option>
+            <option value="1_speed" id="opt_1_speed" disabled>🔒 Урок 1 — Перевірка швидкості</option>
+            <option value="1_records" id="opt_1_records" disabled>🔒 Урок 1 — Марафон</option>
           </optgroup>
-          <optgroup label="Урок 2: Множення на 3, 4">
-            <option value="2_training">Урок 2 — Тренування</option>
-            <option value="2_speed">Урок 2 — Перевірка швидкості</option>
-            <option value="2_records">Урок 2 — Марафон</option>
+          <optgroup label="Урок 2: Множення на 3, 4" id="group_2">
+            <option value="2_training" id="opt_2_training" disabled>🔒 Урок 2 — Тренування</option>
+            <option value="2_speed" id="opt_2_speed" disabled>🔒 Урок 2 — Перевірка швидкості</option>
+            <option value="2_records" id="opt_2_records" disabled>🔒 Урок 2 — Марафон</option>
           </optgroup>
-          <optgroup label="Урок 3: Множення на 5, 6">
-            <option value="3_training">Урок 3 — Тренування</option>
-            <option value="3_speed">Урок 3 — Перевірка швидкості</option>
-            <option value="3_records">Урок 3 — Марафон</option>
+          <optgroup label="Урок 3: Множення на 5, 6" id="group_3">
+            <option value="3_training" id="opt_3_training" disabled>🔒 Урок 3 — Тренування</option>
+            <option value="3_speed" id="opt_3_speed" disabled>🔒 Урок 3 — Перевірка швидкості</option>
+            <option value="3_records" id="opt_3_records" disabled>🔒 Урок 3 — Марафон</option>
           </optgroup>
-          <optgroup label="Урок 4: Множення на 7, 8, 9, 10">
-            <option value="4_training">Урок 4 — Тренування</option>
-            <option value="4_speed">Урок 4 — Перевірка швидкості</option>
-            <option value="4_records">Урок 4 — Марафон</option>
+          <optgroup label="Урок 4: Множення на 7, 8, 9, 10" id="group_4">
+            <option value="4_training" id="opt_4_training" disabled>🔒 Урок 4 — Тренування</option>
+            <option value="4_speed" id="opt_4_speed" disabled>🔒 Урок 4 — Перевірка швидкості</option>
+            <option value="4_records" id="opt_4_records" disabled>🔒 Урок 4 — Марафон</option>
           </optgroup>
         </select>
       </div>
@@ -203,7 +200,6 @@
             2 × 2 = ?
           </div>
 
-          <!-- Кнопка картинки-подсказки (только для тренировки вручную) -->
           <div id="hintButtonsContainer" class="absolute bottom-3 right-3 flex items-center gap-2 z-10">
             <button id="btnHint" onclick="toggleHint()" title="Підказка картинка" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-full border border-amber-200 shadow-sm transition flex items-center justify-center">
               💡
@@ -229,7 +225,6 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Кнопка Фініш чорними літерами із прапорцем у режимі Марафон -->
           <button id="btnMarathonFinish" onclick="openSettingsModal()" title="Завершити марафон" class="hidden px-3.5 py-2 text-xs font-bold text-black bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">Фініш 🏁</button>
         </div>
       </footer>
@@ -311,7 +306,7 @@
       gameMode: 'training',
       inputMode: 'novice',
       nickname: localStorage.getItem('math_trainer_nickname') || '',
-      currentCombinedLevel: localStorage.getItem('math_trainer_combined_level') || '1_training',
+      currentCombinedLevel: localStorage.getItem('math_trainer_combined_level') || '',
       score: 0,
       errors: 0,
       correctCount: 0,
@@ -342,6 +337,63 @@
       };
     }
 
+    function getUnlockedSequence() {
+      const sequence = [
+        '1_training', '1_speed', '1_records',
+        '2_training', '2_speed', '2_records',
+        '3_training', '3_speed', '3_records',
+        '4_training', '4_speed', '4_records'
+      ];
+
+      let maxUnlockedIdx = 0;
+      sequence.forEach((seq, idx) => {
+        const parsed = parseCombinedLevel(seq);
+        const key = `L${parsed.level}_${parsed.gameMode}`;
+        if (state.records[key] && state.records[key].score > 0) {
+          if (idx + 1 > maxUnlockedIdx) {
+            maxUnlockedIdx = idx + 1;
+          }
+        }
+      });
+
+      return { sequence, maxUnlockedIdx };
+    }
+
+    function updateSettingsUI() {
+      const { sequence, maxUnlockedIdx } = getUnlockedSequence();
+
+      sequence.forEach((seq, idx) => {
+        const parsed = parseCombinedLevel(seq);
+        const optId = `opt_${parsed.level}_${parsed.gameMode}`;
+        const optElem = document.getElementById(optId);
+        
+        const isUnlocked = (idx <= maxUnlockedIdx);
+
+        if (optElem) {
+          if (parsed.gameMode === 'training' && parsed.level > 1) {
+            const prevLessonMarathonKey = `L${parsed.level - 1}_records`;
+            const prevPassed = !!(state.records[prevLessonMarathonKey] && state.records[prevLessonMarathonKey].score > 0);
+            const unlockedTraining = prevPassed || idx <= maxUnlockedIdx;
+            
+            optElem.disabled = !unlockedTraining;
+            optElem.textContent = unlockedTraining ? `Урок ${parsed.level} — Тренування` : `🔒 Урок ${parsed.level} — Тренування`;
+          } else if (optElem.id !== 'opt_1_training') {
+            optElem.disabled = !isUnlocked;
+            const modeNames = { training: 'Тренування', speed: 'Перевірка швидкості', records: 'Марафон' };
+            optElem.textContent = isUnlocked ? `Урок ${parsed.level} — ${modeNames[parsed.gameMode]}` : `🔒 Урок ${parsed.level} — ${modeNames[parsed.gameMode]}`;
+          }
+        }
+      });
+
+      if (!state.currentCombinedLevel || !sequence.includes(state.currentCombinedLevel)) {
+        state.currentCombinedLevel = '1_training';
+        saveCombinedLevelToStorage();
+      }
+
+      document.getElementById('selectCombinedLevel').value = state.currentCombinedLevel;
+      updateToggleUI();
+    }
+
     function showScreen(screenId) {
       document.getElementById('newUserModal').classList.add('hidden');
       document.getElementById('settingsModal').classList.add('hidden');
@@ -352,10 +404,10 @@
     }
 
     window.copyDeviceId = function() {
-      const input = document.getElementById('inputDeviceId');
-      if (input) {
-        input.select();
-        navigator.clipboard.writeText(input.value).catch(() => {});
+      const logoutDevInput = document.getElementById('logoutInputDeviceId');
+      if (logoutDevInput) {
+        logoutDevInput.select();
+        navigator.clipboard.writeText(logoutDevInput.value).catch(() => {});
       }
     };
 
@@ -389,7 +441,7 @@
       state.deviceId = '';
       state.nickname = '';
       state.records = {};
-      state.currentCombinedLevel = '1_training';
+      state.currentCombinedLevel = '';
 
       closeLogoutPrompt();
       openNewUserPrompt();
@@ -417,10 +469,15 @@
         localStorage.setItem('math_trainer_nickname', inputVal);
         saveCombinedLevelToStorage();
 
+        // Реєстрація нового учня в Google Таблицю
         sendStatsToGoogleSheet(true);
       }
 
-      document.getElementById('inputDeviceId').value = state.deviceId;
+      if (!state.currentCombinedLevel) {
+        state.currentCombinedLevel = '1_training';
+        saveCombinedLevelToStorage();
+      }
+
       document.getElementById('selectCombinedLevel').value = state.currentCombinedLevel;
       updateModalTitle();
       openSettingsModal();
@@ -464,6 +521,9 @@
             state.nickname = data.nickname;
             localStorage.setItem('math_trainer_nickname', data.nickname);
           }
+          if (data.inputMode) {
+            state.inputMode = data.inputMode;
+          }
           if (data.currentCombinedLevel) {
             state.currentCombinedLevel = data.currentCombinedLevel;
             saveCombinedLevelToStorage();
@@ -481,6 +541,7 @@
       const speed = state.timerSeconds > 0 ? (state.correctCount / state.timerSeconds).toFixed(2) : 0;
       
       const payload = {
+        action: isRegistration ? 'register' : 'updateProgress',
         deviceId: state.deviceId,
         nickname: state.nickname,
         currentCombinedLevel: state.currentCombinedLevel,
@@ -521,14 +582,10 @@
 
     function updateHintVisibilityByMode() {
       const hintImgBtn = document.getElementById('btnHint');
-      const textHintBox = document.getElementById('textHintBox');
-
-      if (state.gameMode === 'speed') {
+      if (state.gameMode === 'speed' || state.gameMode === 'records') {
         if (hintImgBtn) hintImgBtn.classList.add('hidden');
       } else if (state.gameMode === 'training') {
         if (hintImgBtn) hintImgBtn.classList.remove('hidden');
-      } else if (state.gameMode === 'records') {
-        if (hintImgBtn) hintImgBtn.classList.add('hidden');
       }
     }
 
@@ -636,6 +693,10 @@
         openNewUserPrompt();
       } else {
         await loadCloudData();
+        if (!state.currentCombinedLevel) {
+          state.currentCombinedLevel = '1_training';
+          saveCombinedLevelToStorage();
+        }
         openSettingsModal();
       }
     });
@@ -667,9 +728,12 @@
       }));
     }
 
+    // Збереження при зміні режиму вводу
     window.setInputMode = function(mode) {
       state.inputMode = mode;
       updateToggleUI();
+      saveSettingsToLocalStorage();
+      sendStatsToGoogleSheet(false); // Відправка оновленого режиму вводу в таблицю
     };
 
     function updateToggleUI() {
@@ -678,11 +742,6 @@
         if (!btn) return;
         btn.classList.toggle('active', state.inputMode === m);
       });
-    }
-
-    function updateSettingsUI() {
-      document.getElementById('selectCombinedLevel').value = state.currentCombinedLevel;
-      updateToggleUI();
     }
 
     function formatTime(seconds) {
@@ -1037,6 +1096,21 @@
         if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       }
 
+      if (success) {
+        const sequence = [
+          '1_training', '1_speed', '1_records',
+          '2_training', '2_speed', '2_records',
+          '3_training', '3_speed', '3_records',
+          '4_training', '4_speed', '4_records'
+        ];
+        let currIdx = sequence.indexOf(state.currentCombinedLevel);
+        if (currIdx !== -1 && currIdx < sequence.length - 1) {
+          state.currentCombinedLevel = sequence[currIdx + 1];
+          saveCombinedLevelToStorage();
+        }
+      }
+
+      // Збереження нового рівня та прогресу в Google Таблицю після тренування
       sendStatsToGoogleSheet(false);
 
       document.getElementById('resScoreBig').textContent = `${state.score} балів`;
@@ -1102,9 +1176,6 @@
       clearInterval(state.timerInterval);
       updateSettingsUI();
       updateModalTitle();
-      
-      const devInput = document.getElementById('inputDeviceId');
-      if (devInput) devInput.value = state.deviceId;
 
       document.getElementById('resultModal')?.classList.add('hidden');
       document.getElementById('logoutModal')?.classList.add('hidden');
