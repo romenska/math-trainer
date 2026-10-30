@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Тренажер множення</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/canvas-confetti.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -59,7 +59,7 @@
       transform: scale(0.96);
     }
 
-    .radio-card {
+    .radio-option {
       flex: 1;
       display: flex;
       align-items: center;
@@ -69,26 +69,54 @@
       text-align: center;
       font-size: 13px;
       font-weight: 600;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      background-color: #f9fafb;
+      border-radius: 10px;
       transition: all 0.2s ease;
       cursor: pointer;
       user-select: none;
     }
-    .radio-card input[type="radio"] {
+    .radio-option input[type="radio"] {
       accent-color: #2563eb;
       width: 16px;
       height: 16px;
       cursor: pointer;
     }
-    .radio-card.active {
+    .radio-option.active {
+      background-color: #ffffff;
+      color: #1d4ed8;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    .radio-option:not(.active) {
+      color: #4b5563;
+    }
+    .radio-option:not(.active):hover {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .level-radio-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background-color: #f9fafb;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+    }
+    .level-radio-item:hover {
+      background-color: #f3f4f6;
+    }
+    .level-radio-item.selected {
       background-color: #eff6ff;
       border-color: #2563eb;
       color: #1d4ed8;
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
     }
-    .radio-card:hover {
+    .level-radio-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
       background-color: #f3f4f6;
     }
   </style>
@@ -121,41 +149,23 @@
         </div>
       </div>
 
-      <div class="mb-5">
-        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Рівень</label>
-        <select id="selectCombinedLevel" class="w-full p-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:outline-none focus:border-blue-500">
-          <optgroup label="Урок 1: Множення на 0, 1, 2" id="group_1">
-            <option value="1_training" id="opt_1_training">Урок 1 — Тренування</option>
-            <option value="1_speed" id="opt_1_speed" disabled>🔒 Урок 1 — Перевірка швидкості</option>
-            <option value="1_records" id="opt_1_records" disabled>🔒 Урок 1 — Марафон</option>
-          </optgroup>
-          <optgroup label="Урок 2: Множення на 3, 4" id="group_2">
-            <option value="2_training" id="opt_2_training" disabled>🔒 Урок 2 — Тренування</option>
-            <option value="2_speed" id="opt_2_speed" disabled>🔒 Урок 2 — Перевірка швидкості</option>
-            <option value="2_records" id="opt_2_records" disabled>🔒 Урок 2 — Марафон</option>
-          </optgroup>
-          <optgroup label="Урок 3: Множення на 5, 6" id="group_3">
-            <option value="3_training" id="opt_3_training" disabled>🔒 Урок 3 — Тренування</option>
-            <option value="3_speed" id="opt_3_speed" disabled>🔒 Урок 3 — Перевірка швидкості</option>
-            <option value="3_records" id="opt_3_records" disabled>🔒 Урок 3 — Марафон</option>
-          </optgroup>
-          <optgroup label="Урок 4: Множення на 7, 8, 9, 10" id="group_4">
-            <option value="4_training" id="opt_4_training" disabled>🔒 Урок 4 — Тренування</option>
-            <option value="4_speed" id="opt_4_speed" disabled>🔒 Урок 4 — Перевірка швидкості</option>
-            <option value="4_records" id="opt_4_records" disabled>🔒 Урок 4 — Марафон</option>
-          </optgroup>
-        </select>
+      <!-- Список рівнів замість випадаючого списку (без заголовка «Рівень») -->
+      <div class="mb-5 max-h-[280px] overflow-y-auto pr-1 flex flex-col gap-2" id="levelsRadioContainer">
+        <!-- Динамически заполняется через JS -->
       </div>
 
-      <div class="mb-6 flex gap-3">
-        <label id="label_novice" class="radio-card active" onclick="setInputMode('novice')">
-          <input type="radio" name="inputModeRadio" id="radio_novice" checked>
-          <span>🌱 Новачок</span>
-        </label>
-        <label id="label_expert" class="radio-card" onclick="setInputMode('expert')">
-          <input type="radio" name="inputModeRadio" id="radio_expert">
-          <span>⌨️ Експерт</span>
-        </label>
+      <!-- Режим вводу -->
+      <div class="mb-6">
+        <div class="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 gap-1">
+          <label id="label_novice" class="radio-option active" onclick="setInputMode('novice')">
+            <input type="radio" name="inputModeRadio" id="radio_novice" checked>
+            <span>🌱 Новачок</span>
+          </label>
+          <label id="label_expert" class="radio-option" onclick="setInputMode('expert')">
+            <input type="radio" name="inputModeRadio" id="radio_expert">
+            <span>⌨️ Експерт</span>
+          </label>
+        </div>
       </div>
 
       <button onclick="saveAndStartGame()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm shadow-md pulse-btn transition">Старт</button>
@@ -298,7 +308,7 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5NbynOx14wxSzF7-eED8FB9kvTFixMVE5PXNyh-eeM_XHYoX9smQ4eT5A_broDISxDA/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyA0ze1G7VPBSZLAQsttdHQMNkQM9eX7Tdm-4l9KE5Zdkw2TEg1UP6kcjndafRkQw4BIg/exec';
 
     const CONFIG = {
       levels: {
@@ -345,7 +355,6 @@
       };
     }
 
-    // Правильна послідовність: Тренування -> Перевірка швидкості -> Марафон
     const GAME_SEQUENCE = [
       '1_training', '1_speed', '1_records',
       '2_training', '2_speed', '2_records',
@@ -369,36 +378,78 @@
 
     function updateSettingsUI() {
       const { sequence, maxUnlockedIdx } = getUnlockedSequence();
-
-      sequence.forEach((seq, idx) => {
-        const parsed = parseCombinedLevel(seq);
-        const optId = `opt_${parsed.level}_${parsed.gameMode}`;
-        const optElem = document.getElementById(optId);
-        
-        const isUnlocked = (idx <= maxUnlockedIdx);
-
-        if (optElem) {
-          if (parsed.gameMode === 'training' && parsed.level > 1) {
-            const prevLessonMarathonKey = `L${parsed.level - 1}_records`;
-            const prevPassed = !!(state.records[prevLessonMarathonKey] && state.records[prevLessonMarathonKey].score > 0);
-            const unlockedTraining = prevPassed || idx <= maxUnlockedIdx;
-            
-            optElem.disabled = !unlockedTraining;
-            optElem.textContent = unlockedTraining ? `Урок ${parsed.level} — Тренування` : `🔒 Урок ${parsed.level} — Тренування`;
-          } else if (optElem.id !== 'opt_1_training') {
-            optElem.disabled = !isUnlocked;
-            const modeNames = { training: 'Тренування', speed: 'Перевірка швидкості', records: 'Марафон' };
-            optElem.textContent = isUnlocked ? `Урок ${parsed.level} — ${modeNames[parsed.gameMode]}` : `🔒 Урок ${parsed.level} — ${modeNames[parsed.gameMode]}`;
-          }
-        }
-      });
+      const container = document.getElementById('levelsRadioContainer');
+      if (!container) return;
+      container.innerHTML = '';
 
       if (!state.currentCombinedLevel || !sequence.includes(state.currentCombinedLevel)) {
         state.currentCombinedLevel = '1_training';
         saveCombinedLevelToStorage();
       }
 
-      document.getElementById('selectCombinedLevel').value = state.currentCombinedLevel;
+      const lessonNames = {
+        1: 'Урок 1: Множення на 0, 1, 2',
+        2: 'Урок 2: Множення на 3, 4',
+        3: 'Урок 3: Множення на 5, 6',
+        4: 'Урок 4: Множення на 7, 8, 9, 10'
+      };
+
+      const modeNames = {
+        training: 'Тренування',
+        speed: 'Перевірка швидкості',
+        records: 'Марафон'
+      };
+
+      for (let lvl = 1; lvl <= 4; lvl++) {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'mb-3 last:mb-0';
+
+        const groupTitle = document.createElement('div');
+        groupTitle.className = 'text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1';
+        groupTitle.textContent = lessonNames[lvl];
+        groupDiv.appendChild(groupTitle);
+
+        ['training', 'speed', 'records'].forEach(mode => {
+          const seqVal = `${lvl}_${mode}`;
+          const idx = sequence.indexOf(seqVal);
+          
+          let isUnlocked = (idx <= maxUnlockedIdx);
+          if (mode === 'training' && lvl > 1) {
+            const prevMarathonKey = `L${lvl - 1}_records`;
+            const prevPassed = !!(state.records[prevMarathonKey] && state.records[prevMarathonKey].score > 0);
+            if (prevPassed || idx <= maxUnlockedIdx) isUnlocked = true;
+          }
+
+          const label = document.createElement('label');
+          const isSelected = (state.currentCombinedLevel === seqVal);
+          
+          label.className = `level-radio-item ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'disabled' : ''}`;
+
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = 'selectedLevelRadio';
+          radio.value = seqVal;
+          radio.checked = isSelected;
+          radio.disabled = !isUnlocked;
+          radio.onchange = () => {
+            if (isUnlocked) {
+              state.currentCombinedLevel = seqVal;
+              saveCombinedLevelToStorage();
+              updateSettingsUI();
+            }
+          };
+
+          const span = document.createElement('span');
+          span.textContent = `${isUnlocked ? '' : '🔒 '}${modeNames[mode]}`;
+
+          label.appendChild(radio);
+          label.appendChild(span);
+          groupDiv.appendChild(label);
+        });
+
+        container.appendChild(groupDiv);
+      }
+
       updateToggleUI();
     }
 
@@ -483,7 +534,6 @@
         saveCombinedLevelToStorage();
       }
 
-      document.getElementById('selectCombinedLevel').value = state.currentCombinedLevel;
       updateModalTitle();
       openSettingsModal();
     };
@@ -736,6 +786,9 @@
           if (parsed.inputMode) state.inputMode = parsed.inputMode;
         } catch (e) {}
       }
+      if (!state.inputMode) {
+        state.inputMode = 'novice';
+      }
     }
 
     function saveSettingsToLocalStorage() {
@@ -820,10 +873,6 @@
     }
 
     window.saveAndStartGame = function() {
-      const selectElem = document.getElementById('selectCombinedLevel');
-      state.currentCombinedLevel = selectElem.value;
-      saveCombinedLevelToStorage();
-
       const parsed = parseCombinedLevel(state.currentCombinedLevel);
       state.level = parsed.level;
       state.gameMode = parsed.gameMode;
