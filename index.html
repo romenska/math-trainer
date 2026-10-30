@@ -59,27 +59,36 @@
       transform: scale(0.96);
     }
 
-    .toggle-btn {
+    .radio-card {
       flex: 1;
-      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
       text-align: center;
       font-size: 13px;
       font-weight: 600;
       border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background-color: #f9fafb;
       transition: all 0.2s ease;
       cursor: pointer;
       user-select: none;
     }
-    .toggle-btn.active {
-      background-color: #2563eb;
-      color: #ffffff;
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+    .radio-card input[type="radio"] {
+      accent-color: #2563eb;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
     }
-    .toggle-btn:not(.active) {
-      background-color: transparent;
-      color: #4b5563;
+    .radio-card.active {
+      background-color: #eff6ff;
+      border-color: #2563eb;
+      color: #1d4ed8;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
     }
-    .toggle-btn:not(.active):hover {
+    .radio-card:hover {
       background-color: #f3f4f6;
     }
   </style>
@@ -100,7 +109,6 @@
     <!-- 2. ОКНО НАСТРОЙКИ УРОКА -->
     <div id="settingsModal" class="hidden flex flex-col w-full">
       <div class="flex justify-between items-center mb-6 pb-3 border-b border-gray-100">
-        <!-- Статистика перенесена перед именем -->
         <div class="flex items-center gap-2">
           <button onclick="openRecordsModal()" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition shadow-sm flex items-center justify-center text-sm font-bold" title="Статистика">📊</button>
           <h2 id="modalTitleUser" class="text-xl font-bold text-gray-800 brand-font">Учень</h2>
@@ -113,9 +121,6 @@
         </div>
       </div>
 
-      <!-- Поле ID учня повністю прибрано -->
-
-      <!-- Поле «Рівень» -->
       <div class="mb-5">
         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Рівень</label>
         <select id="selectCombinedLevel" class="w-full p-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:outline-none focus:border-blue-500">
@@ -142,13 +147,15 @@
         </select>
       </div>
 
-      <!-- Режим вводу -->
-      <div class="mb-6">
-        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Режим вводу</label>
-        <div class="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 gap-1">
-          <button type="button" id="btnInputMode_novice" onclick="setInputMode('novice')" class="toggle-btn active">🌱 Новачок (4 кнопки)</button>
-          <button type="button" id="btnInputMode_expert" onclick="setInputMode('expert')" class="toggle-btn">⌨️ Експерт (клавіатура)</button>
-        </div>
+      <div class="mb-6 flex gap-3">
+        <label id="label_novice" class="radio-card active" onclick="setInputMode('novice')">
+          <input type="radio" name="inputModeRadio" id="radio_novice" checked>
+          <span>🌱 Новачок</span>
+        </label>
+        <label id="label_expert" class="radio-card" onclick="setInputMode('expert')">
+          <input type="radio" name="inputModeRadio" id="radio_expert">
+          <span>⌨️ Експерт</span>
+        </label>
       </div>
 
       <button onclick="saveAndStartGame()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm shadow-md pulse-btn transition">Старт</button>
@@ -225,6 +232,9 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <!-- Кнопка повернення в меню для Тренування та Перевірки швидкості -->
+          <button id="btnMenuReturn" onclick="abortGameToMenu()" title="Повернутися в меню" class="hidden px-3.5 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">🏠 Меню</button>
+          <!-- Кнопка Фініш для Марафону -->
           <button id="btnMarathonFinish" onclick="openSettingsModal()" title="Завершити марафон" class="hidden px-3.5 py-2 text-xs font-bold text-black bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">Фініш 🏁</button>
         </div>
       </footer>
@@ -437,12 +447,10 @@
 
     window.confirmLogoutProceed = function() {
       localStorage.clear();
-
       state.deviceId = '';
       state.nickname = '';
       state.records = {};
       state.currentCombinedLevel = '';
-
       closeLogoutPrompt();
       openNewUserPrompt();
     };
@@ -469,8 +477,8 @@
         localStorage.setItem('math_trainer_nickname', inputVal);
         saveCombinedLevelToStorage();
 
-        // Реєстрація нового учня в Google Таблицю
-        sendStatsToGoogleSheet(true);
+        // Первинна реєстрація учня з передачею дії реєстрації
+        sendDataToGoogleSheet('register', 'невдача');
       }
 
       if (!state.currentCombinedLevel) {
@@ -535,31 +543,43 @@
       }
     }
 
-    function sendStatsToGoogleSheet(isRegistration = false) {
-      if (!GOOGLE_SCRIPT_URL) return;
-      
-      const speed = state.timerSeconds > 0 ? (state.correctCount / state.timerSeconds).toFixed(2) : 0;
-      
+    // Головна функція відправки фіксованого результату та оновлення картки учня в Google Таблицю
+    function sendDataToGoogleSheet(actionType, successStatus) {
+      if (!GOOGLE_SCRIPT_URL || !state.deviceId) return;
+
+      let bestScore = 0;
+      let bestSpeed = 0;
+      Object.keys(state.records).forEach(k => {
+        if (state.records[k].score > bestScore) bestScore = state.records[k].score;
+        if (state.records[k].speed > bestSpeed) bestSpeed = state.records[k].speed;
+      });
+
+      const currentSpeed = state.timerSeconds > 0 ? parseFloat((state.correctCount / state.timerSeconds).toFixed(2)) : 0;
+
       const payload = {
-        action: isRegistration ? 'register' : 'updateProgress',
+        action: actionType, // 'register', 'finish', або 'abort'
         deviceId: state.deviceId,
         nickname: state.nickname,
         currentCombinedLevel: state.currentCombinedLevel,
-        level: isRegistration ? 'Реєстрація' : CONFIG.levels[state.level].name,
-        gameMode: isRegistration ? 'none' : state.gameMode,
+        levelName: CONFIG.levels[state.level].name,
+        gameMode: state.gameMode,
         inputMode: state.inputMode === 'novice' ? 'Новачок' : 'Експерт',
         totalQuestions: state.answeredCount,
         correct: state.correctCount,
         errors: state.errors,
         hintsCount: state.hintsCount,
+        score: state.score,
         time: state.timerSeconds,
-        speed: speed
+        speed: currentSpeed,
+        status: successStatus, // 'успіх' або 'невдача'
+        bestScore: bestScore,
+        bestSpeed: bestSpeed
       };
 
       fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       }).catch(e => console.log('Помилка відправки в Google Таблицю', e));
     }
@@ -728,19 +748,22 @@
       }));
     }
 
-    // Збереження при зміні режиму вводу
     window.setInputMode = function(mode) {
       state.inputMode = mode;
       updateToggleUI();
       saveSettingsToLocalStorage();
-      sendStatsToGoogleSheet(false); // Відправка оновленого режиму вводу в таблицю
+      // Зберігаємо зміну вводу в таблицю (якщо учень у меню)
+      sendDataToGoogleSheet('updateInputMode', 'невдача');
     };
 
     function updateToggleUI() {
       ['novice', 'expert'].forEach(m => {
-        const btn = document.getElementById(`btnInputMode_${m}`);
-        if (!btn) return;
-        btn.classList.toggle('active', state.inputMode === m);
+        const radio = document.getElementById(`radio_${m}`);
+        const card = document.getElementById(`label_${m}`);
+        if (!radio || !card) return;
+        const isActive = (state.inputMode === m);
+        radio.checked = isActive;
+        card.classList.toggle('active', isActive);
       });
     }
 
@@ -811,7 +834,6 @@
       state.gameMode = parsed.gameMode;
 
       saveSettingsToLocalStorage();
-      sendStatsToGoogleSheet(false);
       
       showScreen('gamePlayArea');
       
@@ -844,13 +866,16 @@
       const inputNames = { novice: 'Новачок', expert: 'Експерт' };
       document.getElementById('bottomSummaryInputMode').textContent = inputNames[state.inputMode];
 
+      // Налаштування видимості кнопок внизу тренування
+      const menuBtn = document.getElementById('btnMenuReturn');
       const marathonBtn = document.getElementById('btnMarathonFinish');
-      if (marathonBtn) {
-        if (state.gameMode === 'records') {
-          marathonBtn.classList.remove('hidden');
-        } else {
-          marathonBtn.classList.add('hidden');
-        }
+
+      if (state.gameMode === 'records') {
+        marathonBtn?.classList.remove('hidden');
+        menuBtn?.classList.add('hidden');
+      } else {
+        marathonBtn?.classList.add('hidden');
+        menuBtn?.classList.remove('hidden');
       }
 
       updateHeartsUI();
@@ -879,6 +904,14 @@
         document.getElementById('inputExpert').classList.remove('hidden');
       }
     }
+
+    // Кнопка переривання тренування та повернення в меню
+    window.abortGameToMenu = function() {
+      clearInterval(state.timerInterval);
+      // Записуємо в таблицю як невдачу через переривання
+      sendDataToGoogleSheet('abort', 'невдача');
+      openSettingsModal();
+    };
 
     function updateHeartsUI() {
       const h1 = document.getElementById('heart1');
@@ -1096,6 +1129,9 @@
         if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       }
 
+      // Визначаємо чи зараховується успіх (якщо пройдено безпомилково/успішно і побито/досягнуто результат)
+      let statusResult = (success && isNewRecord) ? 'успіх' : 'невдача';
+
       if (success) {
         const sequence = [
           '1_training', '1_speed', '1_records',
@@ -1110,8 +1146,8 @@
         }
       }
 
-      // Збереження нового рівня та прогресу в Google Таблицю після тренування
-      sendStatsToGoogleSheet(false);
+      // ТІЛЬКИ ТУТ: записуємо в обидві таблиці (статистику та оновлення учня) після завершення тренування
+      sendDataToGoogleSheet('finish', statusResult);
 
       document.getElementById('resScoreBig').textContent = `${state.score} балів`;
       document.getElementById('resTimeBig').textContent = `Час: ${formatTime(state.timerSeconds)}`;
