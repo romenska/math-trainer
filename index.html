@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажер множення</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #ffffff;
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    .brand-font {
+      font-family: 'Comfortaa', cursive;
+    }
+
+    .trainer-card {
+      width: 100%;
+      max-width: 640px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    }
+
+    .hint-sprite-box {
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 2 / 1;
+      margin: 0 auto;
+      border-radius: 24px;
+      border: none;
+      background-size: 200% 400%;
+      background-repeat: no-repeat;
+      background-color: #f3f4f6;
+      overflow: hidden;
+    }
+
+    .pulse-btn {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pulse-btn:active {
+      transform: scale(0.96);
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-btn.active {
+      background-color: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+    }
+    .toggle-btn:not(.active) {
+      background-color: transparent;
+      color: #4b5563;
+    }
+    .toggle-btn:not(.active):hover {
+      background-color: #f3f4f6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="trainer-card p-4 md:p-6 relative overflow-hidden">
+
+    <!-- 1. ОКНО РЕГИСТРАЦИИ / ВХОДА -->
+    <div id="newUserModal" class="hidden flex flex-col items-center justify-center text-center py-12 px-4">
+      <h2 class="text-2xl font-bold text-gray-800 brand-font mb-6">Вхід / Реєстрація</h2>
+      <div class="w-full max-w-sm">
+        <input type="text" id="userInputIdentifier" placeholder="Ім'я або ID учня" class="w-full p-3.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 mb-4 focus:outline-none focus:border-blue-500 text-center shadow-sm">
+        <button onclick="confirmUserIdentifier()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm shadow-md pulse-btn transition">Вхід</button>
+      </div>
+    </div>
+
+    <!-- 2. ОКНО НАСТРОЙКИ УРОКА -->
+    <div id="settingsModal" class="hidden flex flex-col w-full">
+      <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
+        <h2 id="modalTitleUser" class="text-xl font-bold text-gray-800 brand-font">Учень</h2>
+        <div class="flex items-center gap-1.5">
+          <button onclick="openLogoutPrompt()" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition shadow-sm flex items-center justify-center" title="Вихід з аккаунта">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ID учня + Кнопки копіювання та статистики -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">ID учня</label>
+        <div class="flex gap-2">
+          <input type="text" id="inputDeviceId" readonly class="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-mono text-gray-500 bg-gray-100 cursor-not-allowed focus:outline-none" placeholder="ID учня...">
+          <button onclick="copyDeviceId()" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex-shrink-0 flex items-center justify-center" title="Копіювати ID">📋</button>
+          <button onclick="openRecordsModal()" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-bold transition flex-shrink-0 flex items-center justify-center" title="Статистика">📊</button>
+        </div>
+      </div>
+
+      <!-- Объединенное поле «Рівень» (Уроки + режимы с вложенными подпунктами) -->
+      <div class="mb-5">
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Рівень</label>
+        <select id="selectCombinedLevel" class="w-full p-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:outline-none focus:border-blue-500">
+          <optgroup label="Урок 1: Множення на 0, 1, 2">
+            <option value="1_training">Урок 1 — Тренування</option>
+            <option value="1_speed">Урок 1 — Перевірка швидкості</option>
+            <option value="1_records">Урок 1 — Марафон</option>
+          </optgroup>
+          <optgroup label="Урок 2: Множення на 3, 4">
+            <option value="2_training">Урок 2 — Тренування</option>
+            <option value="2_speed">Урок 2 — Перевірка швидкості</option>
+            <option value="2_records">Урок 2 — Марафон</option>
+          </optgroup>
+          <optgroup label="Урок 3: Множення на 5, 6">
+            <option value="3_training">Урок 3 — Тренування</option>
+            <option value="3_speed">Урок 3 — Перевірка швидкості</option>
+            <option value="3_records">Урок 3 — Марафон</option>
+          </optgroup>
+          <optgroup label="Урок 4: Множення на 7, 8, 9, 10">
+            <option value="4_training">Урок 4 — Тренування</option>
+            <option value="4_speed">Урок 4 — Перевірка швидкості</option>
+            <option value="4_records">Урок 4 — Марафон</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <!-- Режим вводу -->
+      <div class="mb-6">
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Режим вводу</label>
+        <div class="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 gap-1">
+          <button type="button" id="btnInputMode_novice" onclick="setInputMode('novice')" class="toggle-btn active">🌱 Новачок (4 кнопки)</button>
+          <button type="button" id="btnInputMode_expert" onclick="setInputMode('expert')" class="toggle-btn">⌨️ Експерт (клавіатура)</button>
+        </div>
+      </div>
+
+      <button onclick="saveAndStartGame()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm shadow-md pulse-btn transition">Старт</button>
+    </div>
+
+    <!-- 3. ОКНО ТРЕНИРОВКИ -->
+    <div id="gamePlayArea" class="hidden flex flex-col w-full">
+      <header class="flex justify-between items-center pb-3 border-b border-gray-100">
+        <div class="flex items-center gap-1.5 bg-blue-50/60 px-3 py-1.5 rounded-2xl border border-blue-100">
+          <span class="text-xs text-gray-500 font-medium">Бали:</span>
+          <span id="scoreVal" class="text-base font-extrabold text-blue-600">0</span>
+        </div>
+
+        <div id="statCardMiddle" class="bg-purple-50/60 px-3 py-1.5 rounded-2xl border border-purple-100 flex items-center justify-center">
+          <span id="statMiddleVal" class="text-sm font-bold text-purple-600 flex justify-center gap-1">
+            <span id="heart1">❤️</span><span id="heart2">❤️</span><span id="heart3">❤️</span>
+          </span>
+        </div>
+
+        <div class="flex flex-col items-end">
+          <div class="text-base font-extrabold text-amber-600 bg-amber-50/80 px-3 py-1.5 rounded-2xl border border-amber-100">
+            <span id="statRightVal">00:00</span>
+          </div>
+        </div>
+      </header>
+
+      <div id="summaryLesson" class="text-sm font-bold text-gray-800 text-left my-2">Урок 1: Множення на 0, 1, 2</div>
+
+      <div id="trainingProgressContainer" class="mt-1 mb-2 hidden">
+        <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden border border-gray-200">
+          <div id="trainingProgressBar" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
+        </div>
+        <div class="flex justify-between items-center text-xs text-gray-500 font-medium mt-1">
+          <span>Залишилось питань:</span>
+          <span id="trainingProgressText" class="text-blue-600 font-bold">0 з 0</span>
+        </div>
+      </div>
+
+      <div class="py-1">
+        <div id="questionBox" class="text-center bg-gradient-to-b from-gray-50 to-white rounded-3xl border border-gray-100 relative mb-4 min-h-[160px] flex flex-col items-center justify-center transition-colors duration-300 overflow-hidden p-4">
+
+          <div id="inlineHintBox" class="hidden w-full h-full max-w-[480px] mx-auto p-0 rounded-3xl overflow-hidden flex justify-center items-center">
+            <div id="inlineHintSprite" class="hint-sprite-box rounded-3xl overflow-hidden"></div>
+          </div>
+
+          <div id="textHintBox" class="hidden text-sm md:text-base font-semibold text-amber-700 bg-amber-50 p-3 rounded-2xl border border-amber-200 my-2"></div>
+
+          <div id="expressionText" class="text-5xl font-black text-gray-800 brand-font my-4 transition-colors duration-200">
+            2 × 2 = ?
+          </div>
+
+          <!-- Кнопка картинки-подсказки (только для тренировки вручную) -->
+          <div id="hintButtonsContainer" class="absolute bottom-3 right-3 flex items-center gap-2 z-10">
+            <button id="btnHint" onclick="toggleHint()" title="Підказка картинка" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-full border border-amber-200 shadow-sm transition flex items-center justify-center">
+              💡
+            </button>
+          </div>
+        </div>
+
+        <div id="inputNovice" class="grid grid-cols-2 gap-3 mb-2"></div>
+
+        <div id="inputExpert" class="hidden flex items-center gap-2 mb-2 w-full">
+          <input type="number" id="expertAnswerInput" placeholder="Ваша відповідь..." class="w-full min-w-0 flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-blue-500 transition" onkeydown="if(event.key==='Enter') submitExpertAnswer()">
+          <button id="btnExpertSubmit" onclick="submitExpertAnswer()" class="flex-shrink-0 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md pulse-btn transition">
+            ОК
+          </button>
+        </div>
+      </div>
+
+      <footer class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+        <div id="bottomSettingsSummary" class="flex flex-col gap-0.5 font-medium">
+          <div>Учень: <span id="bottomSummaryNickname" class="text-gray-800 font-bold">Учень</span></div>
+          <div>Рівень: <span id="bottomSummaryGameMode" class="text-gray-700 font-medium">Тренування</span></div>
+          <div>Режим вводу: <span id="bottomSummaryInputMode" class="text-gray-700 font-medium">Новачок</span></div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Кнопка Фініш чорними літерами із прапорцем у режимі Марафон -->
+          <button id="btnMarathonFinish" onclick="openSettingsModal()" title="Завершити марафон" class="hidden px-3.5 py-2 text-xs font-bold text-black bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">Фініш 🏁</button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ВСПЛЫВАЮЩЕЕ ОКНО 1: ПРЕДУПРЕЖДЕНИЕ О ВЫХОДЕ -->
+    <div id="logoutModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-70">
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl border border-gray-100">
+        <div class="text-4xl mb-2">⚠️</div>
+        <h2 class="text-xl font-bold text-gray-800 brand-font mb-2">Вихід з аккаунта</h2>
+        <p class="text-xs text-gray-500 mb-3">Ви дійсно бажаєте вийти з поточного аккаунта?</p>
+        
+        <div class="flex gap-2 mb-4">
+          <input type="text" id="logoutInputDeviceId" readonly class="w-full p-2.5 border border-gray-200 rounded-xl text-xs font-mono text-gray-500 bg-gray-100 cursor-not-allowed focus:outline-none">
+          <button onclick="copyLogoutDeviceId()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex-shrink-0 flex items-center justify-center" title="Копіювати ID">📋</button>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <button onclick="confirmLogoutProceed()" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs shadow-md transition">Вийти</button>
+          <button onclick="closeLogoutPrompt()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition">Скасувати</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ВСПЛЫВАЮЩЕЕ ОКНО 3: СТАТИСТИКА -->
+    <div id="recordsModal" onclick="closeRecordsModalOnBackdrop(event)" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div onclick="event.stopPropagation()" class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-gray-100">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+          <h2 class="text-xl font-bold text-gray-800 brand-font flex items-center gap-2">📊 Статистика</h2>
+          <button onclick="closeRecordsModal()" class="text-gray-400 hover:text-gray-600 font-bold text-lg p-1">✕</button>
+        </div>
+        <div id="recordsGridContainer" class="flex-1 overflow-x-auto overflow-y-auto pr-1 mb-2"></div>
+      </div>
+    </div>
+
+    <!-- ВСПЛЫВАЮЩЕЕ ОКНО 2: РЕЗУЛЬТАТ ТРЕНИРОВКИ -->
+    <div id="resultModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl border border-gray-100">
+        <div id="resultIcon" class="text-5xl mb-2">🎉</div>
+        <h2 id="resultTitle" class="text-2xl font-bold text-gray-800 brand-font mb-1">Вітаємо!</h2>
+        
+        <div class="my-4">
+          <div class="text-4xl font-black text-blue-600 mb-1" id="resScoreBig">0 балів</div>
+          <div class="text-sm font-semibold text-gray-500" id="resTimeBig">Час: 00:00</div>
+        </div>
+
+        <div class="bg-blue-50/60 rounded-2xl p-3 mb-6 border border-blue-100 flex flex-col gap-1 text-xs">
+          <div class="flex justify-between px-2"><span>Всього питань:</span><b id="resTotal" class="text-gray-800">0</b></div>
+          <div class="flex justify-between px-2"><span>Правильні:</span><b id="resCorrect" class="text-green-600">0</b></div>
+          <div class="flex justify-between px-2"><span>Неправильні:</span><b id="resErrors" class="text-red-600">0</b></div>
+          <div class="flex justify-between px-2"><span>Підказки:</span><b id="resHints" class="text-amber-600">0</b></div>
+          <div class="flex justify-between px-2 border-t border-blue-200/60 pt-1 mt-1"><span>Швидкість:</span><b id="resSpeed" class="text-blue-600">0.0 прикл/с</b></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="restartCurrentLesson()" class="py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition">Повторити</button>
+          <button onclick="goToNextLesson()" class="py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md pulse-btn transition">Продовжити</button>
+          <button onclick="cancelResultModalToSettings()" class="py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl text-xs border border-amber-200 transition">Меню</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzETPb0rXaO7jG0hX-XVi4hseeIr405bpuFbdICzkenftrgeOns3NHnFy6W51ela0BPBg/exec';
+
+    const CONFIG = {
+      levels: {
+        1: { name: 'Урок 1: Множення на 0, 1, 2', factors: [0, 1, 2] },
+        2: { name: 'Урок 2: Множення на 3, 4', factors: [3, 4] },
+        3: { name: 'Урок 3: Множення на 5, 6', factors: [5, 6] },
+        4: { name: 'Урок 4: Множення на 7, 8, 9, 10', factors: [7, 8, 9, 10] }
+      }
+    };
+
+    let state = {
+      level: 1,
+      gameMode: 'training',
+      inputMode: 'novice',
+      nickname: localStorage.getItem('math_trainer_nickname') || '',
+      currentCombinedLevel: localStorage.getItem('math_trainer_combined_level') || '1_training',
+      score: 0,
+      errors: 0,
+      correctCount: 0,
+      hintsCount: 0,
+      answeredCount: 0,
+      usedHintForCurrent: false,
+      hadErrorForCurrent: false,
+      timerSeconds: 0,
+      timerInterval: null,
+      queue: [],
+      masteredSet: new Set(),
+      totalCombinations: 0,
+      currentQuestion: null,
+      records: {},
+      xmlHints: {},
+      deviceId: localStorage.getItem('math_trainer_device_id') || ''
+    };
+
+    function saveCombinedLevelToStorage() {
+      localStorage.setItem('math_trainer_combined_level', state.currentCombinedLevel);
+    }
+
+    function parseCombinedLevel(val) {
+      const parts = val.split('_');
+      return {
+        level: parseInt(parts[0], 10) || 1,
+        gameMode: parts[1] || 'training'
+      };
+    }
+
+    function showScreen(screenId) {
+      document.getElementById('newUserModal').classList.add('hidden');
+      document.getElementById('settingsModal').classList.add('hidden');
+      document.getElementById('gamePlayArea').classList.add('hidden');
+
+      const target = document.getElementById(screenId);
+      if (target) target.classList.remove('hidden');
+    }
+
+    window.copyDeviceId = function() {
+      const input = document.getElementById('inputDeviceId');
+      if (input) {
+        input.select();
+        navigator.clipboard.writeText(input.value).catch(() => {});
+      }
+    };
+
+    window.copyLogoutDeviceId = function() {
+      const input = document.getElementById('logoutInputDeviceId');
+      if (input) {
+        input.select();
+        navigator.clipboard.writeText(input.value).catch(() => {});
+      }
+    };
+
+    window.openNewUserPrompt = function() {
+      document.getElementById('userInputIdentifier').value = '';
+      document.getElementById('logoutModal').classList.add('hidden');
+      showScreen('newUserModal');
+    };
+
+    window.openLogoutPrompt = function() {
+      const logoutDevInput = document.getElementById('logoutInputDeviceId');
+      if (logoutDevInput) logoutDevInput.value = state.deviceId;
+      document.getElementById('logoutModal').classList.remove('hidden');
+    };
+
+    window.closeLogoutPrompt = function() {
+      document.getElementById('logoutModal').classList.add('hidden');
+    };
+
+    window.confirmLogoutProceed = function() {
+      localStorage.clear();
+
+      state.deviceId = '';
+      state.nickname = '';
+      state.records = {};
+      state.currentCombinedLevel = '1_training';
+
+      closeLogoutPrompt();
+      openNewUserPrompt();
+    };
+
+    window.confirmUserIdentifier = async function() {
+      const inputVal = document.getElementById('userInputIdentifier').value.trim();
+      if (!inputVal) {
+        alert("Введіть ім'я або ID учня.");
+        return;
+      }
+
+      if (inputVal.startsWith('dev_') || inputVal.length > 15) {
+        state.deviceId = inputVal;
+        localStorage.setItem('math_trainer_device_id', inputVal);
+        await loadCloudData();
+      } else {
+        const newId = 'dev_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+        state.deviceId = newId;
+        state.nickname = inputVal;
+        state.records = {};
+        state.currentCombinedLevel = '1_training';
+
+        localStorage.setItem('math_trainer_device_id', newId);
+        localStorage.setItem('math_trainer_nickname', inputVal);
+        saveCombinedLevelToStorage();
+
+        sendStatsToGoogleSheet(true);
+      }
+
+      document.getElementById('inputDeviceId').value = state.deviceId;
+      document.getElementById('selectCombinedLevel').value = state.currentCombinedLevel;
+      updateModalTitle();
+      openSettingsModal();
+    };
+
+    function updateModalTitle() {
+      const titleElem = document.getElementById('modalTitleUser');
+      if (titleElem) titleElem.textContent = state.nickname || 'Учень';
+      document.getElementById('bottomSummaryNickname').textContent = state.nickname || 'Учень';
+    }
+
+    async function loadXmlHints() {
+      try {
+        const response = await fetch('https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/help.xml');
+        if (!response.ok) return;
+        const text = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, 'text/xml');
+        const hints = xmlDoc.getElementsByTagName('hint');
+        
+        for (let hint of hints) {
+          const key = hint.getAttribute('key');
+          if (key) state.xmlHints[key.trim()] = hint.textContent.trim();
+        }
+      } catch (e) {
+        console.log('Помилка завантаження xml підказок', e);
+      }
+    }
+
+    async function loadCloudData() {
+      if (!GOOGLE_SCRIPT_URL || !state.deviceId) return;
+      try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?deviceId=${state.deviceId}`);
+        const data = await response.json();
+        if (data) {
+          if (data.records && Object.keys(data.records).length > 0) {
+            state.records = data.records;
+            saveRecords();
+          }
+          if (data.nickname) {
+            state.nickname = data.nickname;
+            localStorage.setItem('math_trainer_nickname', data.nickname);
+          }
+          if (data.currentCombinedLevel) {
+            state.currentCombinedLevel = data.currentCombinedLevel;
+            saveCombinedLevelToStorage();
+          }
+          updateModalTitle();
+        }
+      } catch (e) {
+        console.log('Не вдалося підтягнути дані з хмари', e);
+      }
+    }
+
+    function sendStatsToGoogleSheet(isRegistration = false) {
+      if (!GOOGLE_SCRIPT_URL) return;
+      
+      const speed = state.timerSeconds > 0 ? (state.correctCount / state.timerSeconds).toFixed(2) : 0;
+      
+      const payload = {
+        deviceId: state.deviceId,
+        nickname: state.nickname,
+        currentCombinedLevel: state.currentCombinedLevel,
+        level: isRegistration ? 'Реєстрація' : CONFIG.levels[state.level].name,
+        gameMode: isRegistration ? 'none' : state.gameMode,
+        inputMode: state.inputMode === 'novice' ? 'Новачок' : 'Експерт',
+        totalQuestions: state.answeredCount,
+        correct: state.correctCount,
+        errors: state.errors,
+        hintsCount: state.hintsCount,
+        time: state.timerSeconds,
+        speed: speed
+      };
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(e => console.log('Помилка відправки в Google Таблицю', e));
+    }
+
+    function getHintImageUrl(f, val) {
+      if (f === 0 || f === 1 || f === 10 || val === 0 || val === 1 || val === 10) {
+        return `https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/0.jpg`;
+      }
+      return `https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/x${f}.jpg`;
+    }
+
+    function getTextHint(f, val) {
+      if (f === 0 || f === 1 || f === 10 || val === 0 || val === 1 || val === 10) {
+        return "Один завжди програє, а нуль завжди перемагає";
+      }
+      const key1 = `${f}x${val}`;
+      const key2 = `${val}x${f}`;
+      return state.xmlHints[key1] || state.xmlHints[key2] || null;
+    }
+
+    function updateHintVisibilityByMode() {
+      const hintImgBtn = document.getElementById('btnHint');
+      const textHintBox = document.getElementById('textHintBox');
+
+      if (state.gameMode === 'speed') {
+        if (hintImgBtn) hintImgBtn.classList.add('hidden');
+      } else if (state.gameMode === 'training') {
+        if (hintImgBtn) hintImgBtn.classList.remove('hidden');
+      } else if (state.gameMode === 'records') {
+        if (hintImgBtn) hintImgBtn.classList.add('hidden');
+      }
+    }
+
+    function toggleHint() {
+      if (state.gameMode === 'speed' || state.gameMode === 'records') return;
+      const inlineHintBox = document.getElementById('inlineHintBox');
+      const isVisible = inlineHintBox && !inlineHintBox.classList.contains('hidden');
+      if (isVisible) {
+        hideHintPicture();
+      } else {
+        showInlineHintPicture();
+      }
+    }
+
+    function showTextHintAutomatic() {
+      const q = state.currentQuestion;
+      if (!q) return;
+      const hintText = getTextHint(q.num1, q.num2);
+      const textHintBox = document.getElementById('textHintBox');
+      if (hintText && textHintBox) {
+        if (!state.usedHintForCurrent) {
+          state.usedHintForCurrent = true;
+          state.hintsCount += 1;
+        }
+        textHintBox.textContent = hintText;
+        textHintBox.classList.remove('hidden');
+      }
+    }
+
+    function showInlineHintPicture() {
+      if (!state.usedHintForCurrent) {
+        state.usedHintForCurrent = true;
+        state.hintsCount += 1;
+      }
+
+      const q = state.currentQuestion;
+      if (!q) return;
+
+      const f = q.num1;
+      const val = q.num2;
+      const isSpecial = (f === 0 || f === 1 || f === 10 || val === 0 || val === 1 || val === 10);
+
+      const applySprite = (imgSrc) => {
+        const spriteBox = document.getElementById('inlineHintSprite');
+        if (spriteBox) {
+          spriteBox.style.backgroundImage = `url('${imgSrc}')`;
+
+          if (isSpecial) {
+            spriteBox.style.backgroundSize = 'contain';
+            spriteBox.style.backgroundPosition = 'center';
+          } else {
+            spriteBox.style.backgroundSize = '200% 400%';
+            let col = 0, row = 0;
+            if (val >= 2 && val <= 9) {
+              let index = val - 2;
+              col = index % 2;
+              row = Math.floor(index / 2);
+            }
+            const xPerc = col === 0 ? 0 : 100;
+            const yPerc = (row / 3) * 100;
+            spriteBox.style.backgroundPosition = `${xPerc}% ${yPerc}%`;
+          }
+        }
+
+        document.getElementById('expressionText')?.classList.add('hidden');
+        document.getElementById('inlineHintBox')?.classList.remove('hidden');
+      };
+
+      const imgSrc = getHintImageUrl(f, val);
+      const imgCheck = new Image();
+      imgCheck.onload = () => applySprite(imgSrc);
+      imgCheck.onerror = () => { highlightQuestionTextRed(); };
+      imgCheck.src = imgSrc;
+    }
+
+    function hideHintPicture() {
+      document.getElementById('expressionText')?.classList.remove('hidden');
+      document.getElementById('inlineHintBox')?.classList.add('hidden');
+    }
+
+    function highlightQuestionTextRed() {
+      const exprText = document.getElementById('expressionText');
+      if (exprText) {
+        exprText.classList.remove('text-gray-800');
+        exprText.classList.add('text-red-600');
+      }
+    }
+
+    function resetQuestionDisplay() {
+      const exprText = document.getElementById('expressionText');
+      if (exprText) {
+        exprText.classList.remove('text-red-600', 'hidden');
+        exprText.classList.add('text-gray-800');
+      }
+      document.getElementById('inlineHintBox')?.classList.add('hidden');
+      document.getElementById('textHintBox')?.classList.add('hidden');
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadRecords();
+      loadSettings();
+      await loadXmlHints();
+
+      if (!state.deviceId) {
+        openNewUserPrompt();
+      } else {
+        await loadCloudData();
+        openSettingsModal();
+      }
+    });
+
+    function loadRecords() {
+      const saved = localStorage.getItem('math_trainer_records');
+      if (saved) {
+        try { state.records = JSON.parse(saved); } catch (e) { state.records = {}; }
+      }
+    }
+
+    function saveRecords() {
+      localStorage.setItem('math_trainer_records', JSON.stringify(state.records));
+    }
+
+    function loadSettings() {
+      const savedSettings = localStorage.getItem('math_trainer_settings');
+      if (savedSettings) {
+        try {
+          const parsed = JSON.parse(savedSettings);
+          if (parsed.inputMode) state.inputMode = parsed.inputMode;
+        } catch (e) {}
+      }
+    }
+
+    function saveSettingsToLocalStorage() {
+      localStorage.setItem('math_trainer_settings', JSON.stringify({
+        inputMode: state.inputMode
+      }));
+    }
+
+    window.setInputMode = function(mode) {
+      state.inputMode = mode;
+      updateToggleUI();
+    };
+
+    function updateToggleUI() {
+      ['novice', 'expert'].forEach(m => {
+        const btn = document.getElementById(`btnInputMode_${m}`);
+        if (!btn) return;
+        btn.classList.toggle('active', state.inputMode === m);
+      });
+    }
+
+    function updateSettingsUI() {
+      document.getElementById('selectCombinedLevel').value = state.currentCombinedLevel;
+      updateToggleUI();
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    window.openRecordsModal = function() {
+      renderRecordsGrid();
+      document.getElementById('recordsModal').classList.remove('hidden');
+    };
+
+    window.closeRecordsModal = function() {
+      document.getElementById('recordsModal').classList.add('hidden');
+    };
+
+    window.closeRecordsModalOnBackdrop = function(event) {
+      if (event.target === document.getElementById('recordsModal')) {
+        window.closeRecordsModal();
+      }
+    };
+
+    function renderRecordsGrid() {
+      const container = document.getElementById('recordsGridContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const modes = [
+        { id: 'training', label: 'Тренування' },
+        { id: 'speed', label: 'Швидкість' },
+        { id: 'records', label: 'Марафон' }
+      ];
+
+      const table = document.createElement('table');
+      table.className = 'w-full border-collapse text-xs text-left min-w-[500px]';
+
+      let theadHTML = `<thead><tr class="border-b border-gray-200 bg-gray-50/80"><th class="p-2.5 font-bold text-gray-700 w-1/4">Рівень</th>${modes.map(m => `<th class="p-2.5 font-bold text-blue-700 text-center w-1/4">${m.label}</th>`).join('')}</tr></thead>`;
+      let tbodyHTML = '<tbody>';
+
+      for (let lvl = 1; lvl <= 4; lvl++) {
+        tbodyHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50/40 transition"><td class="p-2 font-bold text-gray-800 align-middle bg-gray-50/30">${CONFIG.levels[lvl].name}</td>`;
+        modes.forEach(m => {
+          const rec = state.records[`L${lvl}_${m.id}`];
+          if (rec) {
+            const cleanDate = rec.date ? rec.date.replace(/([+-]\d{2}:\d{2}|Z)/g, '').trim() : '—';
+            tbodyHTML += `<td class="p-2 align-top"><div class="p-2 rounded-xl border border-blue-100 bg-blue-50/30 flex flex-col gap-1"><div class="text-[9px] text-gray-500 font-semibold pb-1 border-b border-blue-100/60 flex justify-between items-center"><span>${cleanDate}</span></div><div class="flex justify-between items-center"><span class="text-gray-400 text-[10px]">Всього питань:</span> <b class="text-gray-800">${rec.totalQuestions ?? 0}</b></div><div class="flex justify-between items-center"><span class="text-gray-400 text-[10px]">Правильних:</span> <b class="text-green-600">${rec.correct ?? 0}</b></div><div class="flex justify-between items-center"><span class="text-gray-400 text-[10px]">Помилок:</span> <b class="text-red-600">${rec.errors ?? 0}</b></div><div class="flex justify-between items-center"><span class="text-gray-400 text-[10px]">Підказок:</span> <b class="text-amber-600">${rec.hintsCount ?? 0}</b></div><div class="flex justify-between items-center"><span class="text-gray-400 text-[10px]">Час тренування:</span> <b class="text-gray-700">${formatTime(rec.time ?? 0)}</b></div><div class="flex justify-between items-center"><span class="text-gray-400 text-[10px]">Швидкість:</span> <span class="font-medium text-gray-800">${rec.speed ?? 0} пр/с</span></div></div></td>`;
+          } else {
+            tbodyHTML += `<td class="p-2 align-top"><div class="p-2 rounded-xl border border-dashed border-gray-200 bg-gray-50/30 text-center text-gray-400 italic text-[10px] py-4">Немає даних</div></td>`;
+          }
+        });
+        tbodyHTML += `</tr>`;
+      }
+
+      tbodyHTML += '</tbody>';
+      table.innerHTML = theadHTML + tbodyHTML;
+      container.appendChild(table);
+    }
+
+    window.saveAndStartGame = function() {
+      const selectElem = document.getElementById('selectCombinedLevel');
+      state.currentCombinedLevel = selectElem.value;
+      saveCombinedLevelToStorage();
+
+      const parsed = parseCombinedLevel(state.currentCombinedLevel);
+      state.level = parsed.level;
+      state.gameMode = parsed.gameMode;
+
+      saveSettingsToLocalStorage();
+      sendStatsToGoogleSheet(false);
+      
+      showScreen('gamePlayArea');
+      
+      resetGameStats();
+      buildQuestionQueue();
+      nextQuestion();
+      startTimer();
+    };
+
+    function resetGameStats() {
+      state.score = 0;
+      state.errors = 0;
+      state.correctCount = 0;
+      state.hintsCount = 0;
+      state.answeredCount = 0;
+      state.usedHintForCurrent = false;
+      state.hadErrorForCurrent = false;
+      state.timerSeconds = 0;
+      state.masteredSet = new Set();
+      clearInterval(state.timerInterval);
+
+      document.getElementById('scoreVal').textContent = '0';
+      document.getElementById('statRightVal').textContent = '00:00';
+      document.getElementById('summaryLesson').textContent = CONFIG.levels[state.level].name;
+
+      document.getElementById('bottomSummaryNickname').textContent = state.nickname || 'Учень';
+      const modeNames = { training: 'Тренування', speed: 'Перевірка швидкості', records: 'Марафон' };
+      document.getElementById('bottomSummaryGameMode').textContent = modeNames[state.gameMode];
+
+      const inputNames = { novice: 'Новачок', expert: 'Експерт' };
+      document.getElementById('bottomSummaryInputMode').textContent = inputNames[state.inputMode];
+
+      const marathonBtn = document.getElementById('btnMarathonFinish');
+      if (marathonBtn) {
+        if (state.gameMode === 'records') {
+          marathonBtn.classList.remove('hidden');
+        } else {
+          marathonBtn.classList.add('hidden');
+        }
+      }
+
+      updateHeartsUI();
+      updateHintVisibilityByMode();
+
+      const trainingProgressContainer = document.getElementById('trainingProgressContainer');
+      const statCardMiddle = document.getElementById('statCardMiddle');
+
+      if (state.gameMode === 'training' || state.gameMode === 'speed') {
+        trainingProgressContainer?.classList.remove('hidden');
+      } else {
+        trainingProgressContainer?.classList.add('hidden');
+      }
+
+      if (state.gameMode === 'training') {
+        statCardMiddle?.classList.add('hidden');
+      } else {
+        statCardMiddle?.classList.remove('hidden');
+      }
+
+      if (state.inputMode === 'novice') {
+        document.getElementById('inputNovice').classList.remove('hidden');
+        document.getElementById('inputExpert').classList.add('hidden');
+      } else {
+        document.getElementById('inputNovice').classList.add('hidden');
+        document.getElementById('inputExpert').classList.remove('hidden');
+      }
+    }
+
+    function updateHeartsUI() {
+      const h1 = document.getElementById('heart1');
+      const h2 = document.getElementById('heart2');
+      const h3 = document.getElementById('heart3');
+      if (!h1 || !h2 || !h3) return;
+      h3.textContent = state.errors >= 1 ? '🤍' : '❤️';
+      h2.textContent = state.errors >= 2 ? '🤍' : '❤️';
+      h1.textContent = state.errors >= 3 ? '🤍' : '❤️';
+    }
+
+    function buildQuestionQueue() {
+      state.queue = [];
+      const factors = CONFIG.levels[state.level].factors;
+      factors.forEach(f => {
+        for (let i = 0; i <= 10; i++) {
+          state.queue.push({ num1: f, num2: i, ans: f * i, key: `${f}x${i}` });
+        }
+      });
+      state.totalCombinations = state.queue.length;
+      state.queue.sort(() => Math.random() - 0.5);
+      updateTrainingProgressBar();
+    }
+
+    function updateTrainingProgressBar() {
+      if (state.gameMode !== 'training' && state.gameMode !== 'speed') return;
+      const total = state.totalCombinations;
+      const remaining = state.queue.length + (state.currentQuestion && !state.masteredSet.has(state.currentQuestion.key) ? 1 : 0);
+      const done = total - remaining;
+      const perc = total > 0 ? Math.round((done / total) * 100) : 0;
+      
+      document.getElementById('trainingProgressText').textContent = `${remaining} з ${total}`;
+      document.getElementById('trainingProgressBar').style.width = `${perc}%`;
+    }
+
+    function nextQuestion() {
+      state.usedHintForCurrent = false;
+      state.hadErrorForCurrent = false;
+
+      resetQuestionDisplay();
+      updateHintVisibilityByMode();
+
+      if (state.gameMode === 'records') {
+        const factors = CONFIG.levels[state.level].factors;
+        const f = factors[Math.floor(Math.random() * factors.length)];
+        const second = Math.floor(Math.random() * 11);
+        state.currentQuestion = { num1: f, num2: second, ans: f * second, key: `${f}x${second}` };
+      } else {
+        if (state.queue.length === 0) {
+          finishGame(true);
+          return;
+        }
+        state.currentQuestion = state.queue.shift();
+      }
+
+      renderQuestionDisplay();
+      updateTrainingProgressBar();
+    }
+
+    function renderQuestionDisplay() {
+      const q = state.currentQuestion;
+      const exprText = document.getElementById('expressionText');
+      if (exprText) exprText.textContent = `${q.num1} × ${q.num2} = ?`;
+
+      if (state.inputMode === 'novice') {
+        renderNoviceChoices(q.ans);
+      } else {
+        const inp = document.getElementById('expertAnswerInput');
+        if (inp) {
+          inp.value = '';
+          inp.focus();
+        }
+      }
+    }
+
+    function renderNoviceChoices(correctAns) {
+      const choicesSet = new Set([correctAns]);
+      while (choicesSet.size < 4) {
+        let delta = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+        let dummy = correctAns + delta;
+        if (dummy >= 0 && dummy !== correctAns) choicesSet.add(dummy);
+      }
+
+      const choices = Array.from(choicesSet).sort(() => Math.random() - 0.5);
+      const container = document.getElementById('inputNovice');
+      if (!container) return;
+      container.innerHTML = '';
+
+      choices.forEach(val => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn py-4 bg-white border-2 border-gray-100 hover:border-blue-500 rounded-xl text-xl font-bold text-gray-800 shadow-sm hover:shadow-md pulse-btn transition';
+        btn.textContent = val;
+        btn.onclick = () => processAnswer(val, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    window.submitExpertAnswer = function() {
+      const inp = document.getElementById('expertAnswerInput');
+      if (!inp) return;
+      const val = parseInt(inp.value, 10);
+      if (isNaN(val)) return;
+      processAnswer(val, null);
+    };
+
+    function processAnswer(userAns, clickedBtn) {
+      const q = state.currentQuestion;
+      const correct = q.ans;
+      const isRight = (userAns === correct);
+
+      state.answeredCount += 1;
+
+      if (state.inputMode === 'novice') {
+        document.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
+        if (clickedBtn) {
+          clickedBtn.classList.remove('bg-white', 'border-gray-100');
+          clickedBtn.classList.add(isRight ? 'bg-green-500' : 'bg-red-500', 'text-white', isRight ? 'border-green-600' : 'border-red-600');
+        }
+      } else {
+        const inp = document.getElementById('expertAnswerInput');
+        if (inp) {
+          inp.classList.remove('border-gray-200');
+          inp.classList.add(isRight ? 'border-green-500' : 'border-red-500', isRight ? 'bg-green-50' : 'bg-red-50');
+        }
+      }
+
+      setTimeout(() => {
+        if (state.inputMode === 'expert') {
+          const inp = document.getElementById('expertAnswerInput');
+          if (inp) {
+            inp.classList.remove('border-green-500', 'bg-green-50', 'border-red-500', 'bg-red-50');
+            inp.classList.add('border-gray-200');
+          }
+        }
+
+        if (isRight) {
+          state.correctCount += 1;
+          if (!state.usedHintForCurrent && !state.hadErrorForCurrent) state.score += 1;
+          if (state.gameMode === 'training' || state.gameMode === 'speed') state.masteredSet.add(q.key);
+
+          document.getElementById('scoreVal').textContent = state.score;
+          nextQuestion();
+        } else {
+          state.errors += 1;
+          state.hadErrorForCurrent = true;
+          state.score = Math.max(0, state.score - (state.usedHintForCurrent ? 2 : 1));
+
+          document.getElementById('scoreVal').textContent = state.score;
+          updateHeartsUI();
+
+          if (state.gameMode === 'records') {
+            finishGame(false);
+            return;
+          }
+
+          if (state.gameMode === 'speed' && state.errors >= 3) {
+            finishGame(false);
+            return;
+          }
+
+          highlightQuestionTextRed();
+          showTextHintAutomatic();
+
+          if (state.inputMode === 'novice') {
+            renderNoviceChoices(correct);
+          } else {
+            const inp = document.getElementById('expertAnswerInput');
+            if (inp) {
+              inp.value = '';
+              inp.focus();
+            }
+          }
+        }
+      }, isRight ? 400 : 700);
+    }
+
+    function startTimer() {
+      state.timerInterval = setInterval(() => {
+        state.timerSeconds++;
+        document.getElementById('statRightVal').textContent = formatTime(state.timerSeconds);
+      }, 1000);
+    }
+
+    function finishGame(success) {
+      clearInterval(state.timerInterval);
+
+      const key = `L${state.level}_${state.gameMode}`;
+      const oldRecord = state.records[key];
+      const currentSpeed = state.timerSeconds > 0 ? parseFloat((state.correctCount / state.timerSeconds).toFixed(2)) : 0;
+      
+      let isNewRecord = false;
+      if (!oldRecord) {
+        isNewRecord = true;
+      } else if (state.score > oldRecord.score) {
+        isNewRecord = true;
+      } else if (state.score === oldRecord.score && state.timerSeconds < oldRecord.time) {
+        isNewRecord = true;
+      }
+
+      const now = new Date();
+      const formattedDate = `${now.toLocaleDateString('uk-UA')} ${now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}`;
+
+      if (isNewRecord) {
+        state.records[key] = {
+          score: state.score,
+          totalQuestions: state.answeredCount,
+          correct: state.correctCount,
+          errors: state.errors,
+          hintsCount: state.hintsCount,
+          time: state.timerSeconds,
+          speed: currentSpeed,
+          date: formattedDate
+        };
+        saveRecords();
+        if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      }
+
+      sendStatsToGoogleSheet(false);
+
+      document.getElementById('resScoreBig').textContent = `${state.score} балів`;
+      document.getElementById('resTimeBig').textContent = `Час: ${formatTime(state.timerSeconds)}`;
+      document.getElementById('resTotal').textContent = state.answeredCount;
+      document.getElementById('resCorrect').textContent = state.correctCount;
+      document.getElementById('resErrors').textContent = state.errors;
+      document.getElementById('resHints').textContent = state.hintsCount;
+      document.getElementById('resSpeed').textContent = `${currentSpeed} пр/с`;
+
+      const resIcon = document.getElementById('resultIcon');
+      const resTitle = document.getElementById('resultTitle');
+
+      if (resIcon) resIcon.textContent = isNewRecord ? '🎉' : (success ? '👏' : '🏁');
+      if (resTitle) resTitle.textContent = isNewRecord ? 'Новий рекорд!' : (success ? 'Вітаємо!' : 'Урок завершено');
+
+      document.getElementById('resultModal')?.classList.remove('hidden');
+    }
+
+    window.restartCurrentLesson = function() {
+      document.getElementById('resultModal')?.classList.add('hidden');
+      resetGameStats();
+      buildQuestionQueue();
+      nextQuestion();
+      startTimer();
+    };
+
+    window.goToNextLesson = function() {
+      document.getElementById('resultModal')?.classList.add('hidden');
+
+      const sequence = [
+        '1_training', '1_speed', '1_records',
+        '2_training', '2_speed', '2_records',
+        '3_training', '3_speed', '3_records',
+        '4_training', '4_speed', '4_records'
+      ];
+
+      let currentIndex = sequence.indexOf(state.currentCombinedLevel);
+      if (currentIndex !== -1 && currentIndex < sequence.length - 1) {
+        state.currentCombinedLevel = sequence[currentIndex + 1];
+      } else {
+        state.currentCombinedLevel = '1_training';
+      }
+
+      const parsed = parseCombinedLevel(state.currentCombinedLevel);
+      state.level = parsed.level;
+      state.gameMode = parsed.gameMode;
+      saveCombinedLevelToStorage();
+
+      saveSettingsToLocalStorage();
+      resetGameStats();
+      buildQuestionQueue();
+      nextQuestion();
+      startTimer();
+    };
+
+    window.cancelResultModalToSettings = function() {
+      document.getElementById('resultModal')?.classList.add('hidden');
+      openSettingsModal();
+    };
+
+    window.openSettingsModal = function() {
+      clearInterval(state.timerInterval);
+      updateSettingsUI();
+      updateModalTitle();
+      
+      const devInput = document.getElementById('inputDeviceId');
+      if (devInput) devInput.value = state.deviceId;
+
+      document.getElementById('resultModal')?.classList.add('hidden');
+      document.getElementById('logoutModal')?.classList.add('hidden');
+      
+      showScreen('settingsModal');
+    };
+  </script>
+</body>
+</html>
