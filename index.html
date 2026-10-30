@@ -95,6 +95,7 @@
     .level-radio-item {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
       padding: 10px 12px;
       border-radius: 12px;
@@ -115,9 +116,35 @@
       color: #1d4ed8;
     }
     .level-radio-item.disabled {
-      opacity: 0.5;
+      opacity: 0.55;
       cursor: not-allowed;
       background-color: #f3f4f6;
+    }
+
+    /* Стилі для статусних бейджів */
+    .status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .badge-completed {
+      background-color: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .badge-unlocked {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .badge-locked {
+      background-color: #f3f4f6;
+      color: #9ca3af;
+      border: 1px solid #e5e7eb;
     }
   </style>
 </head>
@@ -149,9 +176,9 @@
         </div>
       </div>
 
-      <!-- Список рівнів замість випадаючого списку (без заголовка «Рівень») -->
-      <div class="mb-5 max-h-[280px] overflow-y-auto pr-1 flex flex-col gap-2" id="levelsRadioContainer">
-        <!-- Динамически заполняется через JS -->
+      <!-- Список рівнів зі статусами (Завершено / В процесі / Заблоковано) -->
+      <div class="mb-5 max-h-[300px] overflow-y-auto pr-1 flex flex-col gap-2" id="levelsRadioContainer">
+        <!-- Динамічно заповнюється через JS -->
       </div>
 
       <!-- Режим вводу -->
@@ -308,7 +335,7 @@
   </div>
 
   <script>
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyA0ze1G7VPBSZLAQsttdHQMNkQM9eX7Tdm-4l9KE5Zdkw2TEg1UP6kcjndafRkQw4BIg/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyA0ze1G7VPBSZLAQsttdHQMNkQM9eX7Tdm-4l9KE5Zdkw2TEg1UP6kcjndafRkQw4BIg/exec';
 
     const CONFIG = {
       levels: {
@@ -420,10 +447,16 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyA0ze1G7VPBS
             if (prevPassed || idx <= maxUnlockedIdx) isUnlocked = true;
           }
 
+          const recordKey = `L${lvl}_${mode}`;
+          const isCompleted = !!(state.records[recordKey] && state.records[recordKey].score > 0);
+
           const label = document.createElement('label');
           const isSelected = (state.currentCombinedLevel === seqVal);
           
           label.className = `level-radio-item ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'disabled' : ''}`;
+
+          const leftBox = document.createElement('div');
+          leftBox.className = 'flex items-center gap-2';
 
           const radio = document.createElement('input');
           radio.type = 'radio';
@@ -439,11 +472,27 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyA0ze1G7VPBS
             }
           };
 
-          const span = document.createElement('span');
-          span.textContent = `${isUnlocked ? '' : '🔒 '}${modeNames[mode]}`;
+          const textSpan = document.createElement('span');
+          textSpan.textContent = modeNames[mode];
 
-          label.appendChild(radio);
-          label.appendChild(span);
+          leftBox.appendChild(radio);
+          leftBox.appendChild(textSpan);
+
+          // Бейдж статусу (Завершено / В процесі / Заблоковано)
+          const badgeSpan = document.createElement('span');
+          if (isCompleted) {
+            badgeSpan.className = 'status-badge badge-completed';
+            badgeSpan.innerHTML = '✅ Завершено';
+          } else if (isUnlocked) {
+            badgeSpan.className = 'status-badge badge-unlocked';
+            badgeSpan.innerHTML = '🌟 Новий';
+          } else {
+            badgeSpan.className = 'status-badge badge-locked';
+            badgeSpan.innerHTML = '🔒 Заблоковано';
+          }
+
+          label.appendChild(leftBox);
+          label.appendChild(badgeSpan);
           groupDiv.appendChild(label);
         });
 
