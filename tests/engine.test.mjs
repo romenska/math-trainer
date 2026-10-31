@@ -89,7 +89,16 @@ test('марафон: без повторів підряд, фініш = про�
   g.finish(); assert.ok(g.result().passed); assert.equal(g.result().score, 200);
   const g2 = createGame({ lesson: L4, mode: getMode('records'), rng });
   for (let i = 0; i < 3; i++) { g2.next(); g2.answer(-1); }
-  assert.ok(g2.finished);
+  assert.ok(g2.finished); assert.equal(g2.result().passed, false, '0 балів — марафон не зараховано');
+});
+
+test('марафон: 1-ша і 2-га помилки не завершують гру', () => {
+  const g = createGame({ lesson: L1, mode: getMode('records'), rng });
+  for (let i = 0; i < 5; i++) { g.next(); g.answer(g.question.answer); }
+  g.next(); assert.equal(g.answer(-1).then, 'next');
+  g.next(); assert.equal(g.answer(-1).then, 'next');
+  assert.ok(!g.finished); assert.equal(g.lives, 1);
+  g.next(); assert.equal(g.answer(-1).then, 'end'); assert.ok(g.result().passed);
 });
 
 test('відповідь після кінця гри ігнорується', () => {

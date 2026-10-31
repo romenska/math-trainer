@@ -135,7 +135,7 @@ export function createGame({ lesson, mode, rng = Math.random, now = () => Date.n
 
     if (mode.lives > 0) {
       s.lives -= 1;
-      if (s.lives <= 0) { end(endless); /* марафон — це рекорд, а не іспит */ return { right: false, reveal: true, then: 'end', correctAnswer: q.answer }; }
+      if (s.lives <= 0) { end(endless && s.stats.score > 0); /* марафон зараховано, якщо є хоч 1 бал */ return { right: false, reveal: true, then: 'end', correctAnswer: q.answer }; }
     }
 
     const canRetry = mode.retry && s.attemptsOnCurrent < 2;
@@ -143,7 +143,7 @@ export function createGame({ lesson, mode, rng = Math.random, now = () => Date.n
   }
 
   /** Достроково завершити (кнопка «Фініш» у марафоні). */
-  function finish() { end(endless); }
+  function finish() { end(endless && s.stats.score > 0); }
 
   const elapsedMs = () => (s.endedAt ?? now()) - s.startedAt;
 

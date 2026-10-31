@@ -59,13 +59,13 @@ function show(id) {
   if (id !== 'screen-game') stopTimer();
 }
 
-function toast(text) {
+function toast(text, ms = 2200) {
   const t = $('#toast');
   (document.querySelector('dialog[open]') || document.body).appendChild(t); // поверх відкритого вікна
   t.textContent = text;
   t.hidden = false;
   clearTimeout(toast.t);
-  toast.t = setTimeout(() => { t.hidden = true; }, 2200);
+  toast.t = setTimeout(() => { t.hidden = true; }, ms);
 }
 
 // ---------- Вхід / вихід ----------
@@ -81,6 +81,8 @@ $('#login-form').addEventListener('submit', e => {
   } else {
     app.profile = { ...app.profile, deviceId: newDeviceId(), nickname: value, records: {}, progress: SEQUENCE[0] };
     storage.saveProfile(app.profile);
+    pushResult({ action: 'register', deviceId: app.profile.deviceId, nickname: value,  // новий рядок у листі «Учні»
+      inputMode: app.profile.inputMode === 'novice' ? 'Новачок' : 'Експерт', currentCombinedLevel: SEQUENCE[0] });
     storage.saveRecords({});
     storage.saveProgress(SEQUENCE[0]);
     openMenu(true);
@@ -175,7 +177,6 @@ function renderMenu() {
 
   document.querySelectorAll('#input-mode [data-input]').forEach(b =>
     b.setAttribute('aria-checked', String(b.dataset.input === profile.inputMode)));
-  $('#mode-rules').textContent = MODE_RULES[sel.mode];
 }
 
 $('#lesson-list').addEventListener('click', e => {
@@ -189,6 +190,7 @@ $('#mode-list').addEventListener('click', e => {
   if (!b) return;
   app.sel.mode = b.dataset.mode;
   renderMenu();
+  toast(MODE_RULES[app.sel.mode], 5000);
 });
 $('#input-mode').addEventListener('click', e => {
   const b = e.target.closest('[data-input]');
@@ -205,6 +207,7 @@ function startGame(lessonId, modeId) {
   const lesson = getLesson(lessonId), mode = getMode(modeId);
   app.sel = { lesson: lesson.id, mode: mode.id };
   app.game = createGame({ lesson, mode });
+  $('#toast').hidden = true;
   app.tilesOn = mode.tilesOn;
   app.locked = false;
 
@@ -246,7 +249,9 @@ const tileHTML = (a, b) => (a * b === 0
 function renderQuestion(reveal = false) {
   const q = app.game.question;
   if (!q) return;
-  const num = n => (app.tilesOn ? `<span class="factor">${tileHTML(n, 1)}<span>${n}</span></span>` : `<span>${n}</span>`);
+  const picturesOnly = app.game.mode.id === 'associations'; // в асоціаціях — лише картинки, без цифр
+  const num = n => (picturesOnly ? `<span class="factor factor--big">${tileHTML(n, 1)}</span>`
+    : app.tilesOn ? `<span class="factor">${tileHTML(n, 1)}<span>${n}</span></span>` : `<span>${n}</span>`);
   const ans = reveal ? q.answer : (app.profile.inputMode === 'expert' && app.typed ? app.typed : '?');
   $('#expr').innerHTML = `${num(q.a)}<span class="op">×</span>${num(q.b)}<span class="op">=</span><span class="ans${reveal ? ' reveal' : ''}">${ans}</span>`;
   $('#expr').setAttribute('aria-label', `${q.a} помножити на ${q.b}`);
@@ -267,7 +272,7 @@ function renderChoices(revealValue = null, wrongValue = null) {
   const tiles = app.game.mode.tileChoices;
   $('#choices').replaceChildren(...app.choices.map((c, i) => {
     const b = el('button', { type: 'button', className: 'choice' });
-    b.innerHTML = `<span class="key-hint">${i + 1}</span>${tiles ? tileHTML(c.a, c.b) : c.value}`;
+    b.innerHTML = `${tiles ? tileHTML(c.a, c.b) : c.value}`;
     b.setAttribute('aria-label', String(c.value));
     b.dataset.value = c.value;
     if (app.disabledValues.has(c.value)) { b.disabled = true; b.classList.add('is-dim'); }
@@ -437,8 +442,8 @@ function endGame() {
     hintsCount: r.hints, time: r.time, speed: r.speed, passed: r.passed,
     date: `${now.toLocaleDateString('uk-UA')} ${now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}`,
   };
-  const newBest = isBetter(record, old);
-  if (newBest) app.profile.records[key] = { ...record, passed: r.passed || Boolean(old?.passed) };
+  const better = isBetter(record, old);
+  if (better) app.profile.records[key] = { ...record, passed: r.passed || Boolean(old?.passed) };
   else if (r.passed && old) old.passed = true;
   storage.saveRecords(app.profile.records);
 
@@ -464,6 +469,7 @@ function endGame() {
     records: app.profile.records,
   });
 
+  const newBest = better && r.score > 0; // 0 балів — не рекорд
   showResult(r, { newBest, hadOld: Boolean(old), best: app.profile.records[key], idx });
 }
 
@@ -474,7 +480,7 @@ function showResult(r, { newBest, hadOld, best, idx }) {
     [icon, title] = r.passed ? ['🎉', 'Перевірку пройдено!'] : ['💪', 'Майже! Спробуй ще раз'];
   } else if (mode.id === 'records') {
     [icon, title] = newBest ? ['🏆', 'Новий рекорд!'] : ['🏁', 'Марафон завершено'];
-    if (!newBest) sub = `Твій рекорд: ${best.score} балів`;
+    if (!newBest && best?.score > 0) sub = `Твій рекорд: ${best.score} балів`;
   }
   if (newBest && hadOld && mode.id !== 'records') sub = 'Це твій найкращий результат!';
 

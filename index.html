@@ -60,14 +60,15 @@
         <button type="button" role="radio" data-input="expert">⌨️ Набрати</button>
       </div>
 
-      <p class="mode-rules muted" id="mode-rules"></p>
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
     </section>
 
     <!-- 3. Гра -->
     <section class="screen" id="screen-game" hidden>
       <header class="bar">
-        <button class="btn btn--ghost btn--small" id="btn-exit" type="button">← Меню</button>
+        <button class="icon-btn" id="btn-exit" type="button" aria-label="Меню" title="Меню">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg>
+        </button>
         <div class="game-title">
           <div id="game-lesson">Урок</div>
           <div class="muted" id="game-mode">Рівень</div>
