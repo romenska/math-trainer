@@ -1,12 +1,12 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, getLesson, getMode } from './config.js?v=2.3';
-import { createGame, makeChoices, isBetter } from './engine.js?v=2.3';
-import { storage } from './storage.js?v=2.3';
-import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=2.3';
-import { textHint, storyImage } from './hints.js?v=2.3';
-import { confetti } from './confetti.js?v=2.3';
-import { neededPieces, recallBank, PRODUCTS } from './pictures.js?v=2.3';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, getLesson, getMode } from './config.js?v=2.9';
+import { createGame, makeChoices, isBetter } from './engine.js?v=2.9';
+import { storage } from './storage.js?v=2.9';
+import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=2.9';
+import { textHint, storyImage } from './hints.js?v=2.9';
+import { confetti } from './confetti.js?v=2.9';
+import { neededPieces, recallBank, PRODUCTS } from './pictures.js?v=2.9';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -665,6 +665,6 @@ function boot() {
   openMenu(true);   // одразу показуємо меню з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=2.9'; });
 }
 boot();

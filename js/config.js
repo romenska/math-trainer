@@ -56,7 +56,17 @@ export const ASSETS = {
   zero: 'assets/zero.webp',            // сонечко для нуля
   story: (a, b) => `assets/story/${a}x${b}.webp`,
   storyZeroOne: 'assets/story/zero-one.webp',
-  storyFactors: [2, 3, 4],             // для яких множників є картинки-історії
+  // Які картинки-історії є в assets/story/ (назва файлу без .webp). Нова історія = файл + назва тут.
+  // 5×7 і 7×5 — одна історія: досить одного файлу будь-яким порядком.
+  stories: [
+    '2x2', '2x3', '2x4', '2x5', '2x6', '2x7', '2x8', '2x9',
+    '3x2', '3x3', '3x4', '3x5', '3x6', '3x7', '3x8', '3x9',
+    '4x2', '4x3', '4x4', '4x5', '4x6', '4x7', '4x8', '4x9',
+    '5x5', '5x6', '5x7', '5x8', '5x9',
+    '6x6', '6x7', '6x8', '6x9',
+    '7x7', '7x8', '7x9',
+    '8x8', '8x9',
+  ],
 };
 
 export const getLesson = id => LESSONS.find(l => l.id === Number(id)) || LESSONS[0];

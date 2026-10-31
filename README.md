@@ -58,4 +58,4 @@ tests/engine.test.mjs тести логіки: node tests/engine.test.mjs
 
 ## Нові картинки-історії
 
-Зараз є для ×2, ×3, ×4 (і 0/1). Щоб додати, наприклад, ×5: покладіть файли `assets/story/5x2.webp … 5x9.webp` і допишіть `5` у `ASSETS.storyFactors` у `config.js`.
+Є для всіх прикладів, крім 9×9. Щоб додати нову: покладіть файл `assets/story/9x9.webp` і допишіть `'9x9'` у список `ASSETS.stories` у `config.js`.

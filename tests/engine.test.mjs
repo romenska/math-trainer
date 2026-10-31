@@ -1,9 +1,9 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=2.3';
-import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=2.3';
-import { textHint, storyImage } from '../js/hints.js?v=2.3';
-import { pictureId, neededPieces, recallBank } from '../js/pictures.js?v=2.3';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=2.9';
+import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=2.9';
+import { textHint, storyImage } from '../js/hints.js?v=2.9';
+import { pictureId, neededPieces, recallBank } from '../js/pictures.js?v=2.9';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -126,7 +126,8 @@ test('підказки: є для всіх прикладів 2–9, симет�
   for (let a = 0; a <= 9; a++) for (let b = 0; b <= 9; b++) assert.ok(textHint(a, b), `${a}x${b}`);
   assert.equal(textHint(3, 7), textHint(7, 3));
   assert.equal(storyImage(5, 2), 'assets/story/2x5.webp');
-  assert.equal(storyImage(7, 8), null);
+  assert.equal(storyImage(8, 7), 'assets/story/7x8.webp');
+  assert.equal(storyImage(9, 9), null, '9×9 ще без картинки');
 });
 
 test('послідовність: 6 рівнів у кожному уроці', () => {

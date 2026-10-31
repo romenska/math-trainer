@@ -1,4 +1,4 @@
-import { ASSETS } from './config.js?v=2.3';
+import { ASSETS } from './config.js?v=2.9';
 // Текстові підказки-асоціації. Ключ — менший×більший множник (симетрія враховується автоматично).
 export const HINTS = {
   "2x2": "доміно (в яку гру грали два дракончики?)",
@@ -56,7 +56,7 @@ export function textHint(a, b) {
 /** Адреса картинки-історії для a×b або null (тоді кнопку просто не показуємо). */
 export function storyImage(a, b) {
   if (isZeroOne(a, b)) return ASSETS.storyZeroOne;
-  if (ASSETS.storyFactors.includes(a)) return ASSETS.story(a, b);
-  if (ASSETS.storyFactors.includes(b)) return ASSETS.story(b, a); // 5×2 = 2×5
+  if (ASSETS.stories.includes(`${a}x${b}`)) return ASSETS.story(a, b);
+  if (ASSETS.stories.includes(`${b}x${a}`)) return ASSETS.story(b, a); // 7×5 = 5×7
   return null;
 }
