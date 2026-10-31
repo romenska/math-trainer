@@ -1,4 +1,4 @@
-import { ASSETS } from './config.js';
+import { ASSETS } from './config.js?v=2.2';
 // Текстові підказки-асоціації. Ключ — менший×більший множник (симетрія враховується автоматично).
 export const HINTS = {
   "2x2": "доміно (в яку гру грали два дракончики?)",
@@ -46,7 +46,11 @@ const isZeroOne = (a, b) => a <= 1 || b <= 1;
 /** Текстова підказка для a×b або null, якщо її немає. */
 export function textHint(a, b) {
   if (isZeroOne(a, b)) return ZERO_ONE_HINT;
-  return HINTS[`${Math.min(a, b)}x${Math.max(a, b)}`] || null;
+  const full = HINTS[`${Math.min(a, b)}x${Math.max(a, b)}`];
+  if (!full) return null;
+  // Показуємо лише навідне питання з дужок, саму відповідь-асоціацію — ні
+  const m = full.match(/\(([^)]+)\)/);
+  return m ? m[1].trim() : full;
 }
 
 /** Адреса картинки-історії для a×b або null (тоді кнопку просто не показуємо). */

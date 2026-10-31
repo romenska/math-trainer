@@ -1,11 +1,11 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, getLesson, getMode } from './config.js';
-import { createGame, makeChoices, isBetter } from './engine.js';
-import { storage } from './storage.js';
-import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js';
-import { textHint, storyImage } from './hints.js';
-import { confetti } from './confetti.js';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, getLesson, getMode } from './config.js?v=2.2';
+import { createGame, makeChoices, isBetter } from './engine.js?v=2.2';
+import { storage } from './storage.js?v=2.2';
+import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=2.2';
+import { textHint, storyImage } from './hints.js?v=2.2';
+import { confetti } from './confetti.js?v=2.2';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -15,13 +15,14 @@ const MODE_RULES = {
   associations: 'Над числами — картинки-асоціації, відповідь теж обираємо картинкою. Помилка? З’явиться підказка і ще одна спроба, а приклад повернеться трохи згодом.',
   training: 'Тільки числа. Якщо важко — відкрий підказку: текст, історію або картинки (за такий приклад бал не нараховується).',
   speed: 'Без підказок, 3 життя. Перевірку пройдено, якщо розв’язати всі приклади уроку, не втративши всі життя.',
-  records: 'Приклади без кінця, 3 життя. Б’ємо власний рекорд! Натисни «Фініш», щоб зупинитися.',
+  records: 'Приклади без кінця — до першої помилки. Побий свій рекорд 🏆! Натисни «Фініш», щоб зупинитися.',
 };
 
 const app = {
   profile: storage.load(),
   sel: { lesson: 1, mode: 'associations' },
   game: null,
+  recordToBeat: null,
   locked: false,
   typed: '',
   tilesOn: false,
@@ -215,7 +216,11 @@ function startGame(lessonId, modeId) {
   $('#game-mode').textContent = `${MODE_ICONS[mode.id]} ${mode.name}`;
   $('#btn-exit').hidden = mode.queue === 'endless';
   $('#btn-finish').hidden = mode.queue !== 'endless';
-  $('#game-hearts').hidden = mode.lives === 0;
+  $('#game-hearts').hidden = mode.lives <= 1; // одне «життя» (марафон) — сердечка не показуємо
+  app.recordToBeat = mode.id === 'records' ? Number(app.profile.records[recordKey(lesson.id, mode.id)]?.score) || 0 : null;
+  $('#game-record').hidden = app.recordToBeat === null;
+  $('#game-record').classList.remove('is-beaten');
+  $('#game-record-val').textContent = app.recordToBeat ?? 0;
   $('#game-progress').hidden = mode.queue === 'endless';
   $('#choices').hidden = app.profile.inputMode !== 'novice';
   $('#keypad-wrap').hidden = app.profile.inputMode !== 'expert';
@@ -286,6 +291,11 @@ function renderChoices(revealValue = null, wrongValue = null) {
 function renderHud() {
   const g = app.game;
   $('#game-score').textContent = g.stats.score;
+  if (app.recordToBeat !== null) {
+    const beaten = g.stats.score > app.recordToBeat;
+    $('#game-record').classList.toggle('is-beaten', beaten);
+    $('#game-record').title = beaten ? 'Рекорд побито!' : 'Рекорд, який треба побити';
+  }
   if (g.mode.lives) {
     $('#game-hearts').innerHTML = Array.from({ length: g.mode.lives }, (_, i) =>
       `<span class="${i < g.lives ? '' : 'lost'}">❤️</span>`).join('');

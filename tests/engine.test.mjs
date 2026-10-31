@@ -1,8 +1,8 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js';
-import { getLesson, getMode, SEQUENCE } from '../js/config.js';
-import { textHint, storyImage } from '../js/hints.js';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=2.2';
+import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=2.2';
+import { textHint, storyImage } from '../js/hints.js?v=2.2';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -82,23 +82,26 @@ test('перевірка: 2 помилки з 30 → пройдено', () => {
   assert.equal(g.result().passed, true); assert.equal(g.result().questions, 30);
 });
 
-test('марафон: без повторів підряд, фініш = пройдено, 3 помилки = кінець', () => {
+test('марафон: без повторів підряд, фініш з балами = пройдено', () => {
   const g = createGame({ lesson: L4, mode: getMode('records'), rng });
   let prev = null;
   for (let i = 0; i < 200; i++) { const q = g.next(); assert.notEqual(q.key, prev); prev = q.key; g.answer(q.answer); }
   g.finish(); assert.ok(g.result().passed); assert.equal(g.result().score, 200);
-  const g2 = createGame({ lesson: L4, mode: getMode('records'), rng });
-  for (let i = 0; i < 3; i++) { g2.next(); g2.answer(-1); }
-  assert.ok(g2.finished); assert.equal(g2.result().passed, false, '0 балів — марафон не зараховано');
 });
 
-test('марафон: 1-ша і 2-га помилки не завершують гру', () => {
+test('марафон: закінчується одразу після першої помилки', () => {
   const g = createGame({ lesson: L1, mode: getMode('records'), rng });
   for (let i = 0; i < 5; i++) { g.next(); g.answer(g.question.answer); }
-  g.next(); assert.equal(g.answer(-1).then, 'next');
-  g.next(); assert.equal(g.answer(-1).then, 'next');
-  assert.ok(!g.finished); assert.equal(g.lives, 1);
-  g.next(); assert.equal(g.answer(-1).then, 'end'); assert.ok(g.result().passed);
+  g.next(); assert.equal(g.answer(-1).then, 'end');
+  assert.ok(g.finished); assert.equal(g.result().score, 5, 'бали не знімаються'); assert.ok(g.result().passed);
+  const g0 = createGame({ lesson: L1, mode: getMode('records'), rng });
+  g0.next(); g0.answer(-1);
+  assert.ok(g0.finished); assert.equal(g0.result().passed, false, '0 балів — не зараховано');
+});
+
+test('текстова підказка: лише навідне питання з дужок', () => {
+  assert.equal(textHint(2, 2), 'в яку гру грали два дракончики?');
+  assert.ok(!textHint(2, 2).includes('доміно'));
 });
 
 test('відповідь після кінця гри ігнорується', () => {

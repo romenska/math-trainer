@@ -20,6 +20,7 @@ export const LESSONS = [
  *  hints     — доступні підказки: text | story | tiles
  *  tilesOn   — картинки над числами увімкнені одразу
  *  tileChoices — варіанти відповіді показуються картинками
+ *  penalty   — скільки балів знімати за помилку (якщо не вказано — SCORING.penalty)
  */
 export const MODES = [
   { id: 'associations', name: 'Асоціації', queue: 'all', retry: true, requeue: true, lives: 0,
@@ -28,7 +29,7 @@ export const MODES = [
     hints: ['text', 'story', 'tiles'], tilesOn: false, tileChoices: false },
   { id: 'speed', name: 'Перевірка', queue: 'all', retry: false, requeue: false, lives: 3,
     hints: [], tilesOn: false, tileChoices: false },
-  { id: 'records', name: 'Марафон', queue: 'endless', retry: false, requeue: false, lives: 3,
+  { id: 'records', name: 'Марафон', queue: 'endless', retry: false, requeue: false, lives: 1, penalty: 0, // до першої помилки, бали не знімаються
     hints: [], tilesOn: false, tileChoices: false },
 ];
 

@@ -1,7 +1,7 @@
 // Ігрова логіка без DOM: черга прикладів, перевірка відповідей, бали, життя, результат.
 // Завдяки цьому її можна тестувати окремо (див. tests/engine.test.mjs).
 
-import { SCORING } from './config.js';
+import { SCORING } from './config.js?v=2.2';
 
 export function shuffle(arr, rng = Math.random) {
   const a = arr.slice();
@@ -125,7 +125,7 @@ export function createGame({ lesson, mode, rng = Math.random, now = () => Date.n
     s.stats.errors += 1;
     if (!s.wrongOnCurrent) {
       s.wrongOnCurrent = true;
-      s.stats.score = Math.max(0, s.stats.score - SCORING.penalty);
+      s.stats.score = Math.max(0, s.stats.score - (mode.penalty ?? SCORING.penalty));
       if (mode.requeue) {                               // повернеться через кілька прикладів
         const at = Math.min(queue.length, 3 + Math.floor(rng() * 3));
         queue.splice(at, 0, makeQuestion(q.a, q.b));
