@@ -112,6 +112,16 @@
       border-radius: 10px;
       vertical-align: middle;
     }
+    .number-tile-sm {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      background-image: url('https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/table_3d.jpg');
+      background-size: 324px 324px;
+      background-repeat: no-repeat;
+      border-radius: 6px;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -217,24 +227,26 @@
       <div class="py-1">
         <div id="questionBox" class="text-center bg-gradient-to-b from-gray-50 to-white rounded-3xl border border-gray-100 relative mb-4 min-h-[160px] flex flex-col items-center justify-center transition-colors duration-300 overflow-hidden p-4">
 
+          <!-- Підказка 3: Картинка-історія замість завдання -->
           <div id="inlineHintBox" class="hidden w-full h-full max-w-[480px] mx-auto p-0 rounded-3xl overflow-hidden flex justify-center items-center">
             <div id="inlineHintSprite" class="hint-sprite-box rounded-3xl overflow-hidden"></div>
           </div>
 
-          <div id="textHintBox" class="hidden text-sm md:text-base font-semibold text-amber-700 bg-amber-50 p-3 rounded-2xl border border-amber-200 my-2"></div>
+          <!-- Підказка 1: Текст над завданням -->
+          <div id="textHintBox" class="hidden text-sm md:text-base font-semibold text-amber-700 bg-amber-50 p-3 rounded-2xl border border-amber-200 my-2 w-full"></div>
 
           <div id="expressionText" class="text-5xl font-black text-gray-800 brand-font my-4 transition-colors duration-200 flex items-center justify-center gap-2">
             2 × 2 = ?
           </div>
 
           <div id="hintButtonsContainer" class="absolute bottom-3 right-3 flex items-center gap-2 z-10">
-            <button id="btnHint" onclick="toggleHint()" title="Підказка картинка-історія" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-full border border-amber-200 shadow-sm transition flex items-center justify-center">
+            <button id="btnHint" onclick="toggleHint()" title="Картинка-історія замість завдання" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-full border border-amber-200 shadow-sm transition flex items-center justify-center">
               💡
             </button>
-            <button id="btnTextHint" onclick="toggleTextHint()" title="Текстова підказка" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full border border-blue-200 shadow-sm transition flex items-center justify-center">
+            <button id="btnTextHint" onclick="toggleTextHint()" title="Текстова підказка над завданням" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full border border-blue-200 shadow-sm transition flex items-center justify-center">
               💬
             </button>
-            <button id="btnTileHint" onclick="toggleTileHint()" title="Асоціативні картинки в завданні" class="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-full border border-purple-200 shadow-sm transition flex items-center justify-center">
+            <button id="btnTileHint" onclick="toggleTileHint()" title="Асоціативні картинки над кожним числом" class="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-full border border-purple-200 shadow-sm transition flex items-center justify-center">
               🖼️
             </button>
           </div>
@@ -300,9 +312,11 @@
         <div id="resultIcon" class="text-5xl mb-2">🎉</div>
         <h2 id="resultTitle" class="text-2xl font-bold text-gray-800 brand-font mb-1">Вітаємо!</h2>
         
+        <!-- Блок результату (для асоціацій та тренувань: великі бали, менший час і швидкість) -->
         <div class="my-4">
-          <div class="text-4xl font-black text-blue-600 mb-1" id="resScoreBig">0 балів</div>
-          <div class="text-sm font-semibold text-gray-500" id="resTimeBig">Час: 00:00</div>
+          <div class="text-5xl font-black text-blue-600 mb-2" id="resScoreBig">0 балів</div>
+          <div class="text-sm font-bold text-gray-700 mb-1" id="resTimeBig">Час: 00:00</div>
+          <div class="text-xs font-semibold text-gray-500" id="resSpeed">Швидкість: 0.0 прикл/с</div>
         </div>
 
         <div class="bg-blue-50/60 rounded-2xl p-3 mb-6 border border-blue-100 flex flex-col gap-1 text-xs">
@@ -310,7 +324,6 @@
           <div class="flex justify-between px-2"><span>Правильні:</span><b id="resCorrect" class="text-green-600">0</b></div>
           <div class="flex justify-between px-2"><span>Неправильні:</span><b id="resErrors" class="text-red-600">0</b></div>
           <div class="flex justify-between px-2"><span>Підказки:</span><b id="resHints" class="text-amber-600">0</b></div>
-          <div class="flex justify-between px-2 border-t border-blue-200/60 pt-1 mt-1"><span>Швидкість:</span><b id="resSpeed" class="text-blue-600">0.0 прикл/с</b></div>
         </div>
 
         <div class="grid grid-cols-3 gap-2">
@@ -365,12 +378,21 @@
         const sizeCls = isLarge ? 'w-[70px] h-[70px]' : 'w-[54px] h-[54px]';
         return `<span class="inline-block ${sizeCls} rounded-lg overflow-hidden bg-cover bg-center align-middle" style="background-image: url('https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/sun.jpg');" title="0"></span>`;
       }
-      
       const size = isLarge ? 70 : 54;
       const x = (c - 1) * size;
       const y = (r - 1) * size;
       const cls = isLarge ? 'number-tile-lg' : 'number-tile';
       return `<span class="${cls}" style="background-position: -${x}px -${y}px;"></span>`;
+    }
+
+    function createSmallTileHTMLByCoords(r, c) {
+      if (r === 0 || c === 0) {
+        return `<span class="inline-block w-[36px] h-[36px] rounded-md overflow-hidden bg-cover bg-center align-middle" style="background-image: url('https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/sun.jpg');"></span>`;
+      }
+      const size = 36;
+      const x = (c - 1) * size;
+      const y = (r - 1) * size;
+      return `<span class="number-tile-sm" style="background-position: -${x}px -${y}px;"></span>`;
     }
 
     function getLeftColumnTileHTML(num, isLarge = true) {
@@ -656,29 +678,35 @@
       }
     }
 
-    function toggleHint() {
+    // Правило: одночасно тільки одна підказка
+    window.toggleHint = function() {
       if (state.gameMode !== 'training') return;
       const inlineHintBox = document.getElementById('inlineHintBox');
+      const textHintBox = document.getElementById('textHintBox');
       const isVisible = inlineHintBox && !inlineHintBox.classList.contains('hidden');
+      
       if (isVisible) {
         hideHintPicture();
       } else {
+        textHintBox?.classList.add('hidden'); // вимикаємо текстову
         showInlineHintPicture();
       }
-    }
+    };
 
-    function toggleTextHint() {
+    window.toggleTextHint = function() {
       if (state.gameMode !== 'training' && state.gameMode !== 'associations') return;
       const textHintBox = document.getElementById('textHintBox');
       const isVisible = textHintBox && !textHintBox.classList.contains('hidden');
+      
       if (isVisible) {
         textHintBox.classList.add('hidden');
       } else {
+        hideHintPicture(); // вимикаємо картинку-історію
         showTextHintAutomatic();
       }
-    }
+    };
 
-    function toggleTileHint() {
+    window.toggleTileHint = function() {
       if (state.gameMode !== 'training') return;
       state.tileHintActive = !state.tileHintActive;
       const btn = document.getElementById('btnTileHint');
@@ -686,7 +714,7 @@
         btn.classList.toggle('bg-purple-200', state.tileHintActive);
       }
       renderQuestionDisplay();
-    }
+    };
 
     function showTextHintAutomatic() {
       const q = state.currentQuestion;
@@ -896,7 +924,6 @@
       state.gameMode = parsed.gameMode;
 
       saveSettingsToLocalStorage();
-      
       showScreen('gamePlayArea');
       
       resetGameStats();
@@ -915,11 +942,14 @@
       state.hadErrorForCurrent = false;
       state.timerSeconds = 0;
       state.masteredSet = new Set();
-      state.tileHintActive = false;
+      // У режимі асоціацій тайли у завданні увімкнені за замовчуванням, в інших — вимкнені
+      state.tileHintActive = (state.gameMode === 'associations');
       clearInterval(state.timerInterval);
 
       const tileBtn = document.getElementById('btnTileHint');
-      if (tileBtn) tileBtn.classList.remove('bg-purple-200');
+      if (tileBtn) {
+        tileBtn.classList.toggle('bg-purple-200', state.tileHintActive);
+      }
 
       document.getElementById('scoreVal').textContent = '0';
       document.getElementById('statRightVal').textContent = '00:00';
@@ -937,8 +967,10 @@
 
       if (state.gameMode === 'records') {
         marathonBtn?.classList.remove('hidden');
+        menuBtn?.classList.add('hidden'); // У марафоні кнопка меню не відображається
       } else {
         marathonBtn?.classList.add('hidden');
+        menuBtn?.classList.remove('hidden');
       }
 
       updateHeartsUI();
@@ -1012,10 +1044,11 @@
     }
 
     function nextQuestion() {
-      state.usedHintForCurrent = false;
-      state.hadErrorForCurrent = false;
-
-      resetQuestionDisplay();
+      // Кожне нове завдання за замовчуванням без підказки (окрім повторної спроби після помилки)
+      if (!state.hadErrorForCurrent) {
+        state.usedHintForCurrent = false;
+        resetQuestionDisplay();
+      }
       updateHintVisibilityByMode();
 
       if (state.gameMode === 'records') {
@@ -1039,9 +1072,11 @@
       const q = state.currentQuestion;
       const exprText = document.getElementById('expressionText');
       if (exprText) {
-        if (state.gameMode === 'associations' || (state.gameMode === 'training' && state.tileHintActive)) {
-          exprText.innerHTML = `${getLeftColumnTileHTML(q.num1, true)} <span class="mx-1">×</span> ${getTopRowTileHTML(q.num2, true)} <span class="mx-1">=</span> ?`;
+        // У режимі асоціацій або якщо активовано асоціативні картки над кожним числом
+        if (state.gameMode === 'associations' || state.tileHintActive) {
+          exprText.innerHTML = `${createSmallTileHTMLByCoords(q.num1, 1)} ${q.num1} <span class="mx-1">×</span> ${createSmallTileHTMLByCoords(1, q.num2)} ${q.num2} <span class="mx-1">=</span> ?`;
         } else {
+          // В інших режимах — тільки числа
           exprText.textContent = `${q.num1} × ${q.num2} = ?`;
         }
       }
@@ -1059,19 +1094,14 @@
 
     function renderNoviceChoices(num1, num2) {
       const correctAns = num1 * num2;
-      
-      const correctOption = {
-        r: num1,
-        c: num2,
-        ans: correctAns,
-        isCorrect: true
-      };
+      const correctOption = { ans: correctAns, isCorrect: true };
 
       const choicesList = [correctOption];
-      const usedKeys = new Set([`${num1}_${num2}`]);
       const usedAnsValues = new Set([correctAns]);
 
-      if (state.gameMode === 'associations' || (state.gameMode === 'training' && state.tileHintActive)) {
+      // В асоціаціях — варіанти картинки-тайли, в інших режимах — тільки числа
+      if (state.gameMode === 'associations') {
+        const usedKeys = new Set([`${num1}_${num2}`]);
         while (choicesList.length < 4) {
           let randR = Math.floor(Math.random() * 10);
           let randC = Math.floor(Math.random() * 10);
@@ -1081,12 +1111,7 @@
           if (!usedKeys.has(key) && !usedAnsValues.has(dummyAns)) {
             usedKeys.add(key);
             usedAnsValues.add(dummyAns);
-            choicesList.push({
-              r: randR,
-              c: randC,
-              ans: dummyAns,
-              isCorrect: false
-            });
+            choicesList.push({ r: randR, c: randC, ans: dummyAns, isCorrect: false });
           }
         }
       } else {
@@ -1095,12 +1120,7 @@
           let dummy = correctAns + delta;
           if (dummy >= 0 && !usedAnsValues.has(dummy)) {
             usedAnsValues.add(dummy);
-            choicesList.push({
-              r: 0,
-              c: 0,
-              ans: dummy,
-              isCorrect: false
-            });
+            choicesList.push({ ans: dummy, isCorrect: false });
           }
         }
       }
@@ -1114,8 +1134,8 @@
         const btn = document.createElement('button');
         btn.className = 'choice-btn py-3 bg-white border-2 border-gray-100 hover:border-blue-500 rounded-xl text-xl font-bold text-gray-800 shadow-sm hover:shadow-md pulse-btn transition flex items-center justify-center';
         
-        if (state.gameMode === 'associations' || (state.gameMode === 'training' && state.tileHintActive)) {
-          btn.innerHTML = create3DTileHTMLByCoords(item.r, item.c, false);
+        if (state.gameMode === 'associations') {
+          btn.innerHTML = create3DTileHTMLByCoords(item.r !== undefined ? item.r : Math.floor(item.ans / (num2 || 1)), item.c !== undefined ? item.c : (num2 || 1), false);
         } else {
           btn.textContent = item.ans;
         }
@@ -1168,9 +1188,26 @@
           if (!state.usedHintForCurrent && !state.hadErrorForCurrent) state.score += 1;
           if (state.gameMode === 'training' || state.gameMode === 'associations' || state.gameMode === 'speed') state.masteredSet.add(q.key);
 
+          state.hadErrorForCurrent = false;
           document.getElementById('scoreVal').textContent = state.score;
           nextQuestion();
         } else {
+          // Якщо це повторна спроба ПІСЛЯ помилки (друга помилка поспіль на питанні)
+          if (state.hadErrorForCurrent) {
+            state.errors += 1;
+            state.score = Math.max(0, state.score - (state.usedHintForCurrent ? 2 : 1));
+            updateHeartsUI();
+            state.hadErrorForCurrent = false;
+            
+            if (state.gameMode === 'records' || state.gameMode === 'speed') {
+              finishGame(false);
+              return;
+            }
+            nextQuestion();
+            return;
+          }
+
+          // Перша помилка: автоматично показуємо текстову підказку і даємо ОДНУ спробу відповісти з підказкою
           state.errors += 1;
           state.hadErrorForCurrent = true;
           state.score = Math.max(0, state.score - (state.usedHintForCurrent ? 2 : 1));
@@ -1183,23 +1220,7 @@
             return;
           }
 
-          if (state.gameMode === 'speed') {
-            if (state.errors === 1) {
-              showTextHintAutomatic();
-            } else if (state.errors === 2) {
-              state.tileHintActive = true;
-              renderQuestionDisplay();
-            } else if (state.errors >= 3) {
-              showInlineHintPicture();
-              setTimeout(() => {
-                finishGame(false);
-              }, 1200);
-              return;
-            }
-          } else {
-            highlightQuestionTextRed();
-            showTextHintAutomatic();
-          }
+          showTextHintAutomatic();
 
           if (state.inputMode === 'novice') {
             renderNoviceChoices(q.num1, q.num2);
@@ -1267,19 +1288,31 @@
 
       sendDataToGoogleSheet('finish', statusResult);
 
+      // Заповнення вікна результатів відповідно до правил:
       document.getElementById('resScoreBig').textContent = `${state.score} балів`;
       document.getElementById('resTimeBig').textContent = `Час: ${formatTime(state.timerSeconds)}`;
+      document.getElementById('resSpeed').textContent = `Швидкість: ${currentSpeed} прикл/с`;
       document.getElementById('resTotal').textContent = state.answeredCount;
       document.getElementById('resCorrect').textContent = state.correctCount;
       document.getElementById('resErrors').textContent = state.errors;
       document.getElementById('resHints').textContent = state.hintsCount;
-      document.getElementById('resSpeed').textContent = `${currentSpeed} пр/с`;
 
       const resIcon = document.getElementById('resultIcon');
       const resTitle = document.getElementById('resultTitle');
 
-      if (resIcon) resIcon.textContent = isNewRecord ? '🎉' : (success ? '👏' : '🏁');
-      if (resTitle) resTitle.textContent = isNewRecord ? 'Новий рекорд!' : (success ? 'Вітаємо!' : 'Урок завершено');
+      if (state.gameMode === 'records') {
+        // Марафон: новий рекорд / невдача
+        if (resIcon) resIcon.textContent = isNewRecord ? '🎉' : '❌';
+        if (resTitle) resTitle.textContent = isNewRecord ? 'Новий рекорд' : 'Невдача';
+      } else if (state.gameMode === 'speed') {
+        // Перевірка: успіх / програш
+        if (resIcon) resIcon.textContent = success ? '🎉' : '❌';
+        if (resTitle) resTitle.textContent = success ? 'Успіх' : 'Програш';
+      } else {
+        // Асоціації і тренування: повідомлення про завершення тренування
+        if (resIcon) resIcon.textContent = '🏁';
+        if (resTitle) resTitle.textContent = 'Тренування завершено';
+      }
 
       document.getElementById('resultModal')?.classList.remove('hidden');
     }
