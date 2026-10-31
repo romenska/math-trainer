@@ -91,52 +91,6 @@
     .radio-option:not(.active):hover {
       background-color: rgba(255, 255, 255, 0.5);
     }
-
-    .lesson-block {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 12px 14px;
-      margin-bottom: 12px;
-    }
-
-    .lesson-title-header {
-      font-size: 12px;
-      font-weight: 700;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
-
-    .mode-btn {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 10px 12px;
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #374151;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      user-select: none;
-    }
-    .mode-btn:hover {
-      background-color: #f3f4f6;
-      border-color: #cbd5e1;
-    }
-    .mode-btn.selected {
-      background-color: #eff6ff;
-      border-color: #2563eb;
-      color: #1d4ed8;
-      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.12);
-    }
   </style>
 </head>
 <body>
@@ -167,12 +121,28 @@
         </div>
       </div>
 
-      <!-- Список уроків: назва зверху, 3 рівні знизу -->
-      <div class="mb-4 max-h-[340px] overflow-y-auto pr-1 flex flex-col" id="levelsGridContainer">
-        <!-- Динамічно заповнюється через JS -->
+      <!-- Поле 1: Урок -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Оберіть урок:</label>
+        <select id="lessonSelect" onchange="onLessonChange()" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 shadow-sm cursor-pointer">
+          <option value="1">Урок 1: Множення на 0, 1, 2</option>
+          <option value="2">Урок 2: Множення на 3, 4</option>
+          <option value="3">Урок 3: Множення на 5, 6</option>
+          <option value="4">Урок 4: Множення на 7, 8, 9, 10</option>
+        </select>
       </div>
 
-      <!-- Перемикач "Новачок / Експерт" -->
+      <!-- Поле 2: Рівень (Режим) -->
+      <div class="mb-5">
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Оберіть режим:</label>
+        <select id="modeSelect" onchange="onModeChange()" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 shadow-sm cursor-pointer">
+          <option value="training">Тренування</option>
+          <option value="speed">Тестування</option>
+          <option value="records">Марафон</option>
+        </select>
+      </div>
+
+      <!-- Перемикач режиму вводу -->
       <div class="mb-5">
         <div class="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 gap-1">
           <label id="label_novice" class="radio-option active" onclick="setInputMode('novice')">
@@ -381,69 +351,46 @@
     ];
 
     function updateSettingsUI() {
-      const container = document.getElementById('levelsGridContainer');
-      if (!container) return;
-      container.innerHTML = '';
+      const lessonSelect = document.getElementById('lessonSelect');
+      const modeSelect = document.getElementById('modeSelect');
+      if (!lessonSelect || !modeSelect) return;
 
       if (!state.currentCombinedLevel) {
         state.currentCombinedLevel = '1_training';
         saveCombinedLevelToStorage();
       }
 
-      const lessonLabels = {
-        1: 'Урок 1: Множення на 0, 1, 2',
-        2: 'Урок 2: Множення на 3, 4',
-        3: 'Урок 3: Множення на 5, 6',
-        4: 'Урок 4: Множення на 7, 8, 9, 10'
-      };
+      const parsed = parseCombinedLevel(state.currentCombinedLevel);
+      state.level = parsed.level;
+      state.gameMode = parsed.gameMode;
 
-      const modes = [
-        { id: 'training', label: 'Тренування', icon: '📖' },
-        { id: 'speed', label: 'Тестування', icon: '⚡' },
-        { id: 'records', label: 'Марафон', icon: '🏆' }
-      ];
-
-      for (let lvl = 1; lvl <= 4; lvl++) {
-        const blockDiv = document.createElement('div');
-        blockDiv.className = 'lesson-block';
-
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'lesson-title-header';
-        titleDiv.textContent = lessonLabels[lvl];
-        blockDiv.appendChild(titleDiv);
-
-        const modesWrapper = document.createElement('div');
-        modesWrapper.className = 'flex gap-2';
-
-        modes.forEach(m => {
-          const seqVal = `${lvl}_${m.id}`;
-          const isSelected = (state.currentCombinedLevel === seqVal);
-          
-          const recordKey = `L${lvl}_${m.id}`;
-          const isCompleted = !!(state.records[recordKey] && state.records[recordKey].score > 0);
-
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = `mode-btn ${isSelected ? 'selected' : ''}`;
-          
-          const starIcon = isCompleted ? '⭐ ' : '';
-          btn.innerHTML = `<span>${starIcon}${m.icon}</span><span>${m.label}</span>`;
-          
-          btn.onclick = () => {
-            state.currentCombinedLevel = seqVal;
-            saveCombinedLevelToStorage();
-            updateSettingsUI();
-          };
-
-          modesWrapper.appendChild(btn);
-        });
-
-        blockDiv.appendChild(modesWrapper);
-        container.appendChild(blockDiv);
-      }
+      lessonSelect.value = state.level;
+      modeSelect.value = state.gameMode;
 
       updateToggleUI();
     }
+
+    window.onLessonChange = function() {
+      const lessonSelect = document.getElementById('lessonSelect');
+      const modeSelect = document.getElementById('modeSelect');
+      if (!lessonSelect || !modeSelect) return;
+
+      state.level = parseInt(lessonSelect.value, 10);
+      state.gameMode = modeSelect.value;
+      state.currentCombinedLevel = `${state.level}_${state.gameMode}`;
+      saveCombinedLevelToStorage();
+    };
+
+    window.onModeChange = function() {
+      const lessonSelect = document.getElementById('lessonSelect');
+      const modeSelect = document.getElementById('modeSelect');
+      if (!lessonSelect || !modeSelect) return;
+
+      state.level = parseInt(lessonSelect.value, 10);
+      state.gameMode = modeSelect.value;
+      state.currentCombinedLevel = `${state.level}_${state.gameMode}`;
+      saveCombinedLevelToStorage();
+    };
 
     function showScreen(screenId) {
       document.getElementById('newUserModal').classList.add('hidden');
@@ -834,7 +781,7 @@
 
       const modes = [
         { id: 'training', label: 'Тренування' },
-        { id: 'speed', label: 'Швидкість' },
+        { id: 'speed', label: 'Тестування' },
         { id: 'records', label: 'Марафон' }
       ];
 
