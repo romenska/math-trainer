@@ -91,6 +91,27 @@
     .radio-option:not(.active):hover {
       background-color: rgba(255, 255, 255, 0.5);
     }
+
+    .number-tile {
+      display: inline-block;
+      width: 54px;
+      height: 54px;
+      background-image: url('https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/table_3d.jpg');
+      background-size: 486px 486px;
+      background-repeat: no-repeat;
+      border-radius: 8px;
+      vertical-align: middle;
+    }
+    .number-tile-lg {
+      display: inline-block;
+      width: 70px;
+      height: 70px;
+      background-image: url('https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/table_3d.jpg');
+      background-size: 630px 630px;
+      background-repeat: no-repeat;
+      border-radius: 10px;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -123,21 +144,22 @@
 
       <!-- Поле 1: Урок -->
       <div class="mb-4">
-        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Оберіть урок:</label>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Урок:</label>
         <select id="lessonSelect" onchange="onLessonChange()" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 shadow-sm cursor-pointer">
           <option value="1">Урок 1: Множення на 0, 1, 2</option>
           <option value="2">Урок 2: Множення на 3, 4</option>
           <option value="3">Урок 3: Множення на 5, 6</option>
-          <option value="4">Урок 4: Множення на 7, 8, 9, 10</option>
+          <option value="4">Урок 4: Множення на 7, 8, 9</option>
         </select>
       </div>
 
-      <!-- Поле 2: Рівень (Режим) -->
+      <!-- Поле 2: Рівень -->
       <div class="mb-5">
-        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Оберіть режим:</label>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Рівень:</label>
         <select id="modeSelect" onchange="onModeChange()" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-blue-500 shadow-sm cursor-pointer">
+          <option value="associations">Асоціації</option>
           <option value="training">Тренування</option>
-          <option value="speed">Тестування</option>
+          <option value="speed">Перевірка</option>
           <option value="records">Марафон</option>
         </select>
       </div>
@@ -201,13 +223,19 @@
 
           <div id="textHintBox" class="hidden text-sm md:text-base font-semibold text-amber-700 bg-amber-50 p-3 rounded-2xl border border-amber-200 my-2"></div>
 
-          <div id="expressionText" class="text-5xl font-black text-gray-800 brand-font my-4 transition-colors duration-200">
+          <div id="expressionText" class="text-5xl font-black text-gray-800 brand-font my-4 transition-colors duration-200 flex items-center justify-center gap-2">
             2 × 2 = ?
           </div>
 
           <div id="hintButtonsContainer" class="absolute bottom-3 right-3 flex items-center gap-2 z-10">
-            <button id="btnHint" onclick="toggleHint()" title="Підказка картинка" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-full border border-amber-200 shadow-sm transition flex items-center justify-center">
+            <button id="btnHint" onclick="toggleHint()" title="Підказка картинка-історія" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-full border border-amber-200 shadow-sm transition flex items-center justify-center">
               💡
+            </button>
+            <button id="btnTextHint" onclick="toggleTextHint()" title="Текстова підказка" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full border border-blue-200 shadow-sm transition flex items-center justify-center">
+              💬
+            </button>
+            <button id="btnTileHint" onclick="toggleTileHint()" title="Асоціативні картинки в завданні" class="p-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-full border border-purple-200 shadow-sm transition flex items-center justify-center">
+              🖼️
             </button>
           </div>
         </div>
@@ -225,13 +253,13 @@
       <footer class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
         <div id="bottomSettingsSummary" class="flex flex-col gap-0.5 font-medium">
           <div>Учень: <span id="bottomSummaryNickname" class="text-gray-800 font-bold">Учень</span></div>
-          <div>Рівень: <span id="bottomSummaryGameMode" class="text-gray-700 font-medium">Тренування</span></div>
+          <div>Рівень: <span id="bottomSummaryGameMode" class="text-gray-700 font-medium">Асоціації</span></div>
           <div>Режим вводу: <span id="bottomSummaryInputMode" class="text-gray-700 font-medium">Новачок</span></div>
         </div>
 
         <div class="flex items-center gap-2">
-          <button id="btnMenuReturn" onclick="abortGameToMenu()" title="Повернутися в меню" class="hidden px-3.5 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">🏠 Меню</button>
-          <button id="btnMarathonFinish" onclick="openSettingsModal()" title="Завершити марафон" class="hidden px-3.5 py-2 text-xs font-bold text-black bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">Фініш 🏁</button>
+          <button id="btnMenuReturn" onclick="abortGameToMenu()" title="Повернутися в меню" class="px-3.5 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">🏠 Меню</button>
+          <button id="btnMarathonFinish" onclick="finishMarathon()" title="Завершити марафон" class="hidden px-3.5 py-2 text-xs font-bold text-black bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-1 shadow-sm">Фініш 🏁</button>
         </div>
       </footer>
     </div>
@@ -303,16 +331,16 @@
         1: { name: 'Урок 1: Множення на 0, 1, 2', factors: [0, 1, 2] },
         2: { name: 'Урок 2: Множення на 3, 4', factors: [3, 4] },
         3: { name: 'Урок 3: Множення на 5, 6', factors: [5, 6] },
-        4: { name: 'Урок 4: Множення на 7, 8, 9, 10', factors: [7, 8, 9, 10] }
+        4: { name: 'Урок 4: Множення на 7, 8, 9', factors: [7, 8, 9] }
       }
     };
 
     let state = {
       level: 1,
-      gameMode: 'training',
+      gameMode: 'associations',
       inputMode: 'novice',
       nickname: localStorage.getItem('math_trainer_nickname') || '',
-      currentCombinedLevel: localStorage.getItem('math_trainer_combined_level') || '1_training',
+      currentCombinedLevel: localStorage.getItem('math_trainer_combined_level') || '1_associations',
       score: 0,
       errors: 0,
       correctCount: 0,
@@ -328,26 +356,48 @@
       currentQuestion: null,
       records: {},
       xmlHints: {},
-      deviceId: localStorage.getItem('math_trainer_device_id') || ''
+      deviceId: localStorage.getItem('math_trainer_device_id') || '',
+      tileHintActive: false
     };
+
+    function create3DTileHTMLByCoords(r, c, isLarge = false) {
+      if (r === 0 || c === 0) {
+        const sizeCls = isLarge ? 'w-[70px] h-[70px]' : 'w-[54px] h-[54px]';
+        return `<span class="inline-block ${sizeCls} rounded-lg overflow-hidden bg-cover bg-center align-middle" style="background-image: url('https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/sun.jpg');" title="0"></span>`;
+      }
+      
+      const size = isLarge ? 70 : 54;
+      const x = (c - 1) * size;
+      const y = (r - 1) * size;
+      const cls = isLarge ? 'number-tile-lg' : 'number-tile';
+      return `<span class="${cls}" style="background-position: -${x}px -${y}px;"></span>`;
+    }
+
+    function getLeftColumnTileHTML(num, isLarge = true) {
+      return create3DTileHTMLByCoords(num, 1, isLarge);
+    }
+
+    function getTopRowTileHTML(num, isLarge = true) {
+      return create3DTileHTMLByCoords(1, num, isLarge);
+    }
 
     function saveCombinedLevelToStorage() {
       localStorage.setItem('math_trainer_combined_level', state.currentCombinedLevel);
     }
 
     function parseCombinedLevel(val) {
-      const parts = (val || '1_training').split('_');
+      const parts = (val || '1_associations').split('_');
       return {
         level: parseInt(parts[0], 10) || 1,
-        gameMode: parts[1] || 'training'
+        gameMode: parts[1] || 'associations'
       };
     }
 
     const GAME_SEQUENCE = [
-      '1_training', '1_speed', '1_records',
-      '2_training', '2_speed', '2_records',
-      '3_training', '3_speed', '3_records',
-      '4_training', '4_speed', '4_records'
+      '1_associations', '1_training', '1_speed', '1_records',
+      '2_associations', '2_training', '2_speed', '2_records',
+      '3_associations', '3_training', '3_speed', '3_records',
+      '4_associations', '4_training', '4_speed', '4_records'
     ];
 
     function updateSettingsUI() {
@@ -356,7 +406,7 @@
       if (!lessonSelect || !modeSelect) return;
 
       if (!state.currentCombinedLevel) {
-        state.currentCombinedLevel = '1_training';
+        state.currentCombinedLevel = '1_associations';
         saveCombinedLevelToStorage();
       }
 
@@ -459,17 +509,15 @@
         state.deviceId = newId;
         state.nickname = inputVal;
         state.records = {};
-        state.currentCombinedLevel = '1_training';
+        state.currentCombinedLevel = '1_associations';
 
         localStorage.setItem('math_trainer_device_id', newId);
         localStorage.setItem('math_trainer_nickname', inputVal);
         saveCombinedLevelToStorage();
-
-        sendDataToGoogleSheet('register', 'невдача');
       }
 
       if (!state.currentCombinedLevel) {
-        state.currentCombinedLevel = '1_training';
+        state.currentCombinedLevel = '1_associations';
         saveCombinedLevelToStorage();
       }
 
@@ -573,15 +621,15 @@
     }
 
     function getHintImageUrl(f, val) {
-      if (f === 0 || f === 1 || f === 10 || val === 0 || val === 1 || val === 10) {
+      if (f === 0 || f === 1 || val === 0 || val === 1) {
         return `https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/0.jpg`;
       }
       return `https://raw.githubusercontent.com/romenska/mathmultiplicationtrainer/main/x${f}.jpg`;
     }
 
     function getTextHint(f, val) {
-      if (f === 0 || f === 1 || f === 10 || val === 0 || val === 1 || val === 10) {
-        return "Один завжди програє, а нуль завжди перемагає";
+      if (f === 0 || f === 1 || val === 0 || val === 1) {
+        return "Маяк завжди програє, а сонечко завжди перемагає";
       }
       const key1 = `${f}x${val}`;
       const key2 = `${val}x${f}`;
@@ -590,15 +638,26 @@
 
     function updateHintVisibilityByMode() {
       const hintImgBtn = document.getElementById('btnHint');
+      const hintTextBtn = document.getElementById('btnTextHint');
+      const hintTileBtn = document.getElementById('btnTileHint');
+
       if (state.gameMode === 'speed' || state.gameMode === 'records') {
-        if (hintImgBtn) hintImgBtn.classList.add('hidden');
+        hintImgBtn?.classList.add('hidden');
+        hintTextBtn?.classList.add('hidden');
+        hintTileBtn?.classList.add('hidden');
+      } else if (state.gameMode === 'associations') {
+        hintImgBtn?.classList.add('hidden');
+        hintTextBtn?.classList.remove('hidden');
+        hintTileBtn?.classList.add('hidden');
       } else if (state.gameMode === 'training') {
-        if (hintImgBtn) hintImgBtn.classList.remove('hidden');
+        hintImgBtn?.classList.remove('hidden');
+        hintTextBtn?.classList.remove('hidden');
+        hintTileBtn?.classList.remove('hidden');
       }
     }
 
     function toggleHint() {
-      if (state.gameMode === 'speed' || state.gameMode === 'records') return;
+      if (state.gameMode !== 'training') return;
       const inlineHintBox = document.getElementById('inlineHintBox');
       const isVisible = inlineHintBox && !inlineHintBox.classList.contains('hidden');
       if (isVisible) {
@@ -606,6 +665,27 @@
       } else {
         showInlineHintPicture();
       }
+    }
+
+    function toggleTextHint() {
+      if (state.gameMode !== 'training' && state.gameMode !== 'associations') return;
+      const textHintBox = document.getElementById('textHintBox');
+      const isVisible = textHintBox && !textHintBox.classList.contains('hidden');
+      if (isVisible) {
+        textHintBox.classList.add('hidden');
+      } else {
+        showTextHintAutomatic();
+      }
+    }
+
+    function toggleTileHint() {
+      if (state.gameMode !== 'training') return;
+      state.tileHintActive = !state.tileHintActive;
+      const btn = document.getElementById('btnTileHint');
+      if (btn) {
+        btn.classList.toggle('bg-purple-200', state.tileHintActive);
+      }
+      renderQuestionDisplay();
     }
 
     function showTextHintAutomatic() {
@@ -634,7 +714,7 @@
 
       const f = q.num1;
       const val = q.num2;
-      const isSpecial = (f === 0 || f === 1 || f === 10 || val === 0 || val === 1 || val === 10);
+      const isSpecial = (f === 0 || f === 1 || val === 0 || val === 1);
 
       const applySprite = (imgSrc) => {
         const spriteBox = document.getElementById('inlineHintSprite');
@@ -702,7 +782,7 @@
       } else {
         await loadCloudData();
         if (!state.currentCombinedLevel) {
-          state.currentCombinedLevel = '1_training';
+          state.currentCombinedLevel = '1_associations';
           saveCombinedLevelToStorage();
         }
         openSettingsModal();
@@ -739,7 +819,6 @@
       state.inputMode = mode;
       updateToggleUI();
       saveSettingsToLocalStorage();
-      sendDataToGoogleSheet('updateInputMode', 'невдача');
     };
 
     function updateToggleUI() {
@@ -780,15 +859,16 @@
       container.innerHTML = '';
 
       const modes = [
+        { id: 'associations', label: 'Асоціації' },
         { id: 'training', label: 'Тренування' },
-        { id: 'speed', label: 'Тестування' },
+        { id: 'speed', label: 'Перевірка' },
         { id: 'records', label: 'Марафон' }
       ];
 
       const table = document.createElement('table');
       table.className = 'w-full border-collapse text-xs text-left min-w-[500px]';
 
-      let theadHTML = `<thead><tr class="border-b border-gray-200 bg-gray-50/80"><th class="p-2.5 font-bold text-gray-700 w-1/4">Рівень</th>${modes.map(m => `<th class="p-2.5 font-bold text-blue-700 text-center w-1/4">${m.label}</th>`).join('')}</tr></thead>`;
+      let theadHTML = `<thead><tr class="border-b border-gray-200 bg-gray-50/80"><th class="p-2.5 font-bold text-gray-700 w-1/5">Урок</th>${modes.map(m => `<th class="p-2.5 font-bold text-blue-700 text-center w-1/5">${m.label}</th>`).join('')}</tr></thead>`;
       let tbodyHTML = '<tbody>';
 
       for (let lvl = 1; lvl <= 4; lvl++) {
@@ -835,14 +915,18 @@
       state.hadErrorForCurrent = false;
       state.timerSeconds = 0;
       state.masteredSet = new Set();
+      state.tileHintActive = false;
       clearInterval(state.timerInterval);
+
+      const tileBtn = document.getElementById('btnTileHint');
+      if (tileBtn) tileBtn.classList.remove('bg-purple-200');
 
       document.getElementById('scoreVal').textContent = '0';
       document.getElementById('statRightVal').textContent = '00:00';
       document.getElementById('summaryLesson').textContent = CONFIG.levels[state.level].name;
 
       document.getElementById('bottomSummaryNickname').textContent = state.nickname || 'Учень';
-      const modeNames = { training: 'Тренування', speed: 'Тестування', records: 'Марафон' };
+      const modeNames = { associations: 'Асоціації', training: 'Тренування', speed: 'Перевірка', records: 'Марафон' };
       document.getElementById('bottomSummaryGameMode').textContent = modeNames[state.gameMode];
 
       const inputNames = { novice: 'Новачок', expert: 'Експерт' };
@@ -853,10 +937,8 @@
 
       if (state.gameMode === 'records') {
         marathonBtn?.classList.remove('hidden');
-        menuBtn?.classList.add('hidden');
       } else {
         marathonBtn?.classList.add('hidden');
-        menuBtn?.classList.remove('hidden');
       }
 
       updateHeartsUI();
@@ -865,13 +947,13 @@
       const trainingProgressContainer = document.getElementById('trainingProgressContainer');
       const statCardMiddle = document.getElementById('statCardMiddle');
 
-      if (state.gameMode === 'training' || state.gameMode === 'speed') {
+      if (state.gameMode === 'training' || state.gameMode === 'associations' || state.gameMode === 'speed') {
         trainingProgressContainer?.classList.remove('hidden');
       } else {
         trainingProgressContainer?.classList.add('hidden');
       }
 
-      if (state.gameMode === 'training') {
+      if (state.gameMode === 'training' || state.gameMode === 'associations') {
         statCardMiddle?.classList.add('hidden');
       } else {
         statCardMiddle?.classList.remove('hidden');
@@ -888,8 +970,11 @@
 
     window.abortGameToMenu = function() {
       clearInterval(state.timerInterval);
-      sendDataToGoogleSheet('abort', 'невдача');
       openSettingsModal();
+    };
+
+    window.finishMarathon = function() {
+      finishGame(true);
     };
 
     function updateHeartsUI() {
@@ -906,7 +991,7 @@
       state.queue = [];
       const factors = CONFIG.levels[state.level].factors;
       factors.forEach(f => {
-        for (let i = 0; i <= 10; i++) {
+        for (let i = 0; i <= 9; i++) {
           state.queue.push({ num1: f, num2: i, ans: f * i, key: `${f}x${i}` });
         }
       });
@@ -916,7 +1001,7 @@
     }
 
     function updateTrainingProgressBar() {
-      if (state.gameMode !== 'training' && state.gameMode !== 'speed') return;
+      if (state.gameMode !== 'training' && state.gameMode !== 'associations' && state.gameMode !== 'speed') return;
       const total = state.totalCombinations;
       const remaining = state.queue.length + (state.currentQuestion && !state.masteredSet.has(state.currentQuestion.key) ? 1 : 0);
       const done = total - remaining;
@@ -936,7 +1021,7 @@
       if (state.gameMode === 'records') {
         const factors = CONFIG.levels[state.level].factors;
         const f = factors[Math.floor(Math.random() * factors.length)];
-        const second = Math.floor(Math.random() * 11);
+        const second = Math.floor(Math.random() * 10);
         state.currentQuestion = { num1: f, num2: second, ans: f * second, key: `${f}x${second}` };
       } else {
         if (state.queue.length === 0) {
@@ -953,10 +1038,16 @@
     function renderQuestionDisplay() {
       const q = state.currentQuestion;
       const exprText = document.getElementById('expressionText');
-      if (exprText) exprText.textContent = `${q.num1} × ${q.num2} = ?`;
+      if (exprText) {
+        if (state.gameMode === 'associations' || (state.gameMode === 'training' && state.tileHintActive)) {
+          exprText.innerHTML = `${getLeftColumnTileHTML(q.num1, true)} <span class="mx-1">×</span> ${getTopRowTileHTML(q.num2, true)} <span class="mx-1">=</span> ?`;
+        } else {
+          exprText.textContent = `${q.num1} × ${q.num2} = ?`;
+        }
+      }
 
       if (state.inputMode === 'novice') {
-        renderNoviceChoices(q.ans);
+        renderNoviceChoices(q.num1, q.num2);
       } else {
         const inp = document.getElementById('expertAnswerInput');
         if (inp) {
@@ -966,24 +1057,70 @@
       }
     }
 
-    function renderNoviceChoices(correctAns) {
-      const choicesSet = new Set([correctAns]);
-      while (choicesSet.size < 4) {
-        let delta = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-        let dummy = correctAns + delta;
-        if (dummy >= 0 && dummy !== correctAns) choicesSet.add(dummy);
+    function renderNoviceChoices(num1, num2) {
+      const correctAns = num1 * num2;
+      
+      const correctOption = {
+        r: num1,
+        c: num2,
+        ans: correctAns,
+        isCorrect: true
+      };
+
+      const choicesList = [correctOption];
+      const usedKeys = new Set([`${num1}_${num2}`]);
+      const usedAnsValues = new Set([correctAns]);
+
+      if (state.gameMode === 'associations' || (state.gameMode === 'training' && state.tileHintActive)) {
+        while (choicesList.length < 4) {
+          let randR = Math.floor(Math.random() * 10);
+          let randC = Math.floor(Math.random() * 10);
+          let key = `${randR}_${randC}`;
+          let dummyAns = randR * randC;
+
+          if (!usedKeys.has(key) && !usedAnsValues.has(dummyAns)) {
+            usedKeys.add(key);
+            usedAnsValues.add(dummyAns);
+            choicesList.push({
+              r: randR,
+              c: randC,
+              ans: dummyAns,
+              isCorrect: false
+            });
+          }
+        }
+      } else {
+        while (usedAnsValues.size < 4) {
+          let delta = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+          let dummy = correctAns + delta;
+          if (dummy >= 0 && !usedAnsValues.has(dummy)) {
+            usedAnsValues.add(dummy);
+            choicesList.push({
+              r: 0,
+              c: 0,
+              ans: dummy,
+              isCorrect: false
+            });
+          }
+        }
       }
 
-      const choices = Array.from(choicesSet).sort(() => Math.random() - 0.5);
+      choicesList.sort(() => Math.random() - 0.5);
       const container = document.getElementById('inputNovice');
       if (!container) return;
       container.innerHTML = '';
 
-      choices.forEach(val => {
+      choicesList.forEach(item => {
         const btn = document.createElement('button');
-        btn.className = 'choice-btn py-4 bg-white border-2 border-gray-100 hover:border-blue-500 rounded-xl text-xl font-bold text-gray-800 shadow-sm hover:shadow-md pulse-btn transition';
-        btn.textContent = val;
-        btn.onclick = () => processAnswer(val, btn);
+        btn.className = 'choice-btn py-3 bg-white border-2 border-gray-100 hover:border-blue-500 rounded-xl text-xl font-bold text-gray-800 shadow-sm hover:shadow-md pulse-btn transition flex items-center justify-center';
+        
+        if (state.gameMode === 'associations' || (state.gameMode === 'training' && state.tileHintActive)) {
+          btn.innerHTML = create3DTileHTMLByCoords(item.r, item.c, false);
+        } else {
+          btn.textContent = item.ans;
+        }
+        
+        btn.onclick = () => processAnswer(item.ans, btn);
         container.appendChild(btn);
       });
     }
@@ -1029,7 +1166,7 @@
         if (isRight) {
           state.correctCount += 1;
           if (!state.usedHintForCurrent && !state.hadErrorForCurrent) state.score += 1;
-          if (state.gameMode === 'training' || state.gameMode === 'speed') state.masteredSet.add(q.key);
+          if (state.gameMode === 'training' || state.gameMode === 'associations' || state.gameMode === 'speed') state.masteredSet.add(q.key);
 
           document.getElementById('scoreVal').textContent = state.score;
           nextQuestion();
@@ -1046,16 +1183,26 @@
             return;
           }
 
-          if (state.gameMode === 'speed' && state.errors >= 3) {
-            finishGame(false);
-            return;
+          if (state.gameMode === 'speed') {
+            if (state.errors === 1) {
+              showTextHintAutomatic();
+            } else if (state.errors === 2) {
+              state.tileHintActive = true;
+              renderQuestionDisplay();
+            } else if (state.errors >= 3) {
+              showInlineHintPicture();
+              setTimeout(() => {
+                finishGame(false);
+              }, 1200);
+              return;
+            }
+          } else {
+            highlightQuestionTextRed();
+            showTextHintAutomatic();
           }
 
-          highlightQuestionTextRed();
-          showTextHintAutomatic();
-
           if (state.inputMode === 'novice') {
-            renderNoviceChoices(correct);
+            renderNoviceChoices(q.num1, q.num2);
           } else {
             const inp = document.getElementById('expertAnswerInput');
             if (inp) {
@@ -1152,7 +1299,7 @@
       if (currentIndex !== -1 && currentIndex < GAME_SEQUENCE.length - 1) {
         state.currentCombinedLevel = GAME_SEQUENCE[currentIndex + 1];
       } else {
-        state.currentCombinedLevel = '1_training';
+        state.currentCombinedLevel = '1_associations';
       }
 
       const parsed = parseCombinedLevel(state.currentCombinedLevel);
