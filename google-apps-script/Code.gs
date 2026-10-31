@@ -21,7 +21,8 @@ var STATS_HEADERS = ['Дата', 'Device ID', "Ім'я", 'Рівень', 'Реж
 // Колонки листа «Учні» (номери з 1)
 var C = { id: 1, name: 2, input: 3, progress: 4, created: 5, seen: 6, games: 7, total: 8, records: 9 };
 
-var MODES = ['associations', 'training', 'speed', 'records'];
+// Порядок рівнів — як у тренажері (js/config.js)
+var MODES = ['associations', 'remember', 'recall', 'training', 'speed', 'records'];
 var SEQUENCE = [];
 for (var l = 1; l <= 4; l++) for (var m = 0; m < MODES.length; m++) SEQUENCE.push(l + '_' + MODES[m]);
 

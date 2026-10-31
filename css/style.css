@@ -131,8 +131,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 .dot.is-done { background: var(--ok); }
 .lesson[aria-checked="true"] { border-color: var(--primary); background: var(--primary-soft); }
 
-.modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-@media (max-width: 420px) { .modes { grid-template-columns: repeat(2, 1fr); } }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; row-gap: 12px; }
 .mode {
   padding: 10px 6px; border-radius: 14px; border: 2px solid var(--line); background: #fff;
   font-weight: 700; font-size: .85rem; display: grid; justify-items: center; gap: 2px; position: relative;
@@ -272,3 +271,32 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, -8px); } }
 .version { text-align: center; font-size: .7rem; color: #b8b2a7; margin: 10px 0 0; }
+
+/* ===== «Запам’ятай» і «Пригадай» ===== */
+.expr--puzzle { gap: 6px; align-items: flex-start; }
+.expr--puzzle .op { align-self: center; font-size: .8em; }
+.pz-col { --tile: clamp(58px, 18vw, 84px); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pz-col select {
+  width: var(--tile); height: 44px; border: 2px solid var(--line); border-radius: 12px; background: #fff;
+  font: 700 1.2rem var(--font-fun); text-align: center; text-align-last: center; color: var(--ink); cursor: pointer;
+}
+.pz-col select:focus { outline: none; border-color: var(--primary); }
+.pz-num { font-family: var(--font-fun); font-weight: 700; line-height: 1; }
+.pz-num.reveal { color: var(--ok); }
+.drop {
+  width: calc(var(--tile) + 4px); height: calc(var(--tile) + 4px); padding: 0; border-radius: 12px;
+  display: grid; place-items: center; border: 2px dashed #d6cfc3; background: #fff; overflow: hidden;
+}
+.drop.is-active { border-color: var(--primary); background: var(--primary-soft); }
+.pz-col.is-ok select, .pz-col.is-ok .drop { border: 2px solid var(--ok); background: var(--ok-soft); }
+.pz-col.is-bad select, .pz-col.is-bad .drop { border: 2px solid var(--bad); background: var(--bad-soft); }
+
+.puzzle { display: grid; gap: 12px; }
+.bank { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.bank__item {
+  min-width: 0; aspect-ratio: 1; border: 2px solid var(--line); background: #fff; border-radius: 14px; padding: 4px;
+  display: grid; place-items: center; transition: transform .12s, border-color .12s;
+}
+.bank__item .tile { --tile: min(60px, 15vw); }
+.bank__item:hover:not(:disabled) { border-color: var(--primary); }
+.bank__item:active:not(:disabled) { transform: scale(.95); }

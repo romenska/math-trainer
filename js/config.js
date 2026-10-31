@@ -1,7 +1,7 @@
 // Усі налаштування тренажера в одному місці. Логіка й інтерфейс їх лише читають.
 
 export const CLOUD_URL =
-  'https://script.google.com/macros/s/AKfycbx-rseEh_Ek4bPJ7f5TfvYwr9Abq_XyOO_R5i5vscfXczkFfHJ63JKzyH4KypfEy-c3uw/exec';
+  'https://script.google.com/macros/s/AKfycbz781gyxUv2vAN8cNgK8xtLbwi7dCGAEUmANs0BjhksCKrIvJhZ7iJp7uQR-G27KrSocQ/exec';
 export const CLOUD_TIMEOUT_MS = 6000;
 
 export const LESSONS = [
@@ -21,10 +21,17 @@ export const LESSONS = [
  *  tilesOn   — картинки над числами увімкнені одразу
  *  tileChoices — варіанти відповіді показуються картинками
  *  penalty   — скільки балів знімати за помилку (якщо не вказано — SCORING.penalty)
+ *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall'
+ *  errorHint — що показати після помилки: 'text' (за замовчуванням) або 'story' (картинка-історія)
  */
 export const MODES = [
   { id: 'associations', name: 'Асоціації', queue: 'all', retry: true, requeue: true, lives: 0,
     hints: ['text'], tilesOn: true, tileChoices: true },
+  // Нові рівні: відповідь складається з кількох частин, пробуємо доки не буде правильно
+  { id: 'remember', name: 'Запам’ятай', kind: 'remember', queue: 'all', retry: 'always', requeue: false, lives: 0,
+    hints: ['text'], errorHint: 'story', tilesOn: false, tileChoices: false },
+  { id: 'recall', name: 'Пригадай', kind: 'recall', queue: 'all', retry: 'always', requeue: false, lives: 0,
+    hints: ['text'], errorHint: 'story', tilesOn: false, tileChoices: false },
   { id: 'training', name: 'Тренування', queue: 'all', retry: true, requeue: true, lives: 0,
     hints: ['text', 'story', 'tiles'], tilesOn: false, tileChoices: false },
   { id: 'speed', name: 'Перевірка', queue: 'all', retry: false, requeue: false, lives: 3,

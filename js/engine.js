@@ -1,7 +1,7 @@
 // Ігрова логіка без DOM: черга прикладів, перевірка відповідей, бали, життя, результат.
 // Завдяки цьому її можна тестувати окремо (див. tests/engine.test.mjs).
 
-import { SCORING } from './config.js?v=2.2';
+import { SCORING } from './config.js?v=2.3';
 
 export function shuffle(arr, rng = Math.random) {
   const a = arr.slice();
@@ -112,11 +112,16 @@ export function createGame({ lesson, mode, rng = Math.random, now = () => Date.n
    * reveal: true — показати правильну відповідь
    */
   function answer(value) {
+    return judge(value === s.question?.answer);
+  }
+
+  /** Те саме, але правильність визначено ззовні (рівні «Запам'ятай» і «Пригадай», де відповідь — кілька полів). */
+  function judge(isRight) {
     const q = s.question;
     if (!q || s.finished) return null;
     s.attemptsOnCurrent += 1;
 
-    if (value === q.answer) {
+    if (isRight) {
       s.stats.correct += 1;
       if (!s.hintOnCurrent && !s.wrongOnCurrent) s.stats.score += SCORING.clean;
       return { right: true, reveal: false, then: 'next', correctAnswer: q.answer };
@@ -138,7 +143,8 @@ export function createGame({ lesson, mode, rng = Math.random, now = () => Date.n
       if (s.lives <= 0) { end(endless && s.stats.score > 0); /* марафон зараховано, якщо є хоч 1 бал */ return { right: false, reveal: true, then: 'end', correctAnswer: q.answer }; }
     }
 
-    const canRetry = mode.retry && s.attemptsOnCurrent < 2;
+    // retry: 'always' — пробуємо, доки не буде правильно; true — одна додаткова спроба
+    const canRetry = mode.retry === 'always' || (mode.retry && s.attemptsOnCurrent < 2);
     return { right: false, reveal: !canRetry, then: canRetry ? 'retry' : 'next', correctAnswer: q.answer };
   }
 
@@ -164,7 +170,7 @@ export function createGame({ lesson, mode, rng = Math.random, now = () => Date.n
   }
 
   return {
-    mode, lesson, next, answer, useHint, finish, progress, result, elapsedMs,
+    mode, lesson, next, answer, judge, useHint, finish, progress, result, elapsedMs,
     get question() { return s.question; },
     get lives() { return s.lives; },
     get finished() { return s.finished; },

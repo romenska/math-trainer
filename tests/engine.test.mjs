@@ -1,8 +1,9 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=2.2';
-import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=2.2';
-import { textHint, storyImage } from '../js/hints.js?v=2.2';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=2.3';
+import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=2.3';
+import { textHint, storyImage } from '../js/hints.js?v=2.3';
+import { pictureId, neededPieces, recallBank } from '../js/pictures.js?v=2.3';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -117,8 +118,8 @@ test('рекорд: більше балів, при рівних — швидш�
   assert.ok(!isBetter({ score: 5, time: 60 }, { score: 5, time: 60 }));
 });
 
-test('послідовність етапів: 16 штук, без дублів', () => {
-  assert.equal(SEQUENCE.length, 16); assert.equal(new Set(SEQUENCE).size, 16);
+test('послідовність етапів: без дублів', () => {
+  assert.equal(new Set(SEQUENCE).size, SEQUENCE.length);
 });
 
 test('підказки: є для всіх прикладів 2–9, симетрія, історії для ×2/×3/×4', () => {
@@ -126,6 +127,43 @@ test('підказки: є для всіх прикладів 2–9, симет�
   assert.equal(textHint(3, 7), textHint(7, 3));
   assert.equal(storyImage(5, 2), 'assets/story/2x5.webp');
   assert.equal(storyImage(7, 8), null);
+});
+
+test('послідовність: 6 рівнів у кожному уроці', () => {
+  assert.equal(SEQUENCE.length, 24);
+  assert.deepEqual(SEQUENCE.slice(0, 6), ['1_associations', '1_remember', '1_recall', '1_training', '1_speed', '1_records']);
+});
+
+test('«Запам’ятай»/«Пригадай»: помилки не закінчують приклад, доки не буде правильно', () => {
+  const g = createGame({ lesson: L1, mode: getMode('recall'), rng });
+  g.next();
+  for (let i = 0; i < 5; i++) assert.equal(g.judge(false).then, 'retry');
+  assert.equal(g.judge(true).then, 'next');
+  assert.equal(g.stats.errors, 5); assert.equal(g.stats.score, 0);
+  while (g.next()) g.judge(true);
+  assert.equal(g.result().questions, 30); assert.ok(g.result().passed);
+});
+
+test('картинки: число 6 ≠ добуток 2×3, а 2×6 = 3×4', () => {
+  assert.notEqual(pictureId(1, 6), pictureId(2, 3));
+  assert.equal(pictureId(2, 6), pictureId(3, 4));
+  assert.equal(pictureId(3, 2), pictureId(2, 3));
+  assert.equal(pictureId(0, 7), 'zero');
+});
+
+test('«Пригадай»: 8 картинок, усі 3 потрібні є, зайві не збігаються з потрібними', () => {
+  for (const f of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) for (let n = 0; n <= 9; n++) {
+    const q = { a: f, b: n, answer: f * n };
+    const bank = recallBank(q, 8, rng);
+    const need = neededPieces(q).map(p => p.pid);
+    assert.equal(bank.length, 8, `${f}x${n}`);
+    const left = bank.map(p => p.pid);
+    for (const pid of need) { const i = left.indexOf(pid); assert.ok(i >= 0, `${f}x${n} нема ${pid}`); left.splice(i, 1); }
+    assert.ok(left.every(pid => !need.includes(pid)), `${f}x${n}: зайва = потрібна`);
+    assert.equal(new Set(left).size, left.length);
+  }
+  // пастка «число = картинка»: для 2×3 серед зайвих є картинка числа 6
+  assert.ok(recallBank({ a: 2, b: 3, answer: 6 }, 8, rng).some(p => p.pid === 'n6'));
 });
 
 console.log(`\n${passed} тестів пройдено`);

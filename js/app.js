@@ -1,18 +1,21 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, getLesson, getMode } from './config.js?v=2.2';
-import { createGame, makeChoices, isBetter } from './engine.js?v=2.2';
-import { storage } from './storage.js?v=2.2';
-import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=2.2';
-import { textHint, storyImage } from './hints.js?v=2.2';
-import { confetti } from './confetti.js?v=2.2';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, getLesson, getMode } from './config.js?v=2.3';
+import { createGame, makeChoices, isBetter } from './engine.js?v=2.3';
+import { storage } from './storage.js?v=2.3';
+import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=2.3';
+import { textHint, storyImage } from './hints.js?v=2.3';
+import { confetti } from './confetti.js?v=2.3';
+import { neededPieces, recallBank, PRODUCTS } from './pictures.js?v=2.3';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
 
-const MODE_ICONS = { associations: '🧩', training: '🏋️', speed: '✅', records: '🏃' };
+const MODE_ICONS = { associations: '🧩', remember: '🧠', recall: '🔎', training: '🏋️', speed: '✅', records: '🏃' };
 const MODE_RULES = {
   associations: 'Над числами — картинки-асоціації, відповідь теж обираємо картинкою. Помилка? З’явиться підказка і ще одна спроба, а приклад повернеться трохи згодом.',
+  remember: 'Приклад показано картинками. Під кожною картинкою обери її число. Помилка — з’явиться картинка-історія. Граємо, доки всі приклади не будуть розв’язані правильно.',
+  recall: 'Приклад показано числами. Переклади під кожне число його картинку: картинку рядка, стовпчика і їх перетину в таблиці. Зайві картинки не чіпай!',
   training: 'Тільки числа. Якщо важко — відкрий підказку: текст, історію або картинки (за такий приклад бал не нараховується).',
   speed: 'Без підказок, 3 життя. Перевірку пройдено, якщо розв’язати всі приклади уроку, не втративши всі життя.',
   records: 'Приклади без кінця — до першої помилки. Побий свій рекорд 🏆! Натисни «Фініш», щоб зупинитися.',
@@ -23,6 +26,11 @@ const app = {
   sel: { lesson: 1, mode: 'associations' },
   game: null,
   recordToBeat: null,
+  picks: [null, null, null],   // «Запам’ятай»: вибрані числа
+  bank: [],                    // «Пригадай»: картинки внизу
+  slots: [null, null, null],   // «Пригадай»: картинки під числами
+  active: 0,
+  marks: [null, null, null],   // 'ok' | 'bad' для кожного поля після перевірки
   locked: false,
   typed: '',
   tilesOn: false,
@@ -222,8 +230,11 @@ function startGame(lessonId, modeId) {
   $('#game-record').classList.remove('is-beaten');
   $('#game-record-val').textContent = app.recordToBeat ?? 0;
   $('#game-progress').hidden = mode.queue === 'endless';
-  $('#choices').hidden = app.profile.inputMode !== 'novice';
-  $('#keypad-wrap').hidden = app.profile.inputMode !== 'expert';
+  const kind = mode.kind || 'choice';
+  $('#choices').hidden = kind !== 'choice' || app.profile.inputMode !== 'novice';
+  $('#keypad-wrap').hidden = kind !== 'choice' || app.profile.inputMode !== 'expert';
+  $('#puzzle').hidden = kind === 'choice';
+  $('#expr').classList.toggle('expr--puzzle', kind !== 'choice');
   $('#hint-bar').hidden = mode.hints.length === 0;
   document.querySelectorAll('#hint-bar [data-hint]').forEach(c => { c.hidden = !mode.hints.includes(c.dataset.hint); });
 
@@ -238,6 +249,11 @@ function nextQuestion() {
   app.typed = '';
   app.disabledValues = new Set();
   app.choices = makeChoices(q);
+  app.picks = [null, null, null];
+  app.slots = [null, null, null];
+  app.marks = [null, null, null];
+  app.active = 0;
+  app.bank = app.game.mode.kind === 'recall' ? recallBank(q) : [];
   $('#question').classList.remove('is-right', 'is-wrong');
   hideHints();
   // Підказка «картинки» в тренуванні діє лише на один приклад
@@ -254,6 +270,8 @@ const tileHTML = (a, b) => (a * b === 0
 function renderQuestion(reveal = false) {
   const q = app.game.question;
   if (!q) return;
+  updateHintButtons(q);
+  if (app.game.mode.kind) { renderPuzzle(reveal); return; }
   const picturesOnly = app.game.mode.id === 'associations'; // в асоціаціях — лише картинки, без цифр
   const num = n => (picturesOnly ? `<span class="factor factor--big">${tileHTML(n, 1)}</span>`
     : app.tilesOn ? `<span class="factor">${tileHTML(n, 1)}<span>${n}</span></span>` : `<span>${n}</span>`);
@@ -261,16 +279,116 @@ function renderQuestion(reveal = false) {
   $('#expr').innerHTML = `${num(q.a)}<span class="op">×</span>${num(q.b)}<span class="op">=</span><span class="ans${reveal ? ' reveal' : ''}">${ans}</span>`;
   $('#expr').setAttribute('aria-label', `${q.a} помножити на ${q.b}`);
 
-  // доступність підказок для цього прикладу
-  const textBtn = $('#hint-bar [data-hint="text"]');
-  const storyBtn = $('#hint-bar [data-hint="story"]');
-  const tilesBtn = $('#hint-bar [data-hint="tiles"]');
-  const hints = app.game.mode.hints;
-  textBtn.hidden = !hints.includes('text') || !textHint(q.a, q.b);
-  storyBtn.hidden = !hints.includes('story') || !storyImage(q.a, q.b);
-  tilesBtn.setAttribute('aria-pressed', String(app.tilesOn));
-
   if (app.profile.inputMode === 'novice') renderChoices();
+}
+
+/** Які кнопки підказок доступні для цього прикладу. */
+function updateHintButtons(q) {
+  const hints = app.game.mode.hints;
+  $('#hint-bar [data-hint="text"]').hidden = !hints.includes('text') || !textHint(q.a, q.b);
+  $('#hint-bar [data-hint="story"]').hidden = !hints.includes('story') || !storyImage(q.a, q.b);
+  $('#hint-bar [data-hint="tiles"]').setAttribute('aria-pressed', String(app.tilesOn));
+}
+
+// ---------- «Запам’ятай» і «Пригадай» ----------
+const FACTORS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const markCls = i => (app.marks[i] ? ` is-${app.marks[i]}` : '');
+
+function renderPuzzle(reveal = false) {
+  const q = app.game.question;
+  const kind = app.game.mode.kind;
+  const off = reveal || app.locked;
+
+  if (kind === 'remember') {
+    const pieces = neededPieces(q);
+    const lists = [FACTORS, FACTORS, PRODUCTS];
+    const labels = ['перше число', 'друге число', 'відповідь'];
+    const col = i => {
+      const opts = `<option value="" disabled${app.picks[i] === null ? ' selected' : ''}>?</option>`
+        + lists[i].map(n => `<option value="${n}"${app.picks[i] === n ? ' selected' : ''}>${n}</option>`).join('');
+      return `<div class="pz-col${markCls(i)}">${tileHTML(pieces[i].r, pieces[i].c)}
+        <select data-pick="${i}" aria-label="${labels[i]}"${off ? ' disabled' : ''}>${opts}</select></div>`;
+    };
+    $('#expr').innerHTML = `${col(0)}<span class="op">×</span>${col(1)}<span class="op">=</span>${col(2)}`;
+    $('#puzzle').innerHTML = `<button class="btn btn--primary btn--block" type="button" data-check
+      ${off || app.picks.includes(null) ? 'disabled' : ''}>Перевірити</button>`;
+  } else {
+    const nums = [q.a, q.b, reveal ? q.answer : '?'];
+    const col = i => {
+      const p = app.slots[i];
+      const active = !off && i === app.active && !p ? ' is-active' : '';
+      return `<div class="pz-col${markCls(i)}"><span class="pz-num${i === 2 && reveal ? ' reveal' : ''}">${nums[i]}</span>
+        <button type="button" class="drop${active}" data-slot="${i}" aria-label="Місце для картинки"${off ? ' disabled' : ''}>
+        ${p ? tileHTML(p.r, p.c) : ''}</button></div>`;
+    };
+    $('#expr').innerHTML = `${col(0)}<span class="op">×</span>${col(1)}<span class="op">=</span>${col(2)}`;
+    const placed = new Set(app.slots.filter(Boolean).map(p => p.id));
+    $('#puzzle').innerHTML = `<div class="bank">${app.bank.map(p => `<button type="button" class="bank__item"
+      data-piece="${p.id}"${placed.has(p.id) ? ' hidden' : ''}${off ? ' disabled' : ''}>${tileHTML(p.r, p.c)}</button>`).join('')}</div>
+      <button class="btn btn--primary btn--block" type="button" data-check ${off || app.slots.includes(null) ? 'disabled' : ''}>Перевірити</button>`;
+  }
+}
+
+const firstEmpty = () => { const i = app.slots.indexOf(null); return i === -1 ? app.active : i; };
+
+$('#expr').addEventListener('change', e => {
+  const s = e.target.closest('[data-pick]');
+  if (!s || app.locked) return;
+  const i = Number(s.dataset.pick);
+  app.picks[i] = Number(s.value);
+  app.marks[i] = null;
+  renderPuzzle();
+});
+
+$('#expr').addEventListener('click', e => {
+  const d = e.target.closest('[data-slot]');
+  if (!d || app.locked) return;
+  const i = Number(d.dataset.slot);
+  if (app.slots[i]) { app.slots[i] = null; app.marks[i] = null; } // повернути картинку вниз
+  app.active = i;
+  renderPuzzle();
+});
+
+$('#puzzle').addEventListener('click', e => {
+  if (app.locked) return;
+  if (e.target.closest('[data-check]')) { checkPuzzle(); return; }
+  const b = e.target.closest('[data-piece]');
+  if (!b) return;
+  const piece = app.bank.find(p => p.id === Number(b.dataset.piece));
+  const i = app.slots[app.active] ? firstEmpty() : app.active;
+  app.slots[i] = piece;
+  app.marks[i] = null;
+  app.active = firstEmpty();
+  renderPuzzle();
+});
+
+function checkPuzzle() {
+  const q = app.game.question;
+  if (!q || app.locked) return;
+  const ok = app.game.mode.kind === 'remember'
+    ? [q.a, q.b, q.answer].map((v, i) => app.picks[i] === v)
+    : neededPieces(q).map((need, i) => app.slots[i]?.pid === need.pid);
+  const right = ok.every(Boolean);
+  app.locked = true;
+  app.marks = ok.map(x => (x ? 'ok' : 'bad'));
+  const res = app.game.judge(right);
+  const card = $('#question');
+  card.classList.remove('is-right', 'is-wrong');
+  void card.offsetWidth;
+  card.classList.add(right ? 'is-right' : 'is-wrong');
+  renderHud();
+  renderPuzzle(right);
+
+  if (right) { setTimeout(nextQuestion, FEEDBACK_MS.right + 300); return; }
+  setTimeout(() => {
+    // неправильні поля очищаємо, правильні лишаються зеленими
+    ok.forEach((x, i) => { if (!x) { app.picks[i] = null; app.slots[i] = null; app.marks[i] = null; } });
+    app.active = firstEmpty();
+    card.classList.remove('is-wrong');
+    app.locked = false;
+    showAutoHint();
+    if (res.then !== 'retry') nextQuestion(); else renderPuzzle();
+  }, FEEDBACK_MS.wrong);
 }
 
 function renderChoices(revealValue = null, wrongValue = null) {
@@ -362,6 +480,7 @@ $('#keypad').addEventListener('click', e => {
 
 document.addEventListener('keydown', e => {
   if ($('#screen-game').hidden || document.querySelector('dialog[open]') || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (app.game?.mode.kind) return; // у «Запам’ятай» і «Пригадай» — лише мишка/дотик
   if (app.profile.inputMode === 'expert') {
     if (/^\d$/.test(e.key)) press(e.key);
     else if (e.key === 'Backspace') press('back');
@@ -403,7 +522,8 @@ function showStory(q) {
 function showAutoHint() {
   const q = app.game.question;
   hideHints();
-  if (!showText(q)) showStory(q);
+  if (app.game.mode.errorHint === 'story') { if (!showStory(q)) showText(q); }
+  else if (!showText(q)) showStory(q);
 }
 
 $('#hint-bar').addEventListener('click', e => {
