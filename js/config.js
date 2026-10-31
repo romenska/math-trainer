@@ -75,7 +75,10 @@ export const ASSETS = {
   // Коли картинку додано в assets/map/, допишіть її назву сюди (без .webp):
   //   'map-bg' — фон карти; 'loc1'…'loc4' — значки локацій; 'loc1-bg'…'loc4-bg' — фони екранів локацій;
   //   'lvl-digits', 'lvl-numbers', 'lvl-associations', … — значки рівнів.
-  art: [],
+  art: [
+    'map-bg', 'loc1', 'loc2', 'loc3', 'loc4', 'loc1-bg', 'loc2-bg', 'loc3-bg', 'loc4-bg',
+    'lvl-digits', 'lvl-numbers', 'lvl-stories', 'lvl-associations', 'lvl-remember', 'lvl-recall', 'lvl-training', 'lvl-speed', 'lvl-records',
+  ],
   artUrl: name => `assets/map/${name}.webp`,
   // Які картинки-історії є в assets/story/ (назва файлу без .webp). Нова історія = файл + назва тут.
   // 5×7 і 7×5 — одна історія: досить одного файлу будь-яким порядком.

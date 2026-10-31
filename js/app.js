@@ -1,12 +1,12 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, getLesson, getMode, modesFor } from './config.js?v=3.1';
-import { createGame, makeChoices, isBetter } from './engine.js?v=3.1';
-import { storage } from './storage.js?v=3.1';
-import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=3.1';
-import { textHint, storyImage } from './hints.js?v=3.1';
-import { confetti } from './confetti.js?v=3.1';
-import { neededPieces, recallBank, PRODUCTS, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from './pictures.js?v=3.1';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, getLesson, getMode, modesFor } from './config.js?v=3.3';
+import { createGame, makeChoices, isBetter } from './engine.js?v=3.3';
+import { storage } from './storage.js?v=3.3';
+import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=3.3';
+import { textHint, storyImage } from './hints.js?v=3.3';
+import { confetti } from './confetti.js?v=3.3';
+import { neededPieces, recallBank, PRODUCTS, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from './pictures.js?v=3.3';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -692,15 +692,16 @@ function openStats() {
 
 // ---------- Карта уроків і локації ----------
 // Координати у відсотках сцени: карта 3:4 (локації зліва направо), локація 3:5 (рівні знизу вгору).
-const MAP_POINTS = [[16, 74], [39, 47], [62, 71], [83, 42]];
-const MAP_TRAIL_START = [2, 94];
+// Точки підібрано під картинку фону: бухта з маяком, острів метеликів, лука біля равлика, лука під замком
+const MAP_POINTS = [[16, 79], [40, 48], [62, 76], [78, 37]];
+const MAP_TRAIL_START = [6, 98];
 const levelPoints = n => Array.from({ length: n }, (_, i) => [
   50 + 30 * Math.sin((i * Math.PI) / 2),            // змійка: центр → право → центр → ліво
   n === 1 ? 50 : 85 - (i * 75) / (n - 1),            // знизу вгору
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.1" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.3" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -848,6 +849,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.1'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.3'; });
 }
 boot();
