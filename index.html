@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=2.9">
-  <script type="module" src="js/app.js?v=2.9"></script>
+  <link rel="stylesheet" href="css/style.css?v=3.1">
+  <script type="module" src="js/app.js?v=3.1"></script>
 </head>
 <body>
   <main class="card" id="app" aria-live="polite">
@@ -30,18 +30,54 @@
       </div>
     </section>
 
-    <!-- 2. Меню -->
-    <section class="screen" id="screen-menu" hidden>
+    <!-- 2. Карта уроків -->
+    <section class="screen" id="screen-map" hidden>
       <header class="bar">
         <div class="user">
-          <span class="user__avatar" id="user-avatar" aria-hidden="true">?</span>
+          <span class="user__avatar" data-user-avatar aria-hidden="true">?</span>
           <div>
-            <div class="user__name" id="user-name">Учень</div>
-            <div class="user__sync muted" id="sync-status"></div>
+            <div class="user__name" data-user-name>Учень</div>
+            <div class="user__sync muted" data-sync></div>
           </div>
         </div>
         <div class="bar__actions">
-          <button class="icon-btn" id="btn-stats" type="button" aria-label="Статистика" title="Статистика">📊</button>
+          <button class="icon-btn" type="button" data-open-stats aria-label="Статистика" title="Статистика">📊</button>
+          <button class="icon-btn" id="btn-settings" type="button" aria-label="Ручні налаштування" title="Ручні налаштування"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        </div>
+      </header>
+      <div class="stage stage--map" id="map-stage">
+        <div class="stage__bg"></div>
+        <div class="stage__trail"></div>
+        <div class="stage__nodes"></div>
+      </div>
+      <p class="stage-note muted" id="map-note"></p>
+      <p class="version">версія 3.1</p>
+    </section>
+
+    <!-- 3. Локація (урок) -->
+    <section class="screen" id="screen-location" hidden>
+      <header class="bar">
+        <button class="icon-btn" id="btn-place-back" type="button" aria-label="До карти" title="До карти"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
+        <div class="game-title">
+          <div id="place-title">Локація</div>
+          <div class="muted" id="place-sub"></div>
+        </div>
+        <span class="bar__spacer" aria-hidden="true"></span>
+      </header>
+      <div class="stage stage--place" id="place-stage">
+        <div class="stage__bg"></div>
+        <div class="stage__trail"></div>
+        <div class="stage__nodes"></div>
+      </div>
+    </section>
+
+    <!-- 4. Ручний режим (шестерня) -->
+    <section class="screen" id="screen-menu" hidden>
+      <header class="bar">
+        <button class="icon-btn" id="btn-menu-back" type="button" aria-label="До карти" title="До карти"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
+        <div class="game-title"><div>Ручний режим</div><div class="muted">будь-який урок і рівень</div></div>
+        <div class="bar__actions">
+          <button class="icon-btn" type="button" data-open-stats aria-label="Статистика" title="Статистика">📊</button>
           <button class="icon-btn icon-btn--danger" id="btn-logout" type="button" aria-label="Вийти" title="Вийти">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
           </button>
@@ -61,10 +97,10 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 2.9</p>
+      <p class="version">версія 3.1</p>
     </section>
 
-    <!-- 3. Гра -->
+    <!-- 5. Гра -->
     <section class="screen" id="screen-game" hidden>
       <header class="bar">
         <button class="icon-btn" id="btn-exit" type="button" aria-label="Меню" title="Меню">

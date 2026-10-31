@@ -1,9 +1,9 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=2.9';
-import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=2.9';
-import { textHint, storyImage } from '../js/hints.js?v=2.9';
-import { pictureId, neededPieces, recallBank } from '../js/pictures.js?v=2.9';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.1';
+import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=3.1';
+import { textHint, storyImage } from '../js/hints.js?v=3.1';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from '../js/pictures.js?v=3.1';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -130,9 +130,34 @@ test('підказки: є для всіх прикладів 2–9, симет�
   assert.equal(storyImage(9, 9), null, '9×9 ще без картинки');
 });
 
-test('послідовність: 6 рівнів у кожному уроці', () => {
-  assert.equal(SEQUENCE.length, 24);
-  assert.deepEqual(SEQUENCE.slice(0, 6), ['1_associations', '1_remember', '1_recall', '1_training', '1_speed', '1_records']);
+test('послідовність: урок 1 починається з «Вгадай цифру/число», інші уроки — без них', () => {
+  assert.equal(SEQUENCE.length, 9 + 7 * 3);
+  assert.deepEqual(SEQUENCE.slice(0, 9), ['1_digits', '1_numbers', '1_stories', '1_associations', '1_remember', '1_recall', '1_training', '1_speed', '1_records']);
+  assert.equal(SEQUENCE[9], '2_stories');
+});
+
+test('«Вгадай цифру»: 10 картинок 0–9; «Вгадай число»: 27 двоцифрових добутків', () => {
+  const d = digitQuestions();
+  assert.deepEqual(d.map(q => q.answer), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const n = numberQuestions();
+  assert.equal(n.length, 27);
+  assert.ok(n.every(q => q.answer >= 10 && q.a * q.b === q.answer && q.a >= 2));
+  assert.equal(new Set(n.map(q => q.answer)).size, 27);
+  for (const q of n) {
+    const c = makeNumberChoices(q, rng).map(x => x.value);
+    assert.equal(c.length, 4); assert.equal(new Set(c).size, 4); assert.ok(c.includes(q.answer));
+  }
+});
+
+test('«Вгадай число»: помилка → ще спроба, приклад повертається, рівень до кінця', () => {
+  const g = createGame({ lesson: L1, mode: getMode('numbers'), questions: numberQuestions(), rng });
+  const q = g.next();
+  assert.equal(g.answer(-1).then, 'retry');
+  assert.equal(g.answer(q.answer).then, 'next');
+  assert.equal(g.progress().total, 28);
+  let again = 0;
+  while (g.next()) { if (g.question.key === q.key) again++; g.answer(g.question.answer); }
+  assert.equal(again, 1); assert.ok(g.result().passed);
 });
 
 test('«Запам’ятай»/«Пригадай»: помилки не закінчують приклад, доки не буде правильно', () => {
@@ -165,6 +190,16 @@ test('«Пригадай»: 8 картинок, усі 3 потрібні є, з
   }
   // пастка «число = картинка»: для 2×3 серед зайвих є картинка числа 6
   assert.ok(recallBank({ a: 2, b: 3, answer: 6 }, 8, rng).some(p => p.pid === 'n6'));
+});
+
+test('«Історії»: кожна історія уроку один раз, у кожної є картинка або текст', () => {
+  const l1 = storyQuestions([0, 1, 2], rng), l2 = storyQuestions([3, 4], rng), l4 = storyQuestions([7, 8, 9], rng);
+  assert.equal(l1.length, 2 + 8);                   // 0×?, 1×?, 2×2…2×9
+  assert.equal(l2.length, 8 + 7);                   // 3×2…3×9, 4×2,4×4…4×9
+  assert.equal(l4.length, 8 + 7 + 6);
+  for (const q of [...l1, ...l2, ...l4]) assert.ok(storyImage(q.a, q.b) || textHint(q.a, q.b), q.key);
+  const keys = l4.map(q => `${Math.min(q.a, q.b)}x${Math.max(q.a, q.b)}`);
+  assert.equal(new Set(keys).size, keys.length);
 });
 
 console.log(`\n${passed} тестів пройдено`);

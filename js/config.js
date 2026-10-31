@@ -1,14 +1,19 @@
 // Усі налаштування тренажера в одному місці. Логіка й інтерфейс їх лише читають.
 
 export const CLOUD_URL =
-  'https://script.google.com/macros/s/AKfycbz781gyxUv2vAN8cNgK8xtLbwi7dCGAEUmANs0BjhksCKrIvJhZ7iJp7uQR-G27KrSocQ/exec';
+  'https://script.google.com/macros/s/AKfycbyrbH79zc6DehwLctiMVqvyBtwZjoJMNfbtbw9yjeHsuK8sJIitnEG4DwDl9-gsrfIJCw/exec';
 export const CLOUD_TIMEOUT_MS = 6000;
 
 export const LESSONS = [
-  { id: 1, name: 'Урок 1: Множення на 0, 1, 2', factors: [0, 1, 2] },
-  { id: 2, name: 'Урок 2: Множення на 3, 4', factors: [3, 4] },
-  { id: 3, name: 'Урок 3: Множення на 5, 6', factors: [5, 6] },
-  { id: 4, name: 'Урок 4: Множення на 7, 8, 9', factors: [7, 8, 9] },
+  // place — локація на карті: назва, персонаж-заглушка (поки немає картинки) і кольори фону
+  { id: 1, name: 'Урок 1: Множення на 0, 1, 2', factors: [0, 1, 2],
+    place: { name: 'Драконова бухта', tile: 2, sky: '#bfe6ff', ground: '#f3dca6' } },
+  { id: 2, name: 'Урок 2: Множення на 3, 4', factors: [3, 4],
+    place: { name: 'Острів метеликів', tile: 3, sky: '#ffe1f0', ground: '#bfe9b0' } },
+  { id: 3, name: 'Урок 3: Множення на 5, 6', factors: [5, 6],
+    place: { name: 'Равликове містечко', tile: 6, sky: '#e6f6d3', ground: '#a8d98a' } },
+  { id: 4, name: 'Урок 4: Множення на 7, 8, 9', factors: [7, 8, 9],
+    place: { name: 'Королівство Глобуса', tile: 9, sky: '#e4e2ff', ground: '#b9c8ff' } },
 ];
 
 /**
@@ -21,10 +26,19 @@ export const LESSONS = [
  *  tilesOn   — картинки над числами увімкнені одразу
  *  tileChoices — варіанти відповіді показуються картинками
  *  penalty   — скільки балів знімати за помилку (якщо не вказано — SCORING.penalty)
- *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall'
+ *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall' | 'story' | 'digit' | 'number'
  *  errorHint — що показати після помилки: 'text' (за замовчуванням) або 'story' (картинка-історія)
+ *  lessons   — у яких уроках є рівень (якщо не вказано — у всіх)
  */
 export const MODES = [
+  // Початкові рівні: вивчаємо самі картинки-асоціації (лише в уроці 1)
+  { id: 'digits', name: 'Вгадай цифру', kind: 'digit', lessons: [1], queue: 'all', retry: true, requeue: true, lives: 0,
+    hints: [], tilesOn: false, tileChoices: false },
+  { id: 'numbers', name: 'Вгадай число', kind: 'number', lessons: [1], queue: 'all', retry: true, requeue: true, lives: 0,
+    hints: [], tilesOn: false, tileChoices: false },
+  // Знайомство з історіями: картинка-історія + текст, під числа треба покласти картинки (як у «Пригадай»)
+  { id: 'stories', name: 'Історії', kind: 'story', queue: 'all', retry: 'always', requeue: false, lives: 0,
+    hints: [], tilesOn: false, tileChoices: false },
   { id: 'associations', name: 'Асоціації', queue: 'all', retry: true, requeue: true, lives: 0,
     hints: ['text'], tilesOn: true, tileChoices: true },
   // Нові рівні: відповідь складається з кількох частин, пробуємо доки не буде правильно
@@ -48,7 +62,8 @@ export const SCORING = {
 export const FEEDBACK_MS = { right: 350, wrong: 900 };
 
 // Послідовність проходження: урок 1 (усі рівні) → урок 2 → …
-export const SEQUENCE = LESSONS.flatMap(l => MODES.map(m => `${l.id}_${m.id}`));
+export const modesFor = lessonId => MODES.filter(m => !m.lessons || m.lessons.includes(Number(lessonId)));
+export const SEQUENCE = LESSONS.flatMap(l => modesFor(l.id).map(m => `${l.id}_${m.id}`));
 
 // Зображення лежать поруч із сайтом (assets/), без запитів на інші домени.
 export const ASSETS = {
@@ -56,6 +71,12 @@ export const ASSETS = {
   zero: 'assets/zero.webp',            // сонечко для нуля
   story: (a, b) => `assets/story/${a}x${b}.webp`,
   storyZeroOne: 'assets/story/zero-one.webp',
+  // Картинки карти. Поки файлу немає — показується намальована заглушка.
+  // Коли картинку додано в assets/map/, допишіть її назву сюди (без .webp):
+  //   'map-bg' — фон карти; 'loc1'…'loc4' — значки локацій; 'loc1-bg'…'loc4-bg' — фони екранів локацій;
+  //   'lvl-digits', 'lvl-numbers', 'lvl-associations', … — значки рівнів.
+  art: [],
+  artUrl: name => `assets/map/${name}.webp`,
   // Які картинки-історії є в assets/story/ (назва файлу без .webp). Нова історія = файл + назва тут.
   // 5×7 і 7×5 — одна історія: досить одного файлу будь-яким порядком.
   stories: [

@@ -5,7 +5,7 @@
 // Таблиця симетрична, і добутки з множниками ≥ 2 мають спільну картинку (2×6 і 3×4 — крокодил з вудкою).
 // А от «число 6» (1×6, равлик) і «добуток 2×3» (свисток) — різні картинки. Тому порівнюємо не числа, а картинки.
 
-import { shuffle } from './engine.js?v=2.9';
+import { shuffle } from './engine.js?v=3.1';
 
 /** Ідентифікатор картинки клітинки (r, c). */
 export function pictureId(r, c) {
@@ -54,4 +54,52 @@ export function recallBank(q, size = 8, rng = Math.random) {
   }
   const bank = [...need, ...extra.slice(0, size - need.length)];
   return shuffle(bank, rng).map((piece, i) => ({ ...piece, id: i }));
+}
+
+// ---------- Початкові рівні «Вгадай цифру» і «Вгадай число» ----------
+
+/** 10 завдань: картинка цифри 0–9 (сонечко, маяк, дракончик, …) → натиснути цифру. */
+export function digitQuestions() {
+  return Array.from({ length: 10 }, (_, d) => ({ a: d, b: 1, answer: d, key: `d${d}`, pic: [d, 1] }));
+}
+
+/** Усі двоцифрові добутки таблиці з картинкою (10, 12, 14, … 81) — 27 завдань. */
+export function numberQuestions() {
+  const seen = new Map();
+  for (let r = 2; r <= 9; r++) for (let c = r; c <= 9; c++) {
+    const v = r * c;
+    if (v >= 10 && !seen.has(v)) seen.set(v, { a: r, b: c, answer: v, key: `p${v}`, pic: [r, c] });
+  }
+  return [...seen.values()].sort((x, y) => x.answer - y.answer);
+}
+
+/** 4 варіанти для «Вгадай число»: правильний + 3 найближчі двоцифрові добутки. */
+export function makeNumberChoices(q, rng = Math.random) {
+  const pool = numberQuestions().map(x => x.answer);
+  const i = pool.indexOf(q.answer);
+  const near = [i - 1, i + 1, i - 2, i + 2, i - 3, i + 3].filter(j => j >= 0 && j < pool.length).map(j => pool[j]);
+  const wrong = shuffle(near.slice(0, 5), rng).slice(0, 3);
+  return shuffle([q.answer, ...wrong], rng).map(value => ({ value }));
+}
+
+// ---------- «Історії»: знайомство з історією кожного прикладу уроку ----------
+
+/** Приклади уроку з різними історіями: a — множник уроку, b — 2…9 (3×4 і 4×3 — одна історія).
+ *  В уроці 1 ще по одному прикладу на 0 і 1 (історія «маяк і сонечко»). */
+export function storyQuestions(factors, rng = Math.random) {
+  const out = [], seen = new Set();
+  for (const a of factors) {
+    if (a <= 1) {
+      const b = 2 + Math.floor(rng() * 8);
+      out.push({ a, b, answer: a * b, key: `${a}x${b}` });
+      continue;
+    }
+    for (let b = 2; b <= 9; b++) {
+      const k = `${Math.min(a, b)}x${Math.max(a, b)}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ a, b, answer: a * b, key: `${a}x${b}` });
+    }
+  }
+  return out;
 }

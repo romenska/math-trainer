@@ -22,9 +22,13 @@ var STATS_HEADERS = ['Дата', 'Device ID', "Ім'я", 'Рівень', 'Реж
 var C = { id: 1, name: 2, input: 3, progress: 4, created: 5, seen: 6, games: 7, total: 8, records: 9 };
 
 // Порядок рівнів — як у тренажері (js/config.js)
-var MODES = ['associations', 'remember', 'recall', 'training', 'speed', 'records'];
+var MODES = ['digits', 'numbers', 'stories', 'associations', 'remember', 'recall', 'training', 'speed', 'records'];
+var ONLY_LESSON_1 = ['digits', 'numbers']; // початкові рівні «Вгадай цифру» і «Вгадай число» — лише в уроці 1
 var SEQUENCE = [];
-for (var l = 1; l <= 4; l++) for (var m = 0; m < MODES.length; m++) SEQUENCE.push(l + '_' + MODES[m]);
+for (var l = 1; l <= 4; l++) for (var m = 0; m < MODES.length; m++) {
+  if (l > 1 && ONLY_LESSON_1.indexOf(MODES[m]) !== -1) continue;
+  SEQUENCE.push(l + '_' + MODES[m]);
+}
 
 // ===================== Вхідні запити =====================
 

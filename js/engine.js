@@ -1,7 +1,7 @@
 // Ігрова логіка без DOM: черга прикладів, перевірка відповідей, бали, життя, результат.
 // Завдяки цьому її можна тестувати окремо (див. tests/engine.test.mjs).
 
-import { SCORING } from './config.js?v=2.9';
+import { SCORING } from './config.js?v=3.1';
 
 export function shuffle(arr, rng = Math.random) {
   const a = arr.slice();
@@ -50,9 +50,10 @@ export function makeChoices(q, rng = Math.random) {
  * Створює одну гру (сесію).
  * @param {{lesson:{factors:number[]}, mode:object, rng?:()=>number, now?:()=>number}} opts
  */
-export function createGame({ lesson, mode, rng = Math.random, now = () => Date.now() }) {
+export function createGame({ lesson, mode, questions = null, rng = Math.random, now = () => Date.now() }) {
   const endless = mode.queue === 'endless';
-  const queue = endless ? [] : buildQueue(lesson.factors, rng);
+  // questions — власний набір завдань (рівні «Вгадай цифру/число»), інакше всі приклади уроку
+  const queue = endless ? [] : questions ? shuffle(questions, rng) : buildQueue(lesson.factors, rng);
 
   const s = {
     total: queue.length,
@@ -133,7 +134,7 @@ export function createGame({ lesson, mode, rng = Math.random, now = () => Date.n
       s.stats.score = Math.max(0, s.stats.score - (mode.penalty ?? SCORING.penalty));
       if (mode.requeue) {                               // повернеться через кілька прикладів
         const at = Math.min(queue.length, 3 + Math.floor(rng() * 3));
-        queue.splice(at, 0, makeQuestion(q.a, q.b));
+        queue.splice(at, 0, { ...q });
         s.total += 1;
       }
     }
