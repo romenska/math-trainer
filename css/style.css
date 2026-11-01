@@ -194,12 +194,12 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.4");
+  background-image: url("../assets/tiles.webp?v=3.11");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.4"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.11"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -235,12 +235,16 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 .modal__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 
 .result__icon { font-size: 3rem; line-height: 1; margin-bottom: 8px; }
-.result__score { font-family: var(--font-fun); font-weight: 700; font-size: 3.2rem; color: var(--primary); margin: 8px 0 4px; }
-.result__score small { font-size: .95rem; color: var(--muted); margin-left: 6px; }
-.result__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 20px; }
-.result__grid div { background: var(--soft); border-radius: 12px; padding: 8px 4px; }
-.result__grid dt { font-size: .7rem; color: var(--muted); }
-.result__grid dd { margin: 2px 0 0; font-weight: 800; font-size: 1.05rem; }
+.result__hero { margin: 10px 0 6px; display: grid; justify-items: center; }
+.result__main { font-family: var(--font-fun); font-weight: 700; font-size: clamp(3.4rem, 18vw, 4.6rem); line-height: 1; color: var(--primary); }
+.result__label { font-size: 1rem; font-weight: 600; color: var(--muted); margin-top: 6px; }
+.result__record { margin: 10px 0 0; padding: 8px 12px; border-radius: 12px; background: var(--soft); color: var(--muted); font-size: .9rem; font-weight: 600; }
+.result__record.is-good { background: var(--warn-soft); color: var(--warn); }
+.result__chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 14px 0 18px; }
+.result__chips .chip { background: var(--soft); border-color: transparent; font-size: .9rem; }
+.btn--diploma { margin-bottom: 10px; background: linear-gradient(180deg, #ffd56b, #f2a93b); border-color: #e59a28; color: #5a3500; font-weight: 800; }
+.diploma__preview { display: grid; place-items: center; min-height: 160px; background: var(--soft); border-radius: 14px; overflow: hidden; }
+.diploma__preview img { width: 100%; height: auto; display: block; }
 .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
 .result__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .result__actions #res-next { grid-column: 1 / -1; order: -1; }
@@ -319,11 +323,16 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 .stage__bg, .stage__trail, .stage__nodes { position: absolute; inset: 0; }
 .stage__bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .trail { width: 100%; height: 100%; display: block; }
-.trail path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.trail__edge { stroke: rgba(255,255,255,.85); stroke-width: 17; }
-.trail__road { stroke: #ead19a; stroke-width: 12; }
-.trail__road.is-done { stroke: #f6b13b; }
-.trail__dash { stroke: rgba(255,255,255,.95); stroke-width: 2.2; stroke-dasharray: 2 9; }
+/* камінці */
+.trail__stone { fill: #e9e2d6; stroke: #fff; stroke-width: 1.6; filter: drop-shadow(0 1.5px 0 rgba(90,70,40,.35)); }
+.trail__stone.is-done { fill: #f6b13b; }
+/* бульбашки */
+.trail__bubble circle { fill: rgba(255,255,255,.7); stroke: #8fc9f2; stroke-width: 1.4; }
+.trail__bubble .shine { fill: #fff; stroke: none; }
+.trail__bubble.is-done circle:not(.shine) { fill: #ffd166; stroke: #f6a21b; }
+/* стрілочки */
+.trail__arrow { fill: none; stroke: #fff; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1.2px 0 rgba(60,50,30,.45)); }
+.trail__arrow.is-done { stroke: #f6b13b; }
 .stage-note { text-align: center; font-size: .82rem; margin: 10px 0 0; }
 
 .node {

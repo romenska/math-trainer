@@ -1,9 +1,9 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.4';
-import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=3.4';
-import { textHint, storyImage } from '../js/hints.js?v=3.4';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from '../js/pictures.js?v=3.4';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.7';
+import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=3.7';
+import { textHint, storyImage } from '../js/hints.js?v=3.7';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from '../js/pictures.js?v=3.7';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);

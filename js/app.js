@@ -1,12 +1,12 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, getLesson, getMode, modesFor } from './config.js?v=3.4';
-import { createGame, makeChoices, isBetter } from './engine.js?v=3.4';
-import { storage } from './storage.js?v=3.4';
-import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=3.4';
-import { textHint, storyImage } from './hints.js?v=3.4';
-import { confetti } from './confetti.js?v=3.4';
-import { neededPieces, recallBank, PRODUCTS, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from './pictures.js?v=3.4';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, getLesson, getMode, modesFor } from './config.js?v=3.11';
+import { createGame, makeChoices, isBetter } from './engine.js?v=3.11';
+import { storage } from './storage.js?v=3.11';
+import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=3.11';
+import { textHint, storyImage } from './hints.js?v=3.11';
+import { confetti } from './confetti.js?v=3.11';
+import { neededPieces, recallBank, PRODUCTS, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from './pictures.js?v=3.11';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -629,32 +629,64 @@ function endGame() {
   });
 
   const newBest = better && r.score > 0; // 0 балів — не рекорд
-  showResult(r, { newBest, hadOld: Boolean(old), best: app.profile.records[key], idx });
+  showResult(r, { newBest, oldScore: old?.score ?? null, idx });
 }
 
-function showResult(r, { newBest, hadOld, best, idx }) {
-  const mode = getMode(app.sel.mode);
-  let icon = '🏁', title = 'Тренування завершено', sub = '';
-  if (mode.kind === 'digit' || mode.kind === 'number') [icon, title] = ['🌟', 'Молодець!'];
-  if (mode.id === 'speed') {
-    [icon, title] = r.passed ? ['🎉', 'Перевірку пройдено!'] : ['💪', 'Майже! Спробуй ще раз'];
-  } else if (mode.id === 'records') {
-    [icon, title] = newBest ? ['🏆', 'Новий рекорд!'] : ['🏁', 'Марафон завершено'];
-    if (!newBest && best?.score > 0) sub = `Твій рекорд: ${best.score} балів`;
-  }
-  if (newBest && hadOld && mode.id !== 'records') sub = 'Це твій найкращий результат!';
+/** Українська множина: plural(5, ['відповідь','відповіді','відповідей']) */
+const plural = (n, [one, few, many]) => {
+  const m10 = n % 10, m100 = n % 100;
+  return m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many;
+};
 
-  $('#res-icon').textContent = icon;
-  $('#res-title').textContent = title;
-  $('#res-subtitle').textContent = sub;
-  $('#res-subtitle').hidden = !sub;
-  $('#res-score').textContent = r.score;
-  $('#res-questions').textContent = r.questions;
-  $('#res-correct').textContent = r.correct;
-  $('#res-errors').textContent = r.errors;
-  $('#res-hints').textContent = r.hints;
-  $('#res-time').textContent = fmtTime(r.time);
-  $('#res-speed').textContent = `${r.perMinute}/хв`;
+/** Що показати у вікні результату: одне головне число + 1–2 доречні показники. */
+function resultView(r, mode, { newBest, oldScore }) {
+  const chip = (icon, text) => ({ icon, text });
+  const timeChip = chip('⏱', fmtTime(r.time));
+  const v = { icon: '🎉', title: 'Молодець!', main: '', label: '', record: '', recordGood: false, chips: [timeChip] };
+
+  if (mode.id === 'records') {                                      // Марафон: правильні відповіді і швидкість, рекорд
+    Object.assign(v, { main: r.correct, label: plural(r.correct, ['правильна відповідь', 'правильні відповіді', 'правильних відповідей']) });
+    v.chips = [chip('⚡', `${r.perMinute} за хвилину`), timeChip];
+    if (newBest) {
+      Object.assign(v, { icon: '🏆', title: 'Новий рекорд!', recordGood: true,
+        record: oldScore > 0 ? `Попередній рекорд — ${oldScore}. Ти його побив!` : 'Це твій перший рекорд!' });
+    } else {
+      Object.assign(v, { icon: '🏁', title: 'Марафон завершено',
+        record: oldScore > 0 ? `Рекорд — ${oldScore}. Цього разу не вдалося побити, спробуй ще!` : '' });
+    }
+  } else if (mode.id === 'speed') {                                 // Перевірка: скільки правильно і чи пройдено
+    Object.assign(v, { main: `${r.correct}/${r.questions}`, label: 'правильно' });
+    if (r.passed) Object.assign(v, { icon: '🎉', title: 'Перевірку пройдено!', recordGood: true, record: newBest && oldScore != null ? 'Твій найкращий результат!' : '' });
+    else Object.assign(v, { icon: '💪', title: 'Майже! Спробуй ще раз', record: 'Закінчились життя — 3 помилки' });
+  } else if (isPuzzle(mode)) {                                      // Історії, Запам’ятай, Пригадай: пройдено + час
+    Object.assign(v, { icon: '🌟', title: 'Рівень пройдено!', main: fmtTime(r.time), label: `на ${r.correct} ${plural(r.correct, ['приклад', 'приклади', 'прикладів'])}` });
+    v.chips = r.errors ? [chip('✏️', `${r.errors} ${plural(r.errors, ['виправлення', 'виправлення', 'виправлень'])}`)] : [chip('✨', 'без жодної помилки')];
+  } else {                                                          // Вгадай, Асоціації, Тренування: бали з можливих
+    Object.assign(v, { icon: r.errors || r.hints ? '🎉' : '🌟', title: r.errors || r.hints ? 'Молодець!' : 'Ідеально!',
+      main: r.score, label: `${plural(r.score, ['бал', 'бали', 'балів'])} із ${r.questions}` });
+    if (r.errors) v.chips.unshift(chip('✏️', `${r.errors} ${plural(r.errors, ['помилка', 'помилки', 'помилок'])}`));
+    if (r.hints) v.chips.push(chip('💡', `${r.hints} ${plural(r.hints, ['підказка', 'підказки', 'підказок'])}`));
+    if (newBest && oldScore != null) Object.assign(v, { record: 'Твій найкращий результат!', recordGood: true });
+  }
+  return v;
+}
+
+function showResult(r, { newBest, oldScore, idx }) {
+  const mode = getMode(app.sel.mode);
+  const v = resultView(r, mode, { newBest, oldScore });
+  $('#res-icon').textContent = v.icon;
+  $('#res-title').textContent = v.title;
+  $('#res-main').textContent = v.main;
+  $('#res-label').textContent = v.label;
+  const rec = $('#res-record');
+  rec.textContent = v.record;
+  rec.hidden = !v.record;
+  rec.classList.toggle('is-good', v.recordGood);
+  $('#res-chips').replaceChildren(...v.chips.map(c => el('span', { className: 'chip' }, `<span aria-hidden="true">${c.icon}</span> ${c.text}`)));
+
+  const dip = $('#res-diploma');
+  dip.hidden = !(mode.id === 'records' && r.passed);               // диплом — у кінці уроку, після марафону (від 1 бала)
+  dip.onclick = () => openDiploma();
 
   const next = r.passed && idx < SEQUENCE.length - 1 ? parseStage(SEQUENCE[idx + 1]) : null;
   const nextBtn = $('#res-next');
@@ -670,6 +702,37 @@ function showResult(r, { newBest, hadOld, best, idx }) {
   dlg.showModal();
   if ((r.passed || mode.id === 'records') && newBest && r.score > 0) confetti(dlg);
 }
+
+// ---------- Диплом ----------
+async function openDiploma() {
+  const lesson = getLesson(app.sel.lesson);
+  const name = app.profile.nickname || 'Учень';
+  const title = `«${lesson.place.name}»`;
+  const subtitle = lesson.name;
+
+  const date = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+  const box = $('#diploma-preview'), btn = $('#diploma-pdf');
+  box.innerHTML = '<span class="muted">Малюю диплом…</span>';
+  btn.disabled = true;
+  $('#dlg-diploma').showModal();
+  try {
+    const { drawDiploma, canvasToPdf } = await import('./diploma.js?v=3.11');
+    const canvas = await drawDiploma({ name, title, subtitle, heroes: lesson.factors, date, id: app.profile.deviceId });
+    const img = el('img', { src: canvas.toDataURL('image/jpeg', 0.85), alt: `Диплом: ${name}` });
+    box.replaceChildren(img);
+    btn.disabled = false;
+    btn.onclick = async () => {
+      const blob = await canvasToPdf(canvas);
+      const url = URL.createObjectURL(blob);
+      const a = el('a', { href: url, download: `Диплом — ${name}.pdf` });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    };
+  } catch {
+    box.innerHTML = '<span class="muted">Не вдалося намалювати диплом. Спробуй ще раз.</span>';
+  }
+}
+
 $('#dlg-result').addEventListener('cancel', e => e.preventDefault()); // Esc не закриває без вибору
 
 // ---------- Статистика ----------
@@ -701,7 +764,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.4" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.11" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -712,26 +775,60 @@ function updateUser() {
   document.querySelectorAll('[data-sync]').forEach(n => { if (!n.textContent) n.textContent = '💾 Збережено на пристрої'; });
 }
 
-/** Плавна доріжка (Catmull-Rom → криві Безьє) через точки; кожен відрізок окремо, щоб пройдені фарбувати. */
-function trailSegments(pts) {
-  const segs = [];
+// Вигляд доріжки: 'stones' — камінці, 'bubbles' — бульбашки, 'arrows' — стрілочки
+const TRAIL_STYLE = 'stones';
+const TRAIL_STEP = 13;   // відстань між камінцями (в одиницях viewBox)
+const TRAIL_GAP = 20;    // скільки лишити вільним біля значка рівня/локації
+
+/** Точки, рівномірно розставлені вздовж відрізка-кривої (Catmull-Rom → Безьє), з напрямком руху. */
+function trailDots(pts) {
+  const out = [];
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
     const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
     const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    segs.push(`M${p1} C${c1} ${c2} ${p2}`);
+    const bez = t => [0, 1].map(k => (1 - t) ** 3 * p1[k] + 3 * (1 - t) ** 2 * t * c1[k] + 3 * (1 - t) * t * t * c2[k] + t ** 3 * p2[k]);
+    const samples = [];
+    let len = 0, prev = bez(0);
+    for (let s = 0; s <= 200; s++) {
+      const p = bez(s / 200);
+      len += Math.hypot(p[0] - prev[0], p[1] - prev[1]);
+      samples.push({ p, len }); prev = p;
+    }
+    const usable = len - 2 * TRAIL_GAP;
+    if (usable <= 0) continue;
+    const n = Math.max(1, Math.round(usable / TRAIL_STEP));
+    let j = 0;
+    for (let k = 0; k <= n; k++) {
+      const at = TRAIL_GAP + (usable * k) / n;
+      while (j < samples.length - 1 && samples[j].len < at) j++;
+      const a = samples[Math.max(0, j - 1)].p, b = samples[j].p;
+      out.push({ x: b[0], y: b[1], ang: Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI, seg: i, k });
+    }
   }
-  return segs;
+  return out;
+}
+
+function trailMark(d, done) {
+  const x = d.x.toFixed(1), y = d.y.toFixed(1), c = done ? ' is-done' : '';
+  if (TRAIL_STYLE === 'arrows') {
+    return `<path class="trail__arrow${c}" transform="translate(${x} ${y}) rotate(${d.ang.toFixed(0)})" d="M-3 -4.5 L3 0 L-3 4.5"/>`;
+  }
+  if (TRAIL_STYLE === 'bubbles') {
+    const r = [4.6, 3.4, 5.2, 3.8][d.k % 4];
+    return `<g class="trail__bubble${c}" transform="translate(${x} ${y})"><circle r="${r}"/><circle class="shine" cx="${(-r * 0.35).toFixed(1)}" cy="${(-r * 0.35).toFixed(1)}" r="${(r * 0.3).toFixed(1)}"/></g>`;
+  }
+  // камінці: трохи різні за розміром, поворотом і зсувом убік — щоб виглядали природно
+  const side = (d.k % 2 ? 1 : -1) * 2, rad = (d.ang + 90) * Math.PI / 180;
+  const sx = (d.x + side * Math.cos(rad)).toFixed(1), sy = (d.y + side * Math.sin(rad)).toFixed(1);
+  const rx = [5.6, 4.8, 5.2][d.k % 3], ry = [4, 3.6, 4.2][d.k % 3];
+  return `<ellipse class="trail__stone${c}" cx="${sx}" cy="${sy}" rx="${rx}" ry="${ry}" transform="rotate(${(d.ang + [8, -14, 4][d.k % 3]).toFixed(0)} ${sx} ${sy})"/>`;
 }
 
 function trailSVG(pctPoints, w, h, doneSegs) {
   const pts = pctPoints.map(([x, y]) => [Math.round(x * w / 100), Math.round(y * h / 100)]);
-  const segs = trailSegments(pts);
-  const path = (d, cls) => `<path d="${d}" class="${cls}"/>`;
-  return `<svg class="trail" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
-    ${segs.map(d => path(d, 'trail__edge')).join('')}
-    ${segs.map((d, i) => path(d, i < doneSegs ? 'trail__road is-done' : 'trail__road')).join('')}
-    ${segs.map(d => path(d, 'trail__dash')).join('')}</svg>`;
+  const marks = trailDots(pts).map(d => trailMark(d, d.seg < doneSegs)).join('');
+  return `<svg class="trail trail--${TRAIL_STYLE}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${marks}</svg>`;
 }
 
 function stageBackground(stage, artName, sky, ground) {
@@ -849,6 +946,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.4'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.11'; });
 }
 boot();

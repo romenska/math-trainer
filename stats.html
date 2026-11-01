@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Статистика учня — Тренажер множення</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✖️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css?v=3.11">
+  <style>
+    body { display: block; }
+    .sp { max-width: 640px; margin: 0 auto; padding: 20px 16px 40px; }
+    .sp__card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 14px; }
+    .sp__head { display: flex; gap: 14px; align-items: center; }
+    .sp__avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--warn-soft); color: var(--warn); display: grid; place-items: center; font: 700 1.6rem var(--font-fun); flex: none; }
+    .sp__name { font: 700 1.5rem var(--font-fun); margin: 0; }
+    .sp__id { font-feature-settings: "calt" 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .78rem; color: var(--muted); word-break: break-all; }
+    .sp__total { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; text-align: center; }
+    .sp__total div { background: var(--soft); border-radius: 12px; padding: 10px 4px; }
+    .sp__total b { display: block; font: 700 1.5rem var(--font-fun); color: var(--primary); }
+    .sp__total span { font-size: .75rem; color: var(--muted); }
+    .sp__lesson h2 { font: 700 1.05rem var(--font-fun); margin: 0 0 2px; }
+    .sp__lesson .muted { font-size: .8rem; margin: 0 0 10px; }
+    .sp__row { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 6px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--line); font-size: .88rem; }
+    .sp__row:first-of-type { border-top: 0; }
+    .sp__row .r { text-align: right; }
+    .sp__row.is-todo { color: #b8b0a4; }
+    .sp__cta { display: block; text-align: center; text-decoration: none; }
+    .sp__msg { text-align: center; padding: 30px 10px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="sp">
+    <div id="sp-body"><div class="sp__card sp__msg">Завантажую статистику…</div></div>
+    <a class="btn btn--primary btn--block btn--big sp__cta" href="./">▶ Перейти до тренажера</a>
+  </main>
+
+  <script type="module">
+    import { CLOUD_URL, LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.11';
+
+    const body = document.getElementById('sp-body');
+    const id = new URLSearchParams(location.search).get('id') || '';
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const fmtTime = secs => `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
+    const msg = t => { body.innerHTML = `<div class="sp__card sp__msg">${t}</div>`; };
+
+    async function main() {
+      if (!/^dev_[a-z0-9]{6,}$/i.test(id)) return msg('Немає ID учня в посиланні.');
+      let data;
+      try {
+        const res = await fetch(`${CLOUD_URL}?action=getData&deviceId=${encodeURIComponent(id)}`);
+        data = await res.json();
+      } catch { return msg('Не вдалося зв’язатися з сервером. Спробуйте пізніше.'); }
+      if (data?.status !== 'success') return msg('Учня з таким ID не знайдено.');
+
+      const records = data.records || {};
+      const name = data.nickname || 'Учень';
+      document.title = `${name} — статистика`;
+      const passed = (l, m) => { const r = records[`L${l}_${m}`]; return Boolean(r && r.passed !== false); };
+      const allStages = SEQUENCE.length;
+      const doneStages = SEQUENCE.filter(s => { const [l, m] = s.split('_'); return passed(l, m); }).length;
+      const marathon = Math.max(0, ...LESSONS.map(l => records[`L${l.id}_records`]?.score || 0));
+
+      let html = `<section class="sp__card">
+        <div class="sp__head"><div class="sp__avatar">${esc(name.trim()[0]?.toUpperCase() || '?')}</div>
+          <div><h1 class="sp__name">${esc(name)}</h1><div class="sp__id">ID: ${esc(id)}</div></div></div>
+        <div class="sp__total">
+          <div><b>${doneStages}/${allStages}</b><span>рівнів пройдено</span></div>
+          <div><b>${LESSONS.filter(l => modesFor(l.id).every(m => passed(l.id, m.id))).length}/${LESSONS.length}</b><span>уроків</span></div>
+          <div><b>${marathon}</b><span>рекорд марафону</span></div>
+        </div></section>`;
+
+      for (const l of LESSONS) {
+        const modes = modesFor(l.id);
+        const n = modes.filter(m => passed(l.id, m.id)).length;
+        html += `<section class="sp__card sp__lesson"><h2>${esc(l.place.name)}</h2>
+          <p class="muted">${esc(l.name)} · ${n}/${modes.length} ⭐</p>`;
+        for (const m of modes) {
+          const r = records[`L${l.id}_${m.id}`];
+          const ok = passed(l.id, m.id);
+          const result = !r ? '—' : m.id === 'records' ? `🏆 ${r.score}` : m.id === 'speed' ? `${r.correct ?? r.score}/${r.totalQuestions ?? ''}` : `${r.score} б.`;
+          html += `<div class="sp__row${r ? '' : ' is-todo'}"><span>${ok ? '✅' : r ? '🔸' : '⬜'} ${esc(m.name)}</span>
+            <span class="r">${result}</span><span class="r muted">${r ? `${fmtTime(Number(r.time) || 0)}<br><small>${esc(r.date || '')}</small>` : ''}</span></div>`;
+        }
+        html += '</section>';
+      }
+      body.innerHTML = html;
+    }
+    main();
+  </script>
+</body>
+</html>

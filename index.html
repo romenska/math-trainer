@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.4">
-  <script type="module" src="js/app.js?v=3.4"></script>
+  <link rel="stylesheet" href="css/style.css?v=3.11">
+  <script type="module" src="js/app.js?v=3.11"></script>
 </head>
 <body>
   <main class="card" id="app" aria-live="polite">
@@ -51,7 +51,7 @@
         <div class="stage__nodes"></div>
       </div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 3.4</p>
+      <p class="version">версія 3.11</p>
     </section>
 
     <!-- 3. Локація (урок) -->
@@ -97,7 +97,7 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 3.4</p>
+      <p class="version">версія 3.11</p>
     </section>
 
     <!-- 5. Гра -->
@@ -156,20 +156,30 @@
   <dialog class="modal" id="dlg-result">
     <div class="result__icon" id="res-icon">🎉</div>
     <h2 class="title" id="res-title">Вітаємо!</h2>
-    <p class="muted" id="res-subtitle"></p>
-    <div class="result__score"><span id="res-score">0</span><small>балів</small></div>
-    <dl class="result__grid">
-      <div><dt>Прикладів</dt><dd id="res-questions">0</dd></div>
-      <div><dt>Правильно</dt><dd class="ok" id="res-correct">0</dd></div>
-      <div><dt>Помилок</dt><dd class="bad" id="res-errors">0</dd></div>
-      <div><dt>Підказок</dt><dd class="warn" id="res-hints">0</dd></div>
-      <div><dt>Час</dt><dd id="res-time">00:00</dd></div>
-      <div><dt>Швидкість</dt><dd id="res-speed">0</dd></div>
-    </dl>
+    <div class="result__hero">
+      <span class="result__main" id="res-main">0</span>
+      <span class="result__label" id="res-label"></span>
+    </div>
+    <p class="result__record" id="res-record" hidden></p>
+    <div class="result__chips" id="res-chips"></div>
+    <button class="btn btn--diploma btn--block" id="res-diploma" type="button" hidden>🎓 Отримати диплом</button>
     <div class="result__actions">
       <button class="btn" id="res-menu" type="button">Меню</button>
       <button class="btn" id="res-retry" type="button">Ще раз</button>
       <button class="btn btn--primary" id="res-next" type="button">Далі →</button>
+    </div>
+  </dialog>
+
+  <!-- Диплом -->
+  <dialog class="modal modal--wide" id="dlg-diploma">
+    <div class="modal__head">
+      <h2 class="title">🎓 Диплом</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Закрити">✕</button>
+    </div>
+    <div class="diploma__preview" id="diploma-preview"><span class="muted">Малюю диплом…</span></div>
+    <div class="result__actions result__actions--2">
+      <button class="btn" type="button" data-close>Закрити</button>
+      <button class="btn btn--primary" id="diploma-pdf" type="button" disabled>Завантажити PDF</button>
     </div>
   </dialog>
 
