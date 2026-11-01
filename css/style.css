@@ -212,12 +212,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.52");
+  background-image: url("../assets/tiles.webp?v=3.54");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.52"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.54"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -527,3 +527,13 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .avatar-tile img.avatar-img--hero, .avatar-tile img { object-fit: contain; background: #fff; }
 .avatar-tile[data-avatar="photo"] img { object-fit: cover; }
 .gbubble__pic .node__emoji { width: 56px; height: 56px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 1.6rem; }
+
+/* бульбашка — удвічі більша: картинка, назва, кнопка */
+.gbubble { width: min(400px, calc(100% - 12px)); padding: 16px; gap: 14px; border-radius: 20px; }
+.gbubble__pic img, .gbubble__pic .node__emoji { width: 112px; height: 112px; }
+.gbubble__pic .node__emoji { font-size: 3rem; }
+.gbubble__body { gap: 4px; }
+.gbubble__body b { font-size: 1.35rem; line-height: 1.15; }
+.gbubble__body small { font-size: .95rem; }
+.gbubble__body .btn { margin-top: 8px; padding: 12px 22px; font-size: 1.1rem; border-radius: 14px; }
+.gbubble__close { font-size: 1.1rem; right: 8px; top: 6px; }
