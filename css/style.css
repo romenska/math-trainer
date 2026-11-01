@@ -212,12 +212,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.54");
+  background-image: url("../assets/tiles.webp?v=3.57");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.54"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.57"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -448,7 +448,7 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .gmap__route path, .gmap__route polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .gmap__line { stroke: #8a939e; stroke-width: 4; stroke-dasharray: 0 9; }   /* лінія з крапочок */
 .gmap__line.is-done { stroke: #1a73e8; }
-.gmap__layer { position: absolute; inset: 0; pointer-events: none; }
+.gmap__layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; } /* мітки й бульбашка — над кнопками масштабу */
 .gmap__layer > * { position: absolute; pointer-events: auto; }
 .gmap__time {
   transform: translate(-50%, -50%); background: rgba(255,255,255,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); color: #1a5fc4; border: 1px solid rgba(201,220,247,.7); border-radius: 8px;
@@ -460,7 +460,7 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
   font-size: .78rem; color: var(--ink); box-shadow: 0 2px 6px rgba(0,0,0,.15); z-index: 3;
 }
 .gmap__total b { color: #1a5fc4; }
-.gmap__ctrl { position: absolute; right: 10px; bottom: 10px; display: grid; gap: 6px; z-index: 5; }
+.gmap__ctrl { position: absolute; right: 10px; bottom: 10px; display: grid; gap: 6px; z-index: 3; }
 .gmap__ctrl button {
   width: 36px; height: 36px; border: 0; border-radius: 10px; background: rgba(255,255,255,.55); color: #3c4043; font: 600 1.25rem/1 var(--font);
   backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);

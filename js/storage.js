@@ -8,7 +8,7 @@ const KEYS = {
   records: 'math_trainer_records',
   progress: 'math_trainer_combined_level', // більше не використовується (прогрес рахується з рекордів); лишився, щоб «Вийти» його прибрав
   settings: 'math_trainer_settings',
-  avatar: 'math_trainer_avatar',   // номер аватарки 0–12 (assets/avatars) або «photo»
+  avatar: 'math_trainer_avatar',   // номер аватарки 0–13 (assets/avatars) або «photo»
   photo: 'math_trainer_photo',     // фото обличчя (data:image/jpeg;base64,…)
 };
 
@@ -34,7 +34,7 @@ export const storage = {
       records: readJSON(KEYS.records, {}),
       progress: null, // обчислюється в normalizeProgress() з пройдених рівнів
       inputMode: settings.inputMode === 'expert' ? 'expert' : 'novice',
-      avatar: read(KEYS.avatar, '0'),   // за замовчуванням — дракончик
+      avatar: read(KEYS.avatar, '13'),   // зелений дракончик   // за замовчуванням — дракончик
       photo: read(KEYS.photo, ''),
     };
   },

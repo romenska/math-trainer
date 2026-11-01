@@ -1,13 +1,13 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.54';
-import { createGame, makeChoices, isBetter } from './engine.js?v=3.54';
-import { storage } from './storage.js?v=3.54';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.54';
-import { textHint, storyImage, storyVideo } from './hints.js?v=3.54';
-import { createMapView } from './mapview.js?v=3.54';
-import { confetti } from './confetti.js?v=3.54';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.54';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.57';
+import { createGame, makeChoices, isBetter } from './engine.js?v=3.57';
+import { storage } from './storage.js?v=3.57';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.57';
+import { textHint, storyImage, storyVideo } from './hints.js?v=3.57';
+import { createMapView } from './mapview.js?v=3.57';
+import { confetti } from './confetti.js?v=3.57';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.57';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -160,7 +160,7 @@ async function sync({ fromLogin = false } = {}) {
   if (remote.nickname && (fromLogin || !p.nickname)) p.nickname = remote.nickname;
   if (fromLogin && remote.inputMode) p.inputMode = remote.inputMode;
   if (remote.avatar !== null) { p.avatar = remote.avatar; p.photo = remote.photo; storage.saveAvatar(p); }
-  else if (p.avatar !== '0' || p.photo) pushProfile();   // таблиця ще не знає аватарку — надіслати
+  else if (p.avatar !== '13' || p.photo) pushProfile();   // таблиця ще не знає аватарку — надіслати
   storage.saveProfile(p);
   storage.saveRecords(p.records);
   storage.saveInputMode(p.inputMode);
@@ -598,7 +598,7 @@ function playStoryVideo(vsrc, poster) {
   $('#story-replay').hidden = true;
   vid.poster = poster || '';
   vid.onerror = () => { stopStoryVideo(); if (poster) { $('#story').src = poster; $('#story').hidden = false; } };
-  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.54`; vid.dataset.src = vsrc; }
+  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.57`; vid.dataset.src = vsrc; }
   try { vid.currentTime = 0; } catch { /* ще не завантажено */ }
   vid.muted = false;
   vid.play().then(() => { $('#story-sound').hidden = true; }).catch(() => {
@@ -792,7 +792,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.54');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.57');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -844,7 +844,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.54" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.57" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -875,7 +875,7 @@ const lessonTime = l => modesFor(l.id).reduce((t, m) => t + (Number(app.profile.
 function renderMap() {
   normalizeProgress();
   const cur = parseStage(app.profile.progress).lesson;
-  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.54` });
+  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.57` });
   const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
   const done = LESSONS.filter(lessonDone).length;
 
@@ -889,7 +889,7 @@ function renderMap() {
     const badge = '';   // стан видно за кольором краплі: зелена — пройдено, сіра — закрито, жовта — поточна
     const t = lessonTime(l);
     const pic = hasArt(`loc${l.id}`) ? artImg(`loc${l.id}`, '') : '';
-    const sub = l.exam ? 'Уся таблиця 1×1 … 9×9' : `Урок ${l.id} · ×${l.factors.join(', ')}`;
+    const sub = l.name;   // повна назва: «Урок 1: Множення на 0, 1, 2»
     const info = locked ? (l.exam ? '🔒 Відкриється, коли пройдеш усі уроки' : `🔒 Спочатку пройди «${getLesson(l.id - 1).place.name}»`)
       : `⭐ ${passed}/${modes.length}${t ? ` · 🕒 ${fmtDur(t)}` : ''}`;
     const bubble = `<div class="gbubble__pic">${pic}</div>
@@ -938,7 +938,7 @@ function renderLocation() {
   $('#place-title').textContent = l.place.name;
   $('#place-sub').textContent = `Урок ${l.id} · ×${l.factors.join(', ')}`;
   $('#place-stars').textContent = `⭐ ${passed}/${modes.length}`;
-  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.54` : `${ASSETS.artUrl('map-bg')}?v=3.54`;
+  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.57` : `${ASSETS.artUrl('map-bg')}?v=3.57`;
   if (!app.placeMap) app.placeMap = createMapView($('#place-stage'), { image: bg });
   app.placeMap.setImage(bg);
   const pts = l.place.levels?.length >= modes.length ? l.place.levels : levelPoints(modes.length);
@@ -955,7 +955,7 @@ function renderLocation() {
     const info = state === 'locked' ? '🔒 Відкриється, коли пройдеш попередній рівень'
       : rec ? `${done ? '✓ пройдено' : 'ще не пройдено'}${timeOf(m) ? ` · 🕒 ${fmtDur(timeOf(m))}` : ''}` : 'ще не грали';
     const bubble = `<div class="gbubble__pic">${pic}</div>
-      <div class="gbubble__body"><b>${m.name}</b><small>Рівень ${i + 1} з ${modes.length}</small><small>${info}</small>
+      <div class="gbubble__body"><b>${m.name}</b><small>${l.name}</small><small>${info}</small>
       ${state === 'locked' ? '' : `<button type="button" class="btn btn--primary btn--small" data-open="${m.id}">${done ? 'Ще раз' : 'Грати'} →</button>`}</div>`;
     return { id: m.id, x: pts[i][0], y: pts[i][1], state, inner, badge, title: m.name, bubble };
   });
@@ -991,16 +991,17 @@ function refreshScreen() {
 }
 
 // ---------- Аватарка і фото ----------
-// Аватарки — персонажі гри в повний зріст (assets/avatars/0…12.webp); 0 — дракончик, він за замовчуванням
+// Аватарки — персонажі гри в повний зріст (assets/avatars/0…13.webp); 13 — зелений дракончик, він за замовчуванням
 const HERO_NAMES = ['Дракончик', 'Дракоша з бантиком', 'Динозаврик', 'Мураха', 'Рибка', 'Сонечко', 'Маяк', 'Равлик',
-  'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін'];
-const HEROES = HERO_NAMES.map((_, i) => i);
-const heroUrl = n => `assets/avatars/${n}.webp?v=3.54`;
+  'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін', 'Зелений дракончик'];
+const DEFAULT_AVATAR = 13;
+const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
+const heroUrl = n => `assets/avatars/${n}.webp?v=3.57`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
   const n = Number(app.profile.avatar);
-  return `<img class="avatar-img avatar-img--hero" src="${heroUrl(Number.isInteger(n) && n >= 0 && n < HERO_NAMES.length ? n : 0)}" alt="">`;
+  return `<img class="avatar-img avatar-img--hero" src="${heroUrl(Number.isInteger(n) && n >= 0 && n < HERO_NAMES.length ? n : DEFAULT_AVATAR)}" alt="">`;
 }
 /** Надіслати аватарку в таблицю (номер героя або «photo» + саме фото). */
 function pushProfile() {
@@ -1015,12 +1016,15 @@ function setAvatar(avatar, photo = app.profile.photo) {
   if (!$('#screen-map').hidden) renderMap();
 }
 
-function openAvatarDialog() {
-  const cur = app.profile.avatar;
+// Вибір у вікні — чернетка; застосовується лише кнопкою OK (закрити вікно без OK = нічого не міняти)
+const pick = { avatar: null, photo: '' };
+function openAvatarDialog(keep = false) {
+  if (!keep) { pick.avatar = app.profile.avatar; pick.photo = app.profile.photo; }
+  const cur = pick.avatar;
   const tiles = [];
-  if (app.profile.photo) {
+  if (pick.photo) {
     tiles.push(`<button type="button" class="avatar-tile${cur === 'photo' ? ' is-on' : ''}" data-avatar="photo" aria-label="Моє фото">
-      <img src="${app.profile.photo}" alt=""><span class="avatar-tile__edit" data-edit-photo title="Редагувати фото">✏️</span></button>`);
+      <img src="${pick.photo}" alt=""><span class="avatar-tile__edit" data-edit-photo title="Редагувати фото">✏️</span></button>`);
   }
   for (const n of HEROES) {
     tiles.push(`<button type="button" class="avatar-tile${cur === String(n) ? ' is-on' : ''}" data-avatar="${n}" aria-label="${HERO_NAMES[n]}">
@@ -1029,14 +1033,18 @@ function openAvatarDialog() {
   $('#avatar-grid').innerHTML = tiles.join('');
   if (!$('#dlg-avatar').open) $('#dlg-avatar').showModal();
 }
-document.querySelectorAll('[data-user-avatar]').forEach(b => b.addEventListener('click', openAvatarDialog));
+document.querySelectorAll('[data-user-avatar]').forEach(b => b.addEventListener('click', () => openAvatarDialog()));
 $('#avatar-grid').addEventListener('click', e => {
-  if (e.target.closest('[data-edit-photo]')) { openEditor(app.profile.photo); return; }
+  if (e.target.closest('[data-edit-photo]')) { openEditor(pick.photo); return; }
   const t = e.target.closest('[data-avatar]');
   if (!t) return;
-  if (t.dataset.avatar === 'photo' && app.profile.avatar === 'photo') { openEditor(app.profile.photo); return; } // клік на фото — редактор
-  setAvatar(t.dataset.avatar);
+  if (t.dataset.avatar === 'photo' && pick.avatar === 'photo') { openEditor(pick.photo); return; } // клік на вибране фото — редактор
+  pick.avatar = t.dataset.avatar;
   $('#avatar-grid').querySelectorAll('.avatar-tile').forEach(x => x.classList.toggle('is-on', x === t));
+});
+$('#avatar-ok').addEventListener('click', () => {
+  if (pick.avatar !== app.profile.avatar || pick.photo !== app.profile.photo) setAvatar(pick.avatar, pick.photo);
+  $('#dlg-avatar').close();
 });
 
 // Файл з пристрою або камера телефону
@@ -1145,10 +1153,10 @@ $('#editor-save').addEventListener('click', () => {
   drawEditor(ctx, 192, false);
   let q = 0.85, data = c.toDataURL('image/jpeg', q);
   while (data.length > 40000 && q > 0.4) { q -= 0.1; data = c.toDataURL('image/jpeg', q); } // клітинка таблиці — до 50 000 символів
-  setAvatar('photo', data);
+  pick.avatar = 'photo'; pick.photo = data;          // у вікні вибору; збережеться після OK
   $('#dlg-photo').close();
-  if ($('#dlg-avatar').open) openAvatarDialog();
-  toast('Фото збережено 🙂');
+  if ($('#dlg-avatar').open) openAvatarDialog(true);
+  else setAvatar('photo', data);
 });
 
 // ---------- Старт ----------
@@ -1157,6 +1165,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.54'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.57'; });
 }
 boot();

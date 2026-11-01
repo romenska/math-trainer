@@ -26,7 +26,7 @@ var S = { date: 0, id: 1, name: 2, level: 3, mode: 4, input: 5, total: 6, correc
 var STUDENT_HEADERS = ['Device ID', "Ім'я", 'Режим вводу', 'Зареєстровано', 'Аватар', 'Фото', 'Остання гра', 'Ігор зіграно',
   'Пройдено рівнів', 'Пройдено до', 'Наступний рівень', 'Екзамен'];
 var STORED = 6; // перші 6 колонок «Учнів» — дані; решта розраховується
-// Аватар: номер аватарки 0–12 (0 — дракончик) або «photo» — тоді показується фото з колонки «Фото» (data:image/jpeg;base64,…)
+// Аватар: номер аватарки 0–13 (13 — зелений дракончик, за замовчуванням) або «photo» — тоді показується фото з колонки «Фото» (data:image/jpeg;base64,…)
 
 // Порядок рівнів — як у тренажері (js/config.js)
 var LESSON_NAMES = { 1: 'Драконова бухта', 2: 'Острів метеликів', 3: 'Равликове містечко', 4: 'Королівство Глобуса', 5: 'Екзамен' };
@@ -265,7 +265,7 @@ function upsertStudent(d) {
   var photo = typeof d.photo === 'string' && d.photo.length < 49000 ? d.photo : undefined; // клітинка — до 50 000 символів
   if (!row) {
     sh.appendRow([d.deviceId, d.nickname || 'Учень', d.inputMode || 'Новачок', new Date(),
-      d.avatar === undefined ? 0 : d.avatar, photo || '']);
+      d.avatar === undefined ? 13 : d.avatar, photo || '']);
     return sh.getLastRow();
   }
   var r = sh.getRange(row, 1, 1, STORED).getValues()[0];
