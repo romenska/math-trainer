@@ -22,13 +22,16 @@ var STATS_HEADERS = ['Дата', 'Device ID', "Ім'я", 'Рівень', 'Реж
 var C = { id: 1, name: 2, input: 3, progress: 4, created: 5, seen: 6, games: 7, total: 8, records: 9 };
 
 // Порядок рівнів — як у тренажері (js/config.js)
-var MODES = ['digits', 'numbers', 'stories', 'associations', 'remember', 'recall', 'training', 'speed', 'records'];
-var ONLY_LESSON_1 = ['digits', 'numbers']; // початкові рівні «Вгадай цифру» і «Вгадай число» — лише в уроці 1
+var MODES = ['guess', 'stories', 'associations', 'remember', 'recall', 'training', 'speed', 'records', 'exam'];
+var LEGACY_MODES = ['digits', 'numbers']; // старі рівні (до об'єднання у «Вгадай число») — лише для перенесення статистики
+var ONLY_LESSON_1 = [];
 var SEQUENCE = [];
 for (var l = 1; l <= 4; l++) for (var m = 0; m < MODES.length; m++) {
+  if (MODES[m] === 'exam') continue;
   if (l > 1 && ONLY_LESSON_1.indexOf(MODES[m]) !== -1) continue;
   SEQUENCE.push(l + '_' + MODES[m]);
 }
+SEQUENCE.push('5_exam'); // екзамен у кінці курсу
 
 // ===================== Вхідні запити =====================
 
@@ -52,6 +55,12 @@ function doPost(e) {
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
+  // Перегляд статистики за кодом (QR на дипломі): лише читання, ID (пароль) не повертаємо
+  if (p.action === 'view') {
+    var st = findStudentByCode(String(p.code || '').toLowerCase());
+    if (!st) return json({ status: 'not_found' });
+    return json({ status: 'success', nickname: st.name, currentCombinedLevel: st.progress, records: st.records });
+  }
   if (!p.deviceId) return json({ status: 'error', message: 'no deviceId' });
 
   var student = findStudent(p.deviceId);
@@ -121,6 +130,27 @@ function findStudent(deviceId) {
   };
 }
 
+/** Код перегляду = перші 16 hex-символів SHA-256('mt:' + ID) — так само рахує тренажер (js/cloud.js). */
+function shareCode(deviceId) {
+  var bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'mt:' + deviceId, Utilities.Charset.UTF_8);
+  var hex = '';
+  for (var i = 0; i < 8; i++) hex += ('0' + ((bytes[i] + 256) % 256).toString(16)).slice(-2);
+  return hex;
+}
+
+function findStudentByCode(code) {
+  if (!/^[0-9a-f]{16}$/.test(code)) return null;
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_STUDENTS);
+  if (!sh || sh.getLastRow() < 2) return null;
+  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, STUDENT_HEADERS.length).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i][C.id - 1] && shareCode(String(rows[i][C.id - 1])) === code) {
+      return { name: rows[i][C.name - 1] || 'Учень', progress: rows[i][C.progress - 1] || SEQUENCE[0], records: parseJSON(rows[i][C.records - 1]) };
+    }
+  }
+  return null;
+}
+
 /** Учень є лише в старій «Статистиці» — збираємо його рекорди і створюємо рядок в «Учнях». */
 function migrateFromStats(deviceId) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_STATS);
@@ -134,9 +164,9 @@ function migrateFromStats(deviceId) {
     found = true;
     if (row[2]) name = row[2];
     if (row[5]) input = row[5];
-    var lvl = (String(row[3]).match(/Урок\s*(\d)/) || [])[1] || '1';
     var mode = String(row[4]);
-    if (MODES.indexOf(mode) === -1) continue;
+    var lvl = mode === 'exam' ? '5' : (String(row[3]).match(/Урок\s*(\d)/) || [])[1] || '1';
+    if (MODES.indexOf(mode) === -1 && LEGACY_MODES.indexOf(mode) === -1) continue;
     var rec = {
       score: num(row[10]), totalQuestions: num(row[6]), correct: num(row[7]), errors: num(row[8]),
       hintsCount: num(row[9]), time: num(row[11]), speed: num(row[12]),

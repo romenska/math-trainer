@@ -1,8 +1,8 @@
 // Диплом: малюємо на canvas (персонажі зі спрайту, ім'я, за що, дата, ID, QR) і зберігаємо як PDF.
 // PDF збираємо самі: одна сторінка A4 (альбомна) з картинкою JPEG — без сторонніх бібліотек.
 
-import qrcode from './vendor/qrcode.mjs?v=3.20';
-import { ASSETS } from './config.js?v=3.20';
+import qrcode from './vendor/qrcode.mjs?v=3.28';
+import { ASSETS } from './config.js?v=3.28';
 
 const W = 2339, H = 1654;           // A4 альбомна, ~200 dpi
 const GOLD = '#d9962b', GOLD_DARK = '#a8691a', INK = '#3b2f2a', MUTED = '#8a7b70';
@@ -15,7 +15,7 @@ const loadImg = src => new Promise((ok, fail) => {
 });
 
 /** Посилання на сторінку статистики учня (поруч із тренажером). */
-export const statsUrl = id => new URL(`stats.html?id=${encodeURIComponent(id)}`, location.href).href;
+export const statsUrl = code => new URL(`stats.html?c=${encodeURIComponent(code)}`, location.href).href;
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -93,7 +93,7 @@ function drawQR(ctx, text, x, y, size) {
 }
 
 /**
- * @param {{name:string, title:string, subtitle:string, stats:{label:string,value:string}[], heroes:number[], date:string, id:string}} d
+ * @param {{heading?:string, name:string, title:string, subtitle:string, stats?:{label:string,value:string,note?:string}[], heroes:number[], date:string, code:string}} d
  * @returns {Promise<HTMLCanvasElement>}
  */
 export async function drawDiploma(d) {
@@ -115,7 +115,7 @@ export async function drawDiploma(d) {
 
   // персонажі уроку зверху (0 — сонечко, 1–9 — герої-цифри зі спрайту)
   try {
-    const [tiles, sun] = await Promise.all([loadImg(`${ASSETS.tiles}?v=3.20`), loadImg(`${ASSETS.zero}?v=3.20`)]);
+    const [tiles, sun] = await Promise.all([loadImg(`${ASSETS.tiles}?v=3.28`), loadImg(`${ASSETS.zero}?v=3.28`)]);
     const T = tiles.naturalWidth / 9;
     const heroes = d.heroes?.length ? d.heroes : [3, 2, 0, 6, 8];
     const size = heroes.length <= 2 ? 300 : heroes.length === 3 ? 280 : 250, gap = 60;
@@ -135,7 +135,7 @@ export async function drawDiploma(d) {
   g.addColorStop(0, '#f2b33d'); g.addColorStop(1, GOLD_DARK);
   ctx.font = `700 140px ${FUN}`;
   ctx.letterSpacing = '24px';
-  ctx.fillStyle = g; ctx.fillText('ДИПЛОМ', W / 2 + 12, 575);
+  ctx.fillStyle = g; ctx.fillText(d.heading || 'ДИПЛОМ', W / 2 + 12, 575);
   ctx.letterSpacing = '0px';
 
   // ім'я — найбільше
@@ -146,15 +146,16 @@ export async function drawDiploma(d) {
 
   // за що: «Марафон „Драконова бухта“», нижче дрібніше — урок
   ctx.fillStyle = INK;
-  fitText(ctx, d.title, W / 2, 1010, W - 700, 76, FUN);
+  const withStats = Boolean(d.stats?.length);
+  fitText(ctx, d.title, W / 2, withStats ? 975 : 1010, W - 700, 76, FUN);
   ctx.fillStyle = MUTED;
-  fitText(ctx, d.subtitle, W / 2, 1090, W - 800, 46, FUN, 600);
+  fitText(ctx, d.subtitle, W / 2, withStats ? 1045 : 1090, W - 800, 46, FUN, 600);
 
   // результати — плашки: підпис, велике значення, пояснення дрібно
   const stats = d.stats || [];
-  const pw = stats.length > 2 ? 440 : 560, ph = 210, pg = 36, px0 = (W - (stats.length * pw + (stats.length - 1) * pg)) / 2;
+  const pw = stats.length > 2 ? 440 : 560, ph = 200, pg = 36, px0 = (W - (stats.length * pw + (stats.length - 1) * pg)) / 2;
   stats.forEach((st, i) => {
-    const x = px0 + i * (pw + pg), y = 1080;
+    const x = px0 + i * (pw + pg), y = 1085;
     ctx.fillStyle = '#fff4d6'; roundRect(ctx, x, y, pw, ph, 36); ctx.fill();
     ctx.strokeStyle = '#f0c873'; ctx.lineWidth = 4; ctx.stroke();
     ctx.fillStyle = MUTED; ctx.font = `600 34px ${FUN}`; ctx.fillText(st.label, x + pw / 2, y + 54);
@@ -164,16 +165,18 @@ export async function drawDiploma(d) {
 
   // низ: дата ліворуч; QR праворуч, під ним ID
   const qrSize = 230, qrX = W - 210 - qrSize, qrY = H - 200 - qrSize - 40;
-  drawQR(ctx, statsUrl(d.id), qrX, qrY, qrSize);
+  drawQR(ctx, statsUrl(d.code), qrX, qrY, qrSize);
   ctx.fillStyle = MUTED; ctx.textAlign = 'center';
   ctx.font = `500 26px ui-monospace, Menlo, Consolas, monospace`;
-  ctx.fillText(d.id, qrX + qrSize / 2, qrY + qrSize + 58);
+  ctx.fillText(`код ${d.code}`, qrX + qrSize / 2, qrY + qrSize + 58);
 
   ctx.textAlign = 'left';
   ctx.fillStyle = INK; ctx.font = `700 46px ${FUN}`;
   ctx.fillText(d.date, 220, qrY + qrSize - 10);
   ctx.fillStyle = MUTED; ctx.font = `500 30px ${BODY}`;
-  ctx.fillText('Тренажер множення', 220, qrY + qrSize + 45);
+  let footY = qrY + qrSize + 45;
+  if (d.time) { ctx.font = `600 32px ${FUN}`; ctx.fillText(d.time, 220, footY); footY += 50; ctx.font = `500 30px ${BODY}`; }
+  ctx.fillText('Тренажер множення', 220, footY);
   return cv;
 }
 
@@ -201,4 +204,45 @@ export async function canvasToPdf(canvas) {
   push(`xref\n0 6\n0000000000 65535 f \n${[1, 2, 3, 4, 5].map(n => `${String(offsets[n]).padStart(10, '0')} 00000 n \n`).join('')}`);
   push(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
   return new Blob(parts, { type: 'application/pdf' });
+}
+
+// ---------- Готові нагороди: диплом уроку і сертифікат екзамену ----------
+const fmtTime = secs => `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
+const longDate = date => date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+
+/** Дата з запису «dd.mm.yyyy HH:MM» → Date (або null). */
+export function parseRecordDate(s) {
+  const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\D+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  return m ? new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)) : null;
+}
+
+/** Диплом за пройдений урок. date — Date. */
+export function lessonDiploma({ name, lesson, date, code }) {
+  return drawDiploma({ name, title: `«${lesson.place.name}»`, subtitle: lesson.name, heroes: lesson.factors,
+    date: longDate(date), code });
+}
+
+/** Сертифікат про складання екзамену. rec — запис екзамену {correct, totalQuestions, time}. */
+export function examCertificate({ name, rec, date, code }) {
+  const pct = rec.totalQuestions ? Math.round((Number(rec.correct) || 0) / rec.totalQuestions * 100) : 0;
+  const time = date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return drawDiploma({
+    heading: 'СЕРТИФІКАТ', name,
+    title: 'про складання екзамену з курсу «Множення»', subtitle: 'уся таблиця множення: від 1×1 до 9×9',
+    heroes: [2, 6, 8],
+    stats: [
+      { label: 'правильних відповідей', value: `${pct}%`, note: `${Number(rec.correct) || 0} з ${rec.totalQuestions}` },
+      { label: 'тривалість', value: fmtTime(Number(rec.time) || 0), note: 'хвилин : секунд' },
+    ],
+    date: longDate(date), time, code,
+  });
+}
+
+/** Зберегти canvas як PDF-файл. */
+export async function downloadPdf(canvas, fileName) {
+  const blob = await canvasToPdf(canvas);
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: fileName });
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }

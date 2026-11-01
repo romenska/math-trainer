@@ -1,9 +1,9 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.20';
-import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=3.20';
-import { textHint, storyImage, storyVideo } from '../js/hints.js?v=3.20';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from '../js/pictures.js?v=3.20';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.28';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.28';
+import { textHint, storyImage, storyVideo } from '../js/hints.js?v=3.28';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices } from '../js/pictures.js?v=3.28';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -130,10 +130,25 @@ test('підказки: є для всіх прикладів 2–9, симет�
   assert.equal(storyImage(9, 9), null, '9×9 ще без картинки');
 });
 
-test('послідовність: урок 1 починається з «Вгадай цифру/число», інші уроки — без них', () => {
-  assert.equal(SEQUENCE.length, 9 + 7 * 3);
-  assert.deepEqual(SEQUENCE.slice(0, 9), ['1_digits', '1_numbers', '1_stories', '1_associations', '1_remember', '1_recall', '1_training', '1_speed', '1_records']);
-  assert.equal(SEQUENCE[9], '2_stories');
+test('послідовність: кожен урок починається з «Вгадай число», екзамен — останній', () => {
+  assert.equal(SEQUENCE.length, 4 * 8 + 1);
+  assert.deepEqual(SEQUENCE.slice(0, 8), ['1_guess', '1_stories', '1_associations', '1_remember', '1_recall', '1_training', '1_speed', '1_records']);
+  assert.equal(SEQUENCE[8], '2_guess');
+  assert.equal(SEQUENCE.at(-1), '5_exam');
+});
+
+test('«Вгадай число»: картинки поділено на 4 уроки без повторів, разом — усі 10 героїв і всі добутки', () => {
+  const per = [1, 2, 3, 4].map(id => guessQuestions(LESSONS, id));
+  assert.deepEqual(per.map(q => q.length), [18, 9, 8, 6]);
+  const keys = per.flat().map(q => q.key);
+  assert.equal(new Set(keys).size, keys.length, 'картинка не повторюється в наступних уроках');
+  assert.ok(['zero', 'n1', 'n9', 'p4', 'p18'].every(k => per[0].some(q => q.key === k)));
+  assert.ok(per[3].every(q => q.a >= 7 || q.b >= 7));
+  for (const q of per.flat()) {
+    assert.equal(q.answer, q.pic[0] * q.pic[1]);
+    const c = makeGuessChoices(q, rng).map(x => x.value);
+    assert.equal(c.length, 4); assert.equal(new Set(c).size, 4); assert.ok(c.includes(q.answer));
+  }
 });
 
 test('«Вгадай цифру»: 10 картинок 0–9; «Вгадай число»: 27 двоцифрових добутків', () => {
@@ -209,5 +224,24 @@ test('відео-історії: є для 2×… і 3×…, симетрія', 
   assert.equal(storyVideo(9, 4), 'assets/story/4x9.mp4');
   assert.equal(storyVideo(7, 8), null);
 });
+
+test('екзамен: 81 приклад 1×1…9×9, без повторів; помилка не дає ще спробу і не знімає бали', () => {
+  const q = examQuestions();
+  assert.equal(q.length, 81); assert.equal(new Set(q.map(x => x.key)).size, 81);
+  const g = createGame({ lesson: getLesson(5), mode: getMode('exam'), questions: q, rng });
+  g.next(); g.answer(g.question.answer);
+  g.next(); const r = g.answer(-1);
+  assert.equal(r.then, 'next'); assert.equal(g.stats.score, 1);
+  while (g.next()) g.answer(g.question.answer);
+  assert.equal(g.result().questions, 81); assert.equal(g.result().correct, 80); assert.ok(g.result().passed);
+});
+
+await (async () => {
+  const { shareCode } = await import('../js/cloud.js?v=3.28');
+  const c = await shareCode('dev_k3j9x2mq81');
+  assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
+  assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));
+  passed++; console.log('✓ код перегляду: 16 hex, стабільний, різний для різних паролів', c);
+})();
 
 console.log(`\n${passed} тестів пройдено`);

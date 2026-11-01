@@ -212,12 +212,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.20");
+  background-image: url("../assets/tiles.webp?v=3.28");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.20"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.28"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -409,3 +409,23 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .factor--huge .tile { --tile: clamp(110px, 34vw, 150px); border-radius: 18px; }
 .choices--digits { grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .choices--digits .choice { min-height: 56px; font-size: 1.6rem; padding: 4px; }
+
+/* ===== Екзамен ===== */
+.exam-bar { margin: 0 0 12px; }
+.exam-bar__top { display: flex; justify-content: space-between; align-items: center; font-size: .9rem; color: var(--muted); margin-bottom: 8px; }
+.exam-bar__top b { color: var(--ink); }
+.exam-dots { display: grid; grid-template-columns: repeat(27, 1fr); gap: 3px; }
+.exam-dots span { aspect-ratio: 1; border-radius: 50%; background: #e3ddd2; transition: background-color .2s, transform .2s; }
+.exam-dots span.ok { background: var(--ok); }
+.exam-dots span.bad { background: var(--bad); }
+.exam-dots span.cur { box-shadow: 0 0 0 2px var(--primary); transform: scale(1.15); }
+
+/* Ручні налаштування: перемикач відповіді і статистика в один ряд */
+.input-row { display: flex; gap: 8px; align-items: stretch; }
+.input-row .segmented { flex: 1; }
+.icon-btn--tall { height: auto; min-height: 44px; width: 52px; font-size: 1.2rem; }
+.stats__title { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.stats__title .btn--diploma { margin: 0; white-space: nowrap; }
+.lesson--wide { grid-column: 1 / -1; }
+
+.pill--stars { background: var(--warn-soft); color: var(--warn); font-weight: 800; }

@@ -2,8 +2,8 @@
 // Головна відмінність: хмара більше НЕ блокує запуск. Інтерфейс показується одразу
 // з локальних даних, а відповідь хмари підмішується, коли (і якщо) прийде.
 
-import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=3.20';
-import { isBetter } from './engine.js?v=3.20';
+import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=3.28';
+import { isBetter } from './engine.js?v=3.28';
 
 export function newDeviceId() {
   const rnd = crypto.getRandomValues(new Uint32Array(2));
@@ -58,4 +58,19 @@ export function pushResult(payload) {
     headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // «простий» запит — без preflight
     body: JSON.stringify(payload),
   }).catch(() => {});
+}
+
+/**
+ * Код для перегляду статистики (у QR і на дипломі). Це хеш від ID: за ним можна лише ДИВИТИСЬ статистику,
+ * а увійти (і змінити прогрес) — ні. Сам ID — це пароль учня.
+ */
+export async function shareCode(deviceId) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`mt:${deviceId}`));
+  return [...new Uint8Array(buf)].slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Публічна статистика за кодом (без ID). */
+export async function loadByCode(code) {
+  const res = await fetch(`${CLOUD_URL}?action=view&code=${encodeURIComponent(code)}`);
+  return res.json();
 }

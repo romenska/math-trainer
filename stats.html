@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.20">
+  <link rel="stylesheet" href="css/style.css?v=3.28">
   <style>
     body { display: block; }
     .sp { max-width: 640px; margin: 0 auto; padding: 20px 16px 40px; }
@@ -21,6 +21,8 @@
     .sp__total div { background: var(--soft); border-radius: 12px; padding: 10px 4px; }
     .sp__total b { display: block; font: 700 1.5rem var(--font-fun); color: var(--primary); }
     .sp__total span { font-size: .75rem; color: var(--muted); }
+    .sp__lesson-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .sp__lesson-head .btn { margin: 0; white-space: nowrap; }
     .sp__lesson h2 { font: 700 1.05rem var(--font-fun); margin: 0 0 2px; }
     .sp__lesson .muted { font-size: .8rem; margin: 0 0 10px; }
     .sp__row { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 6px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--line); font-size: .88rem; }
@@ -38,45 +40,68 @@
   </main>
 
   <script type="module">
-    import { CLOUD_URL, LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.20';
+    import { CLOUD_URL, LESSONS, COURSE_LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.28';
+    import { shareCode } from './js/cloud.js?v=3.28';
 
+    // Сторінку відкривають за кодом (?c=…, з QR на дипломі) — лише перегляд, без входу.
+    // Старі посилання з ?id=… теж працюють.
     const body = document.getElementById('sp-body');
-    const id = new URLSearchParams(location.search).get('id') || '';
+    const params = new URLSearchParams(location.search);
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const fmtTime = secs => `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
     const msg = t => { body.innerHTML = `<div class="sp__card sp__msg">${t}</div>`; };
+    let profile = null;
 
     async function main() {
-      if (!/^dev_[a-z0-9]{6,}$/i.test(id)) return msg('Немає ID учня в посиланні.');
+      const id = params.get('id') || '';
+      let code = (params.get('c') || '').toLowerCase();
+      if (!code && /^dev_[a-z0-9]{6,}$/i.test(id)) code = await shareCode(id);
+      if (!/^[0-9a-f]{16}$/.test(code)) return msg('У посиланні немає коду учня.');
       let data;
       try {
-        const res = await fetch(`${CLOUD_URL}?action=getData&deviceId=${encodeURIComponent(id)}`);
+        const res = await fetch(`${CLOUD_URL}?action=view&code=${code}`);
         data = await res.json();
       } catch { return msg('Не вдалося зв’язатися з сервером. Спробуйте пізніше.'); }
-      if (data?.status !== 'success') return msg('Учня з таким ID не знайдено.');
+      if (data?.status !== 'success') return msg('Учня з таким кодом не знайдено.');
 
       const records = data.records || {};
       const name = data.nickname || 'Учень';
+      profile = { name, records, code };
       document.title = `${name} — статистика`;
       const passed = (l, m) => { const r = records[`L${l}_${m}`]; return Boolean(r && r.passed !== false); };
+      const lessonDone = l => modesFor(l.id).every(m => passed(l.id, m.id));
+      const course = LESSONS.filter(l => !l.exam);
+      const exam = LESSONS.find(l => l.exam);
+      const examRec = exam && records[`L${exam.id}_exam`];
       const allStages = SEQUENCE.length;
       const doneStages = SEQUENCE.filter(s => { const [l, m] = s.split('_'); return passed(l, m); }).length;
-      const marathon = Math.max(0, ...LESSONS.map(l => records[`L${l.id}_records`]?.score || 0));
+      const pct = r => (r?.totalQuestions ? Math.round((Number(r.correct) || 0) / r.totalQuestions * 100) : 0);
 
       let html = `<section class="sp__card">
         <div class="sp__head"><div class="sp__avatar">${esc(name.trim()[0]?.toUpperCase() || '?')}</div>
-          <div><h1 class="sp__name">${esc(name)}</h1><div class="sp__id">ID: ${esc(id)}</div></div></div>
+          <div><h1 class="sp__name">${esc(name)}</h1><div class="sp__id">код перегляду ${esc(code)}</div></div></div>
         <div class="sp__total">
           <div><b>${doneStages}/${allStages}</b><span>рівнів пройдено</span></div>
-          <div><b>${LESSONS.filter(l => modesFor(l.id).every(m => passed(l.id, m.id))).length}/${LESSONS.length}</b><span>уроків</span></div>
-          <div><b>${marathon}</b><span>рекорд марафону</span></div>
+          <div><b>${course.filter(lessonDone).length}/${COURSE_LESSONS}</b><span>уроків</span></div>
+          <div><b>${examRec ? pct(examRec) + '%' : '—'}</b><span>екзамен</span></div>
         </div></section>`;
 
-      for (const l of LESSONS) {
+      if (exam) {
+        html += `<section class="sp__card sp__lesson"><div class="sp__lesson-head"><div><h2>🎓 Екзамен</h2>
+          <p class="muted">Уся таблиця множення 1×1 … 9×9</p></div>
+          ${examRec ? `<button class="btn btn--small btn--diploma" type="button" data-award="${exam.id}">⬇ Сертифікат</button>` : ''}</div>
+          ${examRec ? `<div class="sp__row"><span>✅ Правильних відповідей</span><span class="r">${pct(examRec)}%</span>
+            <span class="r muted">${Number(examRec.correct) || 0} з ${examRec.totalQuestions}</span></div>
+            <div class="sp__row"><span>⏱ Тривалість</span><span class="r">${fmtTime(Number(examRec.time) || 0)}</span><span class="r muted"><small>${esc(examRec.date || '')}</small></span></div>`
+          : '<div class="sp__row is-todo"><span>⬜ Ще не складено</span><span></span><span></span></div>'}</section>`;
+      }
+
+      for (const l of course) {
         const modes = modesFor(l.id);
         const n = modes.filter(m => passed(l.id, m.id)).length;
-        html += `<section class="sp__card sp__lesson"><h2>${esc(l.place.name)}</h2>
-          <p class="muted">${esc(l.name)} · ${n}/${modes.length} ⭐</p>`;
+        html += `<section class="sp__card sp__lesson"><div class="sp__lesson-head"><div><h2>${esc(l.place.name)}</h2>
+          <p class="muted">${esc(l.name)} · ${n}/${modes.length} ⭐</p></div>
+          ${lessonDone(l) ? `<button class="btn btn--small btn--diploma" type="button" data-award="${l.id}">⬇ Диплом</button>` : ''}</div>`;
         for (const m of modes) {
           const r = records[`L${l.id}_${m.id}`];
           const ok = passed(l.id, m.id);
@@ -88,6 +113,23 @@
       }
       body.innerHTML = html;
     }
+
+    // Завантажити диплом уроку або сертифікат екзамену
+    body.addEventListener('click', async e => {
+      const b = e.target.closest('[data-award]');
+      if (!b || !profile) return;
+      const lesson = LESSONS.find(l => l.id === Number(b.dataset.award));
+      const label = b.textContent;
+      b.disabled = true; b.textContent = 'Малюю…';
+      try {
+        const d = await import('./js/diploma.js?v=3.28');
+        const rec = profile.records[`L${lesson.id}_${lesson.exam ? 'exam' : 'records'}`] || {};
+        const date = d.parseRecordDate(rec.date) || new Date();
+        const canvas = lesson.exam ? await d.examCertificate({ name: profile.name, rec, date, code: profile.code })
+          : await d.lessonDiploma({ name: profile.name, lesson, date, code: profile.code });
+        await d.downloadPdf(canvas, `${lesson.exam ? 'Сертифікат' : 'Диплом'} — ${profile.name}.pdf`);
+      } finally { b.disabled = false; b.textContent = label; }
+    });
     main();
   </script>
 </body>

@@ -5,7 +5,7 @@
 // Таблиця симетрична, і добутки з множниками ≥ 2 мають спільну картинку (2×6 і 3×4 — крокодил з вудкою).
 // А от «число 6» (1×6, равлик) і «добуток 2×3» (свисток) — різні картинки. Тому порівнюємо не числа, а картинки.
 
-import { shuffle } from './engine.js?v=3.20';
+import { shuffle } from './engine.js?v=3.28';
 
 /** Ідентифікатор картинки клітинки (r, c). */
 export function pictureId(r, c) {
@@ -102,4 +102,46 @@ export function storyQuestions(factors, rng = Math.random) {
     }
   }
   return out;
+}
+
+// ---------- Екзамен ----------
+
+/** Уся таблиця множення 1×1 … 9×9 — 81 приклад. */
+export function examQuestions() {
+  const out = [];
+  for (let a = 1; a <= 9; a++) for (let b = 1; b <= 9; b++) out.push({ a, b, answer: a * b, key: `${a}x${b}` });
+  return out;
+}
+
+// ---------- «Вгадай число»: нові картинки уроку ----------
+
+/**
+ * Картинки, які дитина вперше зустрічає в уроці: урок 1 — усі герої-цифри (0–9) і добутки ×2,
+ * далі — лише нові добутки (картинка, що вже була в попередньому уроці, не повторюється).
+ * Урок 1: 18 картинок, урок 2: 9, урок 3: 8, урок 4: 6.
+ */
+export function guessQuestions(lessons, lessonId) {
+  const seen = new Set();
+  for (const l of lessons) {
+    if (l.exam) continue;
+    const out = [];
+    const add = (key, a, b, answer) => { if (!seen.has(key)) { seen.add(key); out.push({ a, b, answer, key, pic: [a, b] }); } };
+    if (l.id === lessons[0].id) for (let d = 0; d <= 9; d++) add(d === 0 ? 'zero' : `n${d}`, d, 1, d);
+    for (const a of l.factors) for (let b = 2; b <= 9; b++) {
+      if (a < 2) continue;
+      const [r, c] = a <= b ? [a, b] : [b, a];
+      add(`p${a * b}`, r, c, a * b);
+    }
+    if (l.id === Number(lessonId)) return out;
+  }
+  return [];
+}
+
+/** 4 варіанти для «Вгадай число»: правильний + 3 близькі числа з таблиці (цифри 0–9 і добутки). */
+const ALL_VALUES = [...new Set([...Array(10).keys(), ...numberQuestions().map(x => x.answer), 4, 6, 8, 9])].sort((x, y) => x - y);
+export function makeGuessChoices(q, rng = Math.random) {
+  const i = ALL_VALUES.indexOf(q.answer);
+  const near = [i - 1, i + 1, i - 2, i + 2, i - 3, i + 3].filter(j => j >= 0 && j < ALL_VALUES.length).map(j => ALL_VALUES[j]);
+  const wrong = shuffle(near.slice(0, 5), rng).slice(0, 3);
+  return shuffle([q.answer, ...wrong], rng).map(value => ({ value }));
 }
