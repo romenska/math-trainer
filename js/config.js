@@ -22,7 +22,7 @@ export const LESSONS = [
  *  retry     — після помилки дати ще спробу з підказкою (true) чи показати відповідь і йти далі (false)
  *  requeue   — приклад, на якому помилились, повертається в кінець черги (щоб його точно вивчили)
  *  lives     — кількість сердечок (0 = без обмежень)
- *  hints     — доступні підказки: text | story | tiles
+ *  hints     — доступні підказки: text | story (картинка) | video (відео-історія) | tiles
  *  tilesOn   — картинки над числами увімкнені одразу
  *  tileChoices — варіанти відповіді показуються картинками
  *  penalty   — скільки балів знімати за помилку (якщо не вказано — SCORING.penalty)
@@ -47,7 +47,7 @@ export const MODES = [
   { id: 'recall', name: 'Пригадай', kind: 'recall', queue: 'all', retry: 'always', requeue: false, lives: 0,
     hints: ['text'], errorHint: 'story', tilesOn: false, tileChoices: false },
   { id: 'training', name: 'Тренування', queue: 'all', retry: true, requeue: true, lives: 0,
-    hints: ['text', 'story', 'tiles'], tilesOn: false, tileChoices: false },
+    hints: ['text', 'story', 'video', 'tiles'], tilesOn: false, tileChoices: false },
   { id: 'speed', name: 'Перевірка', queue: 'all', retry: false, requeue: false, lives: 3,
     hints: [], tilesOn: false, tileChoices: false },
   { id: 'records', name: 'Марафон', queue: 'endless', retry: false, requeue: false, lives: 1, penalty: 0, // до першої помилки, бали не знімаються
@@ -82,6 +82,13 @@ export const ASSETS = {
   artUrl: name => `assets/map/${name}.webp`,
   // Які картинки-історії є в assets/story/ (назва файлу без .webp). Нова історія = файл + назва тут.
   // 5×7 і 7×5 — одна історія: досить одного файлу будь-яким порядком.
+  // Відео-історії (assets/story/AxB.mp4, зі звуком). Якщо відео є — показується воно, інакше картинка.
+  videos: [
+    '2x2', '2x3', '2x4', '2x5', '2x6', '2x7', '2x8', '2x9',
+    '3x3', '3x4', '3x5', '3x6', '3x7', '3x8', '3x9',
+    '4x3', '4x4', '4x5', '4x6', '4x7', '4x8', '4x9',
+  ],
+  video: key => `assets/story/${key}.mp4`,
   stories: [
     '2x2', '2x3', '2x4', '2x5', '2x6', '2x7', '2x8', '2x9',
     '3x2', '3x3', '3x4', '3x5', '3x6', '3x7', '3x8', '3x9',

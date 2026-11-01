@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.11">
-  <script type="module" src="js/app.js?v=3.11"></script>
+  <link rel="stylesheet" href="css/style.css?v=3.16">
+  <script type="module" src="js/app.js?v=3.16"></script>
 </head>
 <body>
   <main class="card" id="app" aria-live="polite">
@@ -41,7 +41,6 @@
           </div>
         </div>
         <div class="bar__actions">
-          <button class="icon-btn" type="button" data-open-stats aria-label="Статистика" title="Статистика">📊</button>
           <button class="icon-btn" id="btn-settings" type="button" aria-label="Ручні налаштування" title="Ручні налаштування"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         </div>
       </header>
@@ -51,7 +50,7 @@
         <div class="stage__nodes"></div>
       </div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 3.11</p>
+      <p class="version">версія 3.16</p>
     </section>
 
     <!-- 3. Локація (урок) -->
@@ -97,14 +96,14 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 3.11</p>
+      <p class="version">версія 3.16</p>
     </section>
 
     <!-- 5. Гра -->
     <section class="screen" id="screen-game" hidden>
       <header class="bar">
-        <button class="icon-btn" id="btn-exit" type="button" aria-label="Меню" title="Меню">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg>
+        <button class="icon-btn" id="btn-exit" type="button" aria-label="Вийти до карти" title="Вийти до карти">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
         </button>
         <div class="game-title">
           <div id="game-lesson">Урок</div>
@@ -126,12 +125,18 @@
       <div class="question" id="question">
         <div class="text-hint" id="text-hint" hidden></div>
         <img class="story" id="story" alt="Картинка-історія" hidden>
+        <div class="story-video" id="story-video" hidden>
+          <video class="story" id="story-vid" playsinline preload="auto"></video>
+          <button class="story-video__btn" id="story-sound" type="button" hidden>🔇 Увімкнути звук</button>
+          <button class="story-video__btn story-video__btn--replay" id="story-replay" type="button" hidden aria-label="Ще раз">↻</button>
+        </div>
         <div class="expr" id="expr"></div>
       </div>
 
       <div class="hint-bar" id="hint-bar">
         <button type="button" class="chip" data-hint="text">💬 Підказка</button>
         <button type="button" class="chip" data-hint="story">💡 Історія</button>
+        <button type="button" class="chip" data-hint="video">🎬 Відео</button>
         <button type="button" class="chip" data-hint="tiles">🖼️ Картинки</button>
       </div>
 
@@ -161,11 +166,11 @@
       <span class="result__label" id="res-label"></span>
     </div>
     <p class="result__record" id="res-record" hidden></p>
-    <div class="result__chips" id="res-chips"></div>
-    <button class="btn btn--diploma btn--block" id="res-diploma" type="button" hidden>🎓 Отримати диплом</button>
+    <div class="result__stats" id="res-stats"></div>
     <div class="result__actions">
-      <button class="btn" id="res-menu" type="button">Меню</button>
-      <button class="btn" id="res-retry" type="button">Ще раз</button>
+      <button class="btn btn--icon" id="res-menu" type="button" aria-label="До рівнів" title="До рівнів"></button>
+      <button class="btn btn--icon" id="res-retry" type="button" aria-label="Ще раз" title="Ще раз"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button class="btn btn--icon btn--diploma" id="res-diploma" type="button" aria-label="Отримати диплом" title="Отримати диплом" hidden><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 12v6"/><path d="m9 15 3 3 3-3"/></svg></button>
       <button class="btn btn--primary" id="res-next" type="button">Далі →</button>
     </div>
   </dialog>

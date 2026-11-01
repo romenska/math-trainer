@@ -1,9 +1,9 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.7';
-import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=3.7';
-import { textHint, storyImage } from '../js/hints.js?v=3.7';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from '../js/pictures.js?v=3.7';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.16';
+import { getLesson, getMode, SEQUENCE } from '../js/config.js?v=3.16';
+import { textHint, storyImage, storyVideo } from '../js/hints.js?v=3.16';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from '../js/pictures.js?v=3.16';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -200,6 +200,14 @@ test('«Історії»: кожна історія уроку один раз, 
   for (const q of [...l1, ...l2, ...l4]) assert.ok(storyImage(q.a, q.b) || textHint(q.a, q.b), q.key);
   const keys = l4.map(q => `${Math.min(q.a, q.b)}x${Math.max(q.a, q.b)}`);
   assert.equal(new Set(keys).size, keys.length);
+});
+
+test('відео-історії: є для 2×… і 3×…, симетрія', () => {
+  assert.equal(storyVideo(2, 3), 'assets/story/2x3.mp4');
+  assert.equal(storyVideo(9, 3), 'assets/story/3x9.mp4');
+  assert.equal(storyVideo(4, 3), 'assets/story/4x3.mp4', '4×3 має власне відео');
+  assert.equal(storyVideo(9, 4), 'assets/story/4x9.mp4');
+  assert.equal(storyVideo(7, 8), null);
 });
 
 console.log(`\n${passed} тестів пройдено`);
