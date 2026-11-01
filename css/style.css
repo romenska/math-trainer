@@ -98,12 +98,25 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 .field:focus { outline: none; border-color: var(--primary); }
 
 /* ===== Вхід ===== */
-.login { text-align: center; padding: 24px 4px 8px; max-width: 360px; margin: 0 auto; }
-.login__logo {
-  font-family: var(--font-fun); font-weight: 700; font-size: 2.2rem; color: var(--primary);
-  width: 96px; height: 96px; margin: 0 auto 16px; border-radius: 28px; display: grid; place-items: center;
-  background: var(--primary-soft); transform: rotate(-6deg);
-}
+.login { text-align: center; padding: 8px 4px 8px; max-width: 360px; margin: 0 auto; }
+/* фон вікна входу: бліді приклади і цифри під різними кутами (видно лише на екрані входу) */
+.page-bg { display: none; position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+body:has(#screen-login:not([hidden])) .page-bg { display: block; }
+.page-bg span { position: absolute; font-family: var(--font-fun); font-weight: 700; line-height: 1; opacity: .6; transform: translate(-50%, -50%) rotate(var(--rot)); white-space: nowrap; }
+#app { position: relative; z-index: 1; }
+.login__crew { display: flex; justify-content: center; align-items: flex-end; gap: 4px; margin: 4px auto 10px; }
+.login__crew .tile { background-color: transparent; mix-blend-mode: multiply; } /* білий фон картинок зникає */
+.login .btn--big { margin-top: 2px; }
+.login__hero { --tile: clamp(70px, 21vw, 86px); animation: bob 2.6s ease-in-out infinite; animation-delay: var(--d); }
+.login__hero--big { --tile: clamp(112px, 35vw, 138px); }
+.login__hero--mirror { scale: -1 1; }
+.login__title { margin-bottom: 16px !important; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@media (prefers-reduced-motion: reduce) { .login__hero { animation: none; } }
+.login__title { font-family: var(--font-fun); font-weight: 700; font-size: clamp(1.6rem, 7vw, 2rem); margin: 0 0 6px;
+  background: linear-gradient(90deg, #2f6fed, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.login__hello-unused { margin: 0 0 18px; color: var(--muted); font-weight: 600; font-size: 1.05rem; }
+.login .field { text-align: center; font-size: 1.1rem; border-radius: 16px; }
 .hint-text { font-size: .8rem; color: var(--muted); margin-top: 20px; line-height: 1.5; }
 
 /* ===== Шапка ===== */
@@ -199,12 +212,12 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.16");
+  background-image: url("../assets/tiles.webp?v=3.20");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.16"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.20"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {

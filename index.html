@@ -10,23 +10,57 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.16">
-  <script type="module" src="js/app.js?v=3.16"></script>
+  <link rel="stylesheet" href="css/style.css?v=3.20">
+  <script type="module" src="js/app.js?v=3.20"></script>
 </head>
 <body>
+  <!-- Фон вікна входу: бліді приклади і цифри -->
+  <div class="page-bg" aria-hidden="true">
+    <span style="left:32%;top:76%;--rot:24deg;font-size:1.6rem;color:#c9b6ff">2×2</span>
+    <span style="left:58%;top:46%;--rot:-4deg;font-size:1.8rem;color:#c9b6ff">9</span>
+    <span style="left:38%;top:69%;--rot:-30deg;font-size:1.9rem;color:#a9e5a0">2×5</span>
+    <span style="left:43%;top:90%;--rot:-19deg;font-size:3.3rem;color:#8fd8e8">8</span>
+    <span style="left:12%;top:8%;--rot:-22deg;font-size:1.6rem;color:#9ec5ff">5×5</span>
+    <span style="left:64%;top:24%;--rot:-8deg;font-size:1.8rem;color:#ffcf6e">0</span>
+    <span style="left:94%;top:35%;--rot:0deg;font-size:1.6rem;color:#c9b6ff">6×6</span>
+    <span style="left:21%;top:23%;--rot:-19deg;font-size:3.3rem;color:#c9b6ff">7</span>
+    <span style="left:44%;top:4%;--rot:14deg;font-size:3.3rem;color:#c9b6ff">8</span>
+    <span style="left:60%;top:63%;--rot:-13deg;font-size:2.3rem;color:#a9e5a0">1</span>
+    <span style="left:63%;top:31%;--rot:2deg;font-size:1.6rem;color:#9ec5ff">2×3</span>
+    <span style="left:6%;top:92%;--rot:-33deg;font-size:1.9rem;color:#9ec5ff">3×4</span>
+    <span style="left:65%;top:93%;--rot:22deg;font-size:1.6rem;color:#ffb3c1">3×3</span>
+    <span style="left:80%;top:10%;--rot:-3deg;font-size:1.6rem;color:#ffb3c1">2×4</span>
+    <span style="left:7%;top:84%;--rot:-26deg;font-size:2.3rem;color:#8fd8e8">7</span>
+    <span style="left:65%;top:4%;--rot:-11deg;font-size:2.3rem;color:#8fd8e8">4</span>
+    <span style="left:43%;top:17%;--rot:6deg;font-size:1.6rem;color:#c9b6ff">3×2</span>
+    <span style="left:5%;top:67%;--rot:7deg;font-size:1.8rem;color:#a9e5a0">4</span>
+    <span style="left:46%;top:39%;--rot:-15deg;font-size:1.9rem;color:#9ec5ff">4×4</span>
+    <span style="left:92%;top:46%;--rot:-23deg;font-size:1.8rem;color:#ffb3c1">5</span>
+    <span style="left:94%;top:69%;--rot:7deg;font-size:2.8rem;color:#a9e5a0">3</span>
+    <span style="left:46%;top:49%;--rot:-31deg;font-size:1.3rem;color:#ffb3c1">5×2</span>
+    <span style="left:80%;top:88%;--rot:3deg;font-size:1.8rem;color:#ffb3c1">2</span>
+    <span style="left:7%;top:54%;--rot:-22deg;font-size:1.8rem;color:#c9b6ff">6</span>
+    <span style="left:55%;top:74%;--rot:-16deg;font-size:2.8rem;color:#ffb3c1">1</span>
+    <span style="left:85%;top:80%;--rot:-29deg;font-size:3.3rem;color:#a9e5a0">9</span>
+    <span style="left:94%;top:22%;--rot:30deg;font-size:1.6rem;color:#8fd8e8">1×1</span>
+    <span style="left:15%;top:35%;--rot:-4deg;font-size:1.8rem;color:#9ec5ff">6</span>
+  </div>
   <main class="card" id="app" aria-live="polite">
 
     <!-- 1. Вхід -->
     <section class="screen" id="screen-login" hidden>
       <div class="login">
-        <div class="login__logo" aria-hidden="true">2×3</div>
-        <h1 class="title">Тренажер множення</h1>
-        <p class="muted">Як тебе звати?</p>
+        <div class="login__crew" aria-hidden="true">
+          <span class="tile login__hero login__hero--mirror" style="--r:0;--c:7;--d:.3s"></span>
+          <span class="tile login__hero login__hero--big" style="--r:0;--c:1;--d:0s"></span>
+          <span class="tile login__hero" style="--r:0;--c:5;--d:.6s"></span>
+        </div>
+        <h1 class="login__title">Тренажер множення</h1>
         <form id="login-form" class="stack" autocomplete="off">
-          <input id="login-input" class="field" type="text" maxlength="40" placeholder="Ім'я або ID учня" required>
-          <button class="btn btn--primary btn--block" type="submit">Почати</button>
+          <input id="login-input" class="field" type="text" maxlength="40" placeholder="Вкажи ім'я або ID" required>
+          <button class="btn btn--primary btn--block btn--big" type="submit">Вхід</button>
         </form>
-        <p class="hint-text">Вже займався на іншому пристрої? Введи свій ID (починається з <code>dev_</code>) — прогрес відновиться.</p>
+        <p class="hint-text">Вже грав на іншому пристрої? Введи в поле свій ID (починається з <code>dev_</code>) — і прогрес повернеться.</p>
       </div>
     </section>
 
@@ -50,7 +84,7 @@
         <div class="stage__nodes"></div>
       </div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 3.16</p>
+      <p class="version">версія 3.20</p>
     </section>
 
     <!-- 3. Локація (урок) -->
@@ -96,7 +130,7 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 3.16</p>
+      <p class="version">версія 3.20</p>
     </section>
 
     <!-- 5. Гра -->
