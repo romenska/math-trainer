@@ -1,12 +1,12 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, getLesson, getMode, modesFor } from './config.js?v=3.3';
-import { createGame, makeChoices, isBetter } from './engine.js?v=3.3';
-import { storage } from './storage.js?v=3.3';
-import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=3.3';
-import { textHint, storyImage } from './hints.js?v=3.3';
-import { confetti } from './confetti.js?v=3.3';
-import { neededPieces, recallBank, PRODUCTS, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from './pictures.js?v=3.3';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, getLesson, getMode, modesFor } from './config.js?v=3.4';
+import { createGame, makeChoices, isBetter } from './engine.js?v=3.4';
+import { storage } from './storage.js?v=3.4';
+import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId } from './cloud.js?v=3.4';
+import { textHint, storyImage } from './hints.js?v=3.4';
+import { confetti } from './confetti.js?v=3.4';
+import { neededPieces, recallBank, PRODUCTS, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions } from './pictures.js?v=3.4';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -701,7 +701,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.3" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.4" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -849,6 +849,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.3'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.4'; });
 }
 boot();
