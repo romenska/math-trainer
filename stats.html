@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.45">
+  <link rel="stylesheet" href="css/style.css?v=3.46">
   <style>
     body { display: block; }
     .sp { max-width: 640px; margin: 0 auto; padding: 20px 16px 40px; }
@@ -40,8 +40,8 @@
   </main>
 
   <script type="module">
-    import { CLOUD_URL, LESSONS, COURSE_LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.45';
-    import { shareCode } from './js/cloud.js?v=3.45';
+    import { CLOUD_URL, LESSONS, COURSE_LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.46';
+    import { shareCode } from './js/cloud.js?v=3.46';
 
     // Сторінку відкривають за кодом (?c=…, з QR на дипломі) — лише перегляд, без входу.
     // Старі посилання з ?id=… теж працюють.
@@ -122,7 +122,7 @@
       const label = b.textContent;
       b.disabled = true; b.textContent = 'Малюю…';
       try {
-        const d = await import('./js/diploma.js?v=3.45');
+        const d = await import('./js/diploma.js?v=3.46');
         const rec = profile.records[`L${lesson.id}_${lesson.exam ? 'exam' : 'records'}`] || {};
         const date = d.parseRecordDate(rec.date) || new Date();
         const canvas = lesson.exam ? await d.examCertificate({ name: profile.name, rec, date, code: profile.code })
