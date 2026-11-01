@@ -6,8 +6,10 @@ const KEYS = {
   deviceId: 'math_trainer_device_id',
   nickname: 'math_trainer_nickname',
   records: 'math_trainer_records',
-  progress: 'math_trainer_combined_level',
+  progress: 'math_trainer_combined_level', // більше не використовується (прогрес рахується з рекордів); лишився, щоб «Вийти» його прибрав
   settings: 'math_trainer_settings',
+  avatar: 'math_trainer_avatar',   // номер аватарки 0–12 (assets/avatars) або «photo»
+  photo: 'math_trainer_photo',     // фото обличчя (data:image/jpeg;base64,…)
 };
 
 function read(key, fallback) {
@@ -30,16 +32,18 @@ export const storage = {
       deviceId: read(KEYS.deviceId, ''),
       nickname: read(KEYS.nickname, ''),
       records: readJSON(KEYS.records, {}),
-      progress: read(KEYS.progress, '1_associations'),
+      progress: null, // обчислюється в normalizeProgress() з пройдених рівнів
       inputMode: settings.inputMode === 'expert' ? 'expert' : 'novice',
+      avatar: read(KEYS.avatar, '0'),   // за замовчуванням — дракончик
+      photo: read(KEYS.photo, ''),
     };
   },
   saveProfile({ deviceId, nickname }) {
     write(KEYS.deviceId, deviceId);
     write(KEYS.nickname, nickname || '');
   },
+  saveAvatar({ avatar, photo }) { write(KEYS.avatar, String(avatar)); write(KEYS.photo, photo || ''); },
   saveRecords(records) { write(KEYS.records, JSON.stringify(records)); },
-  saveProgress(stage) { write(KEYS.progress, stage); },
   saveInputMode(inputMode) { write(KEYS.settings, JSON.stringify({ inputMode })); },
   clear() {
     try { Object.values(KEYS).forEach(k => localStorage.removeItem(k)); } catch { /* ignore */ }

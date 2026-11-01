@@ -1,12 +1,13 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.28';
-import { createGame, makeChoices, isBetter } from './engine.js?v=3.28';
-import { storage } from './storage.js?v=3.28';
-import { loadProfile, mergeRecords, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.28';
-import { textHint, storyImage, storyVideo } from './hints.js?v=3.28';
-import { confetti } from './confetti.js?v=3.28';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.28';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.45';
+import { createGame, makeChoices, isBetter } from './engine.js?v=3.45';
+import { storage } from './storage.js?v=3.45';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.45';
+import { textHint, storyImage, storyVideo } from './hints.js?v=3.45';
+import { createMapView } from './mapview.js?v=3.45';
+import { confetti } from './confetti.js?v=3.45';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.45';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -67,15 +68,17 @@ const isPassed = (lesson, mode) => {
   return Boolean(r && r.passed !== false); // старі записи без поля passed вважаємо пройденими
 };
 
-/** Рекомендований етап: збережений прогрес, але не раніше за останній пройдений + 1. */
+/**
+ * Поточний етап НЕ зберігається окремо — він завжди обчислюється з пройдених рівнів:
+ * наступний після останнього пройденого. Тож якщо в таблиці видалити рядки гри, прогрес відкотиться.
+ */
 function normalizeProgress() {
-  let idx = Math.max(0, SEQUENCE.indexOf(app.profile.progress));
+  let idx = 0;
   SEQUENCE.forEach((s, i) => {
     const { lesson, mode } = parseStage(s);
     if (isPassed(lesson, mode)) idx = Math.max(idx, Math.min(i + 1, SEQUENCE.length - 1));
   });
   app.profile.progress = SEQUENCE[idx];
-  storage.saveProgress(app.profile.progress);
 }
 
 // ---------- Екрани ----------
@@ -108,9 +111,8 @@ $('#login-form').addEventListener('submit', e => {
     app.profile = { ...app.profile, deviceId: newDeviceId(), nickname: value, records: {}, progress: SEQUENCE[0] };
     storage.saveProfile(app.profile);
     pushResult({ action: 'register', deviceId: app.profile.deviceId, nickname: value,  // новий рядок у листі «Учні»
-      inputMode: app.profile.inputMode === 'novice' ? 'Новачок' : 'Експерт', currentCombinedLevel: SEQUENCE[0] });
+      inputMode: app.profile.inputMode === 'novice' ? 'Новачок' : 'Експерт', avatar: app.profile.avatar });
     storage.saveRecords({});
-    storage.saveProgress(SEQUENCE[0]);
     openMap();
   }
 });
@@ -147,11 +149,18 @@ async function sync({ fromLogin = false } = {}) {
     if (fromLogin) toast('Не вдалося завантажити дані для цього ID. Перевір ID або інтернет.');
     return;
   }
+  if (remote.notFound && fromLogin) {
+    status.textContent = '⚠️ Учня не знайдено';
+    toast('Учня з таким паролем не знайдено. Перевір пароль.');
+    return;
+  }
   const p = app.profile;
-  p.records = mergeRecords(p.records, remote.records);
+  // Джерело правди — журнал ігор у таблиці (лист «Статистика»). Локальні рекорди — лише кеш, їх замінюємо.
+  p.records = remote.records;
   if (remote.nickname && (fromLogin || !p.nickname)) p.nickname = remote.nickname;
   if (fromLogin && remote.inputMode) p.inputMode = remote.inputMode;
-  if (remote.progress && SEQUENCE.indexOf(remote.progress) > SEQUENCE.indexOf(p.progress)) p.progress = remote.progress;
+  if (remote.avatar !== null) { p.avatar = remote.avatar; p.photo = remote.photo; storage.saveAvatar(p); }
+  else if (p.avatar !== '0' || p.photo) pushProfile();   // таблиця ще не знає аватарку — надіслати
   storage.saveProfile(p);
   storage.saveRecords(p.records);
   storage.saveInputMode(p.inputMode);
@@ -589,7 +598,7 @@ function playStoryVideo(vsrc, poster) {
   $('#story-replay').hidden = true;
   vid.poster = poster || '';
   vid.onerror = () => { stopStoryVideo(); if (poster) { $('#story').src = poster; $('#story').hidden = false; } };
-  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.28`; vid.dataset.src = vsrc; }
+  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.45`; vid.dataset.src = vsrc; }
   try { vid.currentTime = 0; } catch { /* ще не завантажено */ }
   vid.muted = false;
   vid.play().then(() => { $('#story-sound').hidden = true; }).catch(() => {
@@ -673,27 +682,20 @@ function endGame() {
   if (better) app.profile.records[key] = { ...record, passed: r.passed || Boolean(old?.passed) };
   else if (r.passed && old) old.passed = true;
   storage.saveRecords(app.profile.records);
-
+  normalizeProgress();
   const idx = SEQUENCE.indexOf(stageKey(lesson, mode));
-  if (r.passed && idx >= SEQUENCE.indexOf(app.profile.progress) && idx < SEQUENCE.length - 1) {
-    app.profile.progress = SEQUENCE[idx + 1];
-    storage.saveProgress(app.profile.progress);
-  }
 
   pushResult({
     action: 'finish',
     deviceId: app.profile.deviceId,
     nickname: app.profile.nickname,
-    currentCombinedLevel: app.profile.progress,
+    stage: stageKey(lesson, mode),          // напр. «2_remember» — за цим полем таблиця рахує прогрес
     levelName: getLesson(lesson).name,
     gameMode: mode,
     inputMode: app.profile.inputMode === 'novice' ? 'Новачок' : 'Експерт',
     totalQuestions: r.questions, correct: r.correct, errors: r.errors, hintsCount: r.hints,
     score: r.score, time: r.time, speed: r.speed,
     status: r.passed ? 'успіх' : 'невдача',
-    bestScore: Math.max(0, ...Object.values(app.profile.records).map(x => x.score || 0)),
-    bestSpeed: Math.max(0, ...Object.values(app.profile.records).map(x => x.speed || 0)),
-    records: app.profile.records,
   });
 
   const newBest = better && r.score > 0; // 0 балів — не рекорд
@@ -790,7 +792,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.28');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.45');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -835,85 +837,22 @@ $('#stats-body').addEventListener('click', e => {
 // ---------- Карта уроків і локації ----------
 // Координати у відсотках сцени: карта 3:4 (локації зліва направо), локація 3:5 (рівні знизу вгору).
 // Точки підібрано під картинку фону: бухта з маяком, острів метеликів, лука біля равлика, лука під замком
-const MAP_POINTS = [[16, 79], [40, 48], [62, 76], [78, 37], [44, 18]]; // остання — екзамен
-const MAP_TRAIL_START = [6, 98];
+// Точки на карті (зигзаг знизу вгору): пляж → нижня галявина → луг на острові квітів → луг під замком → екзамен
 const levelPoints = n => Array.from({ length: n }, (_, i) => [
   50 + 30 * Math.sin((i * Math.PI) / 2),            // змійка: центр → право → центр → ліво
   n === 1 ? 50 : 85 - (i * 75) / (n - 1),            // знизу вгору
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.28" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.45" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
 function updateUser() {
   const name = app.profile.nickname || 'Учень';
   document.querySelectorAll('[data-user-name]').forEach(n => { n.textContent = name; });
-  document.querySelectorAll('[data-user-avatar]').forEach(n => { n.textContent = name.trim()[0]?.toUpperCase() || '?'; });
+  document.querySelectorAll('[data-user-avatar]').forEach(n => { n.innerHTML = avatarImg(); });
   document.querySelectorAll('[data-sync]').forEach(n => { if (!n.textContent) n.textContent = '💾 Збережено на пристрої'; });
-}
-
-// Вигляд доріжки: 'stones' — камінці, 'bubbles' — бульбашки, 'arrows' — стрілочки
-const TRAIL_STYLE = 'stones';
-const TRAIL_STEP = 13;   // відстань між камінцями (в одиницях viewBox)
-const TRAIL_GAP = 20;    // скільки лишити вільним біля значка рівня/локації
-
-/** Точки, рівномірно розставлені вздовж відрізка-кривої (Catmull-Rom → Безьє), з напрямком руху. */
-function trailDots(pts) {
-  const out = [];
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    const bez = t => [0, 1].map(k => (1 - t) ** 3 * p1[k] + 3 * (1 - t) ** 2 * t * c1[k] + 3 * (1 - t) * t * t * c2[k] + t ** 3 * p2[k]);
-    const samples = [];
-    let len = 0, prev = bez(0);
-    for (let s = 0; s <= 200; s++) {
-      const p = bez(s / 200);
-      len += Math.hypot(p[0] - prev[0], p[1] - prev[1]);
-      samples.push({ p, len }); prev = p;
-    }
-    const usable = len - 2 * TRAIL_GAP;
-    if (usable <= 0) continue;
-    const n = Math.max(1, Math.round(usable / TRAIL_STEP));
-    let j = 0;
-    for (let k = 0; k <= n; k++) {
-      const at = TRAIL_GAP + (usable * k) / n;
-      while (j < samples.length - 1 && samples[j].len < at) j++;
-      const a = samples[Math.max(0, j - 1)].p, b = samples[j].p;
-      out.push({ x: b[0], y: b[1], ang: Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI, seg: i, k });
-    }
-  }
-  return out;
-}
-
-function trailMark(d, done) {
-  const x = d.x.toFixed(1), y = d.y.toFixed(1), c = done ? ' is-done' : '';
-  if (TRAIL_STYLE === 'arrows') {
-    return `<path class="trail__arrow${c}" transform="translate(${x} ${y}) rotate(${d.ang.toFixed(0)})" d="M-3 -4.5 L3 0 L-3 4.5"/>`;
-  }
-  if (TRAIL_STYLE === 'bubbles') {
-    const r = [4.6, 3.4, 5.2, 3.8][d.k % 4];
-    return `<g class="trail__bubble${c}" transform="translate(${x} ${y})"><circle r="${r}"/><circle class="shine" cx="${(-r * 0.35).toFixed(1)}" cy="${(-r * 0.35).toFixed(1)}" r="${(r * 0.3).toFixed(1)}"/></g>`;
-  }
-  // камінці: трохи різні за розміром, поворотом і зсувом убік — щоб виглядали природно
-  const side = (d.k % 2 ? 1 : -1) * 2, rad = (d.ang + 90) * Math.PI / 180;
-  const sx = (d.x + side * Math.cos(rad)).toFixed(1), sy = (d.y + side * Math.sin(rad)).toFixed(1);
-  const rx = [5.6, 4.8, 5.2][d.k % 3], ry = [4, 3.6, 4.2][d.k % 3];
-  return `<ellipse class="trail__stone${c}" cx="${sx}" cy="${sy}" rx="${rx}" ry="${ry}" transform="rotate(${(d.ang + [8, -14, 4][d.k % 3]).toFixed(0)} ${sx} ${sy})"/>`;
-}
-
-function trailSVG(pctPoints, w, h, doneSegs) {
-  const pts = pctPoints.map(([x, y]) => [Math.round(x * w / 100), Math.round(y * h / 100)]);
-  const marks = trailDots(pts).map(d => trailMark(d, d.seg < doneSegs)).join('');
-  return `<svg class="trail trail--${TRAIL_STYLE}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${marks}</svg>`;
-}
-
-function stageBackground(stage, artName, sky, ground) {
-  stage.style.setProperty('--sky', sky);
-  stage.style.setProperty('--ground', ground);
-  stage.querySelector('.stage__bg').innerHTML = hasArt(artName) ? artImg(artName) : '';
 }
 
 function openMap() {
@@ -923,45 +862,61 @@ function openMap() {
   show('screen-map');
 }
 
+/** «12 хв», «1 год 5 хв», «40 с». */
+const fmtDur = secs => {
+  secs = Math.round(secs || 0);
+  if (secs < 60) return `${secs} с`;
+  const m = Math.round(secs / 60), h = Math.floor(m / 60);
+  return h ? `${h} год${m % 60 ? ` ${m % 60} хв` : ''}` : `${m} хв`;
+};
+/** Скільки часу пішло на урок: сума часу найкращих спроб усіх його рівнів. */
+const lessonTime = l => modesFor(l.id).reduce((t, m) => t + (Number(app.profile.records[recordKey(l.id, m.id)]?.time) || 0), 0);
+
 function renderMap() {
+  normalizeProgress();
   const cur = parseStage(app.profile.progress).lesson;
-  const stage = $('#map-stage');
-  stageBackground(stage, 'map-bg', '#bfe6ff', '#9fd889');
-  const done = LESSONS.filter(l => modesFor(l.id).every(m => isPassed(l.id, m.id))).length;
-  stage.querySelector('.stage__trail').innerHTML =
-    trailSVG([MAP_TRAIL_START, ...MAP_POINTS], 300, 400, Math.min(cur, LESSONS.length));
-  stage.querySelector('.stage__nodes').replaceChildren(...LESSONS.map((l, i) => {
+  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.45` });
+  const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
+  const done = LESSONS.filter(lessonDone).length;
+
+  const markers = LESSONS.map(l => {
     const modes = modesFor(l.id);
     const passed = modes.filter(m => isPassed(l.id, m.id)).length;
     const locked = stageIdx(l.id, modes[0].id) > progressIdx();
-    const b = el('button', { type: 'button', className: `node node--place${locked ? ' is-locked' : ''}${l.id === cur ? ' is-current' : ''}${passed === modes.length ? ' is-done' : ''}` });
-    b.style.left = `${MAP_POINTS[i][0]}%`;
-    b.style.top = `${MAP_POINTS[i][1]}%`;
-    b.dataset.place = l.id;
-    b.setAttribute('aria-label', `${l.exam ? '' : `Урок ${l.id}: `}${l.place.name}${locked ? ' (закрито)' : ''}`);
-    const badge = l.exam ? '<span class="node__emoji">🎓</span>'
-      : hasArt(`loc${l.id}`) ? artImg(`loc${l.id}`, l.place.name) : tileHTML(l.place.tile, 1);
-    b.innerHTML = `${l.id === cur ? `<span class="pin"><span>${$('[data-user-avatar]').textContent}</span></span>` : ''}
-      <span class="node__badge" style="--ring:${l.place.ground}">${badge}${locked ? '<span class="node__lock">🔒</span>' : ''}</span>
-      <span class="node__label"><b>${l.place.name}</b><small>${l.exam ? (passed ? 'складено ✓' : '1×1 … 9×9')
-        : `Урок ${l.id} · ${passed}/${modes.length} ⭐`}</small></span>`;
-    return b;
-  }));
+    const state = l.id === cur && !lessonDone(l) ? 'current' : lessonDone(l) ? 'done' : locked ? 'locked' : 'open';
+    const inner = state === 'current' ? avatarImg() : state === 'done' ? '✓' : state === 'locked' ? '🔒' : '';
+    const t = lessonTime(l);
+    const pic = hasArt(`loc${l.id}`) ? artImg(`loc${l.id}`, '') : '';
+    const sub = l.exam ? 'Уся таблиця 1×1 … 9×9' : `Урок ${l.id} · ×${l.factors.join(', ')}`;
+    const info = locked ? (l.exam ? '🔒 Відкриється, коли пройдеш усі уроки' : `🔒 Спочатку пройди «${getLesson(l.id - 1).place.name}»`)
+      : `⭐ ${passed}/${modes.length}${t ? ` · 🕒 ${fmtDur(t)}` : ''}`;
+    const bubble = `<div class="gbubble__pic">${pic}</div>
+      <div class="gbubble__body"><b>${l.place.name}</b><small>${sub}</small><small>${info}</small>
+      ${locked ? '' : `<button type="button" class="btn btn--primary btn--small" data-open="${l.id}">${state === 'done' ? 'Повторити' : 'Вперед'} →</button>`}</div>`;
+    return { id: l.id, x: l.place.map[0], y: l.place.map[1], state, inner, title: l.place.name, bubble };
+  });
+
+  const segments = LESSONS.slice(0, -1).map((l, i) => {
+    const next = LESSONS[i + 1];
+    const ok = lessonDone(l);
+    return { points: [l.place.map, ...(l.place.route || []), next.place.map], done: ok, label: ok ? `🕒 ${fmtDur(lessonTime(l))}` : null };
+  });
+  const totalSecs = LESSONS.reduce((t, l) => t + lessonTime(l), 0);
+  const totalHtml = totalSecs ? `🕒 У дорозі <b>${fmtDur(totalSecs)}</b> · 🚩 ${done} з ${LESSONS.length}` : '';
+
+  app.map.setData({ markers, segments, total: totalHtml }, openPlace);
   $('#map-note').textContent = done === LESSONS.length ? '🏆 Курс пройдено, екзамен складено!'
-    : done === COURSE_LESSONS ? '🎓 Усі уроки пройдено — час для екзамену!' : 'Іди доріжкою зліва направо — від уроку до уроку';
+    : done === COURSE_LESSONS ? '🎓 Усі уроки пройдено — час для екзамену!' : 'Натисни на мітку на карті, щоб відкрити урок';
 }
 
-$('#map-stage').addEventListener('click', e => {
-  const b = e.target.closest('[data-place]');
-  if (!b) return;
-  const id = Number(b.dataset.place);
-  if (b.classList.contains('is-locked')) {
-    toast(getLesson(id).exam ? 'Екзамен відкриється, коли пройдеш усі уроки 🔒' : `Спочатку пройди «${getLesson(id - 1).place.name}» 🔒`);
-    return;
-  }
+/** Перехід з бульбашки на карті: урок → екран локації, екзамен → одразу гра. */
+function openPlace(id) {
+  id = Number(id);
+  app.map?.closeBubble();
   if (getLesson(id).exam) { app.returnTo = 'map'; toast(MODE_RULES.exam, 4000); startGame(id, 'exam'); return; }
   openLocation(id);
-});
+}
+
 $('#btn-settings').addEventListener('click', () => openMenu(true));
 $('#btn-menu-back').addEventListener('click', openMap);
 $('#btn-place-back').addEventListener('click', openMap);
@@ -981,36 +936,41 @@ function renderLocation() {
   $('#place-title').textContent = l.place.name;
   $('#place-sub').textContent = `Урок ${l.id} · ×${l.factors.join(', ')}`;
   $('#place-stars').textContent = `⭐ ${passed}/${modes.length}`;
-  const stage = $('#place-stage');
-  stageBackground(stage, `loc${l.id}-bg`, l.place.sky, l.place.ground);
-  const pts = levelPoints(modes.length);
-  const doneSegs = modes.findIndex(m => stageIdx(l.id, m.id) >= pIdx);
-  stage.querySelector('.stage__trail').innerHTML =
-    trailSVG(pts, 300, 500, doneSegs === -1 ? modes.length : doneSegs);
-  stage.querySelector('.stage__nodes').replaceChildren(...modes.map((m, i) => {
+  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.45` : `${ASSETS.artUrl('map-bg')}?v=3.45`;
+  if (!app.placeMap) app.placeMap = createMapView($('#place-stage'), { image: bg });
+  app.placeMap.setImage(bg);
+  const pts = l.place.levels?.length >= modes.length ? l.place.levels : levelPoints(modes.length);
+  const timeOf = m => Number(app.profile.records[recordKey(l.id, m.id)]?.time) || 0;
+
+  const markers = modes.map((m, i) => {
     const idx = stageIdx(l.id, m.id);
-    const state = isPassed(l.id, m.id) ? 'is-done' : idx === pIdx ? 'is-current' : idx > pIdx ? 'is-locked' : '';
-    const b = el('button', { type: 'button', className: `node node--level ${state}` });
-    b.style.left = `${pts[i][0]}%`;
-    b.style.top = `${pts[i][1]}%`;
-    b.dataset.mode = m.id;
-    b.setAttribute('aria-label', `${i + 1}. ${m.name}`);
-    const icon = hasArt(`lvl-${m.id}`) ? artImg(`lvl-${m.id}`, m.name) : `<span class="node__emoji">${MODE_ICONS[m.id]}</span>`;
-    const mark = state === 'is-done' ? '<span class="node__mark">✓</span>' : state === 'is-locked' ? '<span class="node__lock">🔒</span>' : '';
-    b.innerHTML = `<span class="node__badge" style="--ring:${l.place.ground}">${icon}${mark}</span>
-      <span class="node__label"><b>${m.name}</b></span>`;
-    return b;
-  }));
+    const done = isPassed(l.id, m.id);
+    const state = idx === pIdx && !done ? 'current' : done ? 'done' : idx > pIdx ? 'locked' : 'open';
+    const inner = state === 'current' ? avatarImg() : state === 'done' ? '✓' : state === 'locked' ? '🔒' : '';
+    const rec = app.profile.records[recordKey(l.id, m.id)];
+    const pic = hasArt(`lvl-${m.id}`) ? artImg(`lvl-${m.id}`, '') : `<span class="node__emoji">${MODE_ICONS[m.id]}</span>`;
+    const info = state === 'locked' ? '🔒 Відкриється, коли пройдеш попередній рівень'
+      : rec ? `${done ? '✓ пройдено' : 'ще не пройдено'}${timeOf(m) ? ` · 🕒 ${fmtDur(timeOf(m))}` : ''}` : 'ще не грали';
+    const bubble = `<div class="gbubble__pic">${pic}</div>
+      <div class="gbubble__body"><b>${m.name}</b><small>Рівень ${i + 1} з ${modes.length}</small><small>${info}</small>
+      ${state === 'locked' ? '' : `<button type="button" class="btn btn--primary btn--small" data-open="${m.id}">${done ? 'Ще раз' : 'Грати'} →</button>`}</div>`;
+    return { id: m.id, x: pts[i][0], y: pts[i][1], state, inner, title: m.name, bubble };
+  });
+  const segments = modes.slice(0, -1).map((m, i) => {
+    const ok = isPassed(l.id, m.id);
+    return { points: [pts[i], pts[i + 1]], done: ok, label: ok && timeOf(m) ? `🕒 ${fmtDur(timeOf(m))}` : null };
+  });
+  const total = lessonTime(l);
+  app.placeMap.setData({ markers, segments, total: total ? `🕒 У дорозі <b>${fmtDur(total)}</b> · ⭐ ${passed} з ${modes.length}` : '' }, startLevel);
 }
 
-$('#place-stage').addEventListener('click', e => {
-  const b = e.target.closest('[data-mode]');
-  if (!b) return;
-  if (b.classList.contains('is-locked')) { toast('Цей рівень відкриється, коли пройдеш попередній 🔒'); return; }
+/** Запуск рівня з бульбашки на екрані локації. */
+function startLevel(modeId) {
+  app.placeMap?.closeBubble();
   app.returnTo = 'location';
-  toast(MODE_RULES[b.dataset.mode], 3000);
-  startGame(app.place, b.dataset.mode);
-});
+  toast(MODE_RULES[modeId], 3000);
+  startGame(app.place, modeId);
+}
 
 /** Повернутись туди, звідки почали гру. */
 function goBack() {
@@ -1027,12 +987,173 @@ function refreshScreen() {
   else if (!$('#screen-menu').hidden) renderMenu();
 }
 
+// ---------- Аватарка і фото ----------
+// Аватарки — персонажі гри в повний зріст (assets/avatars/0…12.webp); 0 — дракончик, він за замовчуванням
+const HERO_NAMES = ['Дракончик', 'Дракоша з бантиком', 'Динозаврик', 'Мураха', 'Рибка', 'Сонечко', 'Маяк', 'Равлик',
+  'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін'];
+const HEROES = HERO_NAMES.map((_, i) => i);
+const heroUrl = n => `assets/avatars/${n}.webp?v=3.45`;
+const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
+function avatarImg() {
+  if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
+  const n = Number(app.profile.avatar);
+  return `<img class="avatar-img avatar-img--hero" src="${heroUrl(Number.isInteger(n) && n >= 0 && n < HERO_NAMES.length ? n : 0)}" alt="">`;
+}
+/** Надіслати аватарку в таблицю (номер героя або «photo» + саме фото). */
+function pushProfile() {
+  pushResult({ action: 'profile', deviceId: app.profile.deviceId, avatar: app.profile.avatar, photo: app.profile.photo || '' });
+}
+function setAvatar(avatar, photo = app.profile.photo) {
+  app.profile.avatar = String(avatar);
+  app.profile.photo = photo || '';
+  storage.saveAvatar(app.profile);
+  pushProfile();
+  updateUser();
+  if (!$('#screen-map').hidden) renderMap();
+}
+
+function openAvatarDialog() {
+  const cur = app.profile.avatar;
+  const tiles = [];
+  if (app.profile.photo) {
+    tiles.push(`<button type="button" class="avatar-tile${cur === 'photo' ? ' is-on' : ''}" data-avatar="photo" aria-label="Моє фото">
+      <img src="${app.profile.photo}" alt=""><span class="avatar-tile__edit" data-edit-photo title="Редагувати фото">✏️</span></button>`);
+  }
+  for (const n of HEROES) {
+    tiles.push(`<button type="button" class="avatar-tile${cur === String(n) ? ' is-on' : ''}" data-avatar="${n}" aria-label="${HERO_NAMES[n]}">
+      <img class="avatar-img--hero" src="${heroUrl(n)}" alt=""></button>`);
+  }
+  $('#avatar-grid').innerHTML = tiles.join('');
+  if (!$('#dlg-avatar').open) $('#dlg-avatar').showModal();
+}
+document.querySelectorAll('[data-user-avatar]').forEach(b => b.addEventListener('click', openAvatarDialog));
+$('#avatar-grid').addEventListener('click', e => {
+  if (e.target.closest('[data-edit-photo]')) { openEditor(app.profile.photo); return; }
+  const t = e.target.closest('[data-avatar]');
+  if (!t) return;
+  if (t.dataset.avatar === 'photo' && app.profile.avatar === 'photo') { openEditor(app.profile.photo); return; } // клік на фото — редактор
+  setAvatar(t.dataset.avatar);
+  $('#avatar-grid').querySelectorAll('.avatar-tile').forEach(x => x.classList.toggle('is-on', x === t));
+});
+
+// Файл з пристрою або камера телефону
+const readFile = file => new Promise((ok, fail) => {
+  const r = new FileReader();
+  r.onload = () => ok(r.result); r.onerror = fail;
+  r.readAsDataURL(file);
+});
+for (const id of ['#photo-file', '#photo-capture']) {
+  $(id).addEventListener('change', async e => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (f) openEditor(await readFile(f));
+  });
+}
+
+// Камера: на телефоні — системна камера (input capture), на комп'ютері — вебкамера в браузері
+let camStream = null;
+function stopCamera() { camStream?.getTracks().forEach(t => t.stop()); camStream = null; }
+$('#btn-camera').addEventListener('click', async () => {
+  const touch = matchMedia('(pointer: coarse)').matches;
+  if (touch || !navigator.mediaDevices?.getUserMedia) { $('#photo-capture').click(); return; }
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 720, height: 720 } });
+  } catch { toast('Не вдалося увімкнути камеру — завантаж фото з пристрою'); return; }
+  $('#cam-video').srcObject = camStream;
+  $('#photo-title').textContent = '📷 Камера';
+  $('#cam').hidden = false; $('#editor').hidden = true;
+  $('#dlg-photo').showModal();
+});
+$('#cam-shot').addEventListener('click', () => {
+  const v = $('#cam-video'), c = document.createElement('canvas');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  const x = c.getContext('2d');
+  x.translate(c.width, 0); x.scale(-1, 1);          // як у дзеркалі — так, як дитина бачила себе
+  x.drawImage(v, 0, 0);
+  stopCamera();
+  openEditor(c.toDataURL('image/jpeg', 0.92));
+});
+$('#dlg-photo').addEventListener('close', stopCamera);
+
+// Редактор: посунути, збільшити, повернути; результат — квадрат 192×192 (показується в колі)
+const ed = { img: null, zoom: 1, rot: 0, ox: 0, oy: 0 };
+const edCanvas = $('#editor-canvas');
+function drawEditor(ctx = edCanvas.getContext('2d'), size = edCanvas.width, overlay = true) {
+  const k = size / edCanvas.width;
+  ctx.save();
+  ctx.fillStyle = '#f2efe9'; ctx.fillRect(0, 0, size, size);
+  if (ed.img) {
+    const turned = ed.rot % 180 !== 0;
+    const iw = turned ? ed.img.height : ed.img.width, ih = turned ? ed.img.width : ed.img.height;
+    const base = Math.max(edCanvas.width / iw, edCanvas.width / ih) * 0.92;  // коло — 92% квадрата
+    ctx.translate(size / 2 + ed.ox * k, size / 2 + ed.oy * k);
+    ctx.rotate(ed.rot * Math.PI / 180);
+    const sc = base * ed.zoom * k;
+    ctx.drawImage(ed.img, -ed.img.width * sc / 2, -ed.img.height * sc / 2, ed.img.width * sc, ed.img.height * sc);
+  }
+  ctx.restore();
+  if (overlay) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(31,36,48,.55)';
+    ctx.beginPath(); ctx.rect(0, 0, size, size); ctx.arc(size / 2, size / 2, size * 0.46, 0, Math.PI * 2, true); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(size / 2, size / 2, size * 0.46, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+}
+function openEditor(src) {
+  const img = new Image();
+  img.onload = () => {
+    Object.assign(ed, { img, zoom: 1, rot: 0, ox: 0, oy: 0 });
+    $('#editor-zoom').value = 1;
+    $('#photo-title').textContent = '✏️ Моє фото';
+    $('#cam').hidden = true; $('#editor').hidden = false;
+    if (!$('#dlg-photo').open) $('#dlg-photo').showModal();
+    drawEditor();
+  };
+  img.onerror = () => toast('Не вдалося відкрити це фото');
+  img.src = src;
+}
+$('#editor-zoom').addEventListener('input', e => { ed.zoom = Number(e.target.value); drawEditor(); });
+$('#editor-rotate').addEventListener('click', () => { ed.rot = (ed.rot + 90) % 360; drawEditor(); });
+{
+  let drag = null;
+  edCanvas.addEventListener('pointerdown', e => { edCanvas.setPointerCapture(e.pointerId); drag = [e.clientX, e.clientY]; });
+  edCanvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const k = edCanvas.width / edCanvas.getBoundingClientRect().width;
+    ed.ox += (e.clientX - drag[0]) * k; ed.oy += (e.clientY - drag[1]) * k;
+    drag = [e.clientX, e.clientY];
+    drawEditor();
+  });
+  edCanvas.addEventListener('pointerup', () => { drag = null; });
+  edCanvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    ed.zoom = Math.min(4, Math.max(1, ed.zoom * (e.deltaY < 0 ? 1.08 : 1 / 1.08)));
+    $('#editor-zoom').value = ed.zoom; drawEditor();
+  }, { passive: false });
+}
+$('#editor-save').addEventListener('click', () => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 192;
+  const ctx = c.getContext('2d');
+  // зберігаємо лише коло (кут — фон), щоб фото в таблиці було маленьким (≈10 КБ)
+  ctx.translate(-192 * 0.04 / 0.92, -192 * 0.04 / 0.92);
+  ctx.scale(1 / 0.92, 1 / 0.92);
+  drawEditor(ctx, 192, false);
+  let q = 0.85, data = c.toDataURL('image/jpeg', q);
+  while (data.length > 40000 && q > 0.4) { q -= 0.1; data = c.toDataURL('image/jpeg', q); } // клітинка таблиці — до 50 000 символів
+  setAvatar('photo', data);
+  $('#dlg-photo').close();
+  if ($('#dlg-avatar').open) openAvatarDialog();
+  toast('Фото збережено 🙂');
+});
+
 // ---------- Старт ----------
 function boot() {
   if (!app.profile.deviceId) { show('screen-login'); return; }
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.28'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.45'; });
 }
 boot();

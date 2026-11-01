@@ -2,8 +2,8 @@
 // Головна відмінність: хмара більше НЕ блокує запуск. Інтерфейс показується одразу
 // з локальних даних, а відповідь хмари підмішується, коли (і якщо) прийде.
 
-import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=3.28';
-import { isBetter } from './engine.js?v=3.28';
+import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=3.45';
+import { isBetter } from './engine.js?v=3.45';
 
 export function newDeviceId() {
   const rnd = crypto.getRandomValues(new Uint32Array(2));
@@ -21,12 +21,14 @@ export async function loadProfile(deviceId) {
     const url = `${CLOUD_URL}?action=getData&deviceId=${encodeURIComponent(deviceId)}`;
     const res = await fetch(url, { signal: ctrl.signal });
     const data = await res.json();
+    if (data?.status === 'not_found') return { notFound: true, records: {}, nickname: '', inputMode: null };
     if (data?.status !== 'success') return null;
     return {
       records: data.records && typeof data.records === 'object' ? data.records : {},
       nickname: typeof data.nickname === 'string' ? data.nickname : '',
       inputMode: data.inputMode === 'expert' ? 'expert' : data.inputMode === 'novice' ? 'novice' : null,
-      progress: typeof data.currentCombinedLevel === 'string' ? data.currentCombinedLevel : null,
+      avatar: data.avatar === undefined || data.avatar === '' ? null : String(data.avatar), // null — сервер ще не знає
+      photo: typeof data.photo === 'string' ? data.photo : '',
     };
   } catch {
     return null;

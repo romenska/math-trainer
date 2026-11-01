@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.28">
-  <script type="module" src="js/app.js?v=3.28"></script>
+  <link rel="stylesheet" href="css/style.css?v=3.45">
+  <script type="module" src="js/app.js?v=3.45"></script>
 </head>
 <body>
   <!-- Фон вікна входу: бліді приклади і цифри -->
@@ -57,10 +57,10 @@
         </div>
         <h1 class="login__title">Тренажер множення</h1>
         <form id="login-form" class="stack" autocomplete="off">
-          <input id="login-input" class="field" type="text" maxlength="40" placeholder="Вкажи ім'я або пароль" required>
+          <input id="login-input" class="field" type="text" maxlength="40" placeholder="Вкажи своє ім'я" required aria-describedby="login-hint">
+          <p class="hint-text login__hint" id="login-hint">Вже грав на іншому пристрої? Введи в поле свій пароль (починається з <code>dev_</code>) — і прогрес повернеться.</p>
           <button class="btn btn--primary btn--block btn--big" type="submit">Вхід</button>
         </form>
-        <p class="hint-text">Вже грав на іншому пристрої? Введи в поле свій пароль (починається з <code>dev_</code>) — і прогрес повернеться.</p>
       </div>
     </section>
 
@@ -68,7 +68,7 @@
     <section class="screen" id="screen-map" hidden>
       <header class="bar">
         <div class="user">
-          <span class="user__avatar" data-user-avatar aria-hidden="true">?</span>
+          <button class="user__avatar user__avatar--btn" type="button" data-user-avatar aria-label="Змінити аватарку" title="Змінити аватарку">?</button>
           <div>
             <div class="user__name" data-user-name>Учень</div>
             <div class="user__sync muted" data-sync></div>
@@ -78,13 +78,9 @@
           <button class="icon-btn" id="btn-settings" type="button" aria-label="Ручні налаштування" title="Ручні налаштування"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         </div>
       </header>
-      <div class="stage stage--map" id="map-stage">
-        <div class="stage__bg"></div>
-        <div class="stage__trail"></div>
-        <div class="stage__nodes"></div>
-      </div>
+      <div class="stage stage--map" id="map-stage"></div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 3.28</p>
+      <p class="version">версія 3.45</p>
     </section>
 
     <!-- 3. Локація (урок) -->
@@ -97,11 +93,7 @@
         </div>
         <span class="pill pill--stars" id="place-stars" title="Пройдено рівнів"></span>
       </header>
-      <div class="stage stage--place" id="place-stage">
-        <div class="stage__bg"></div>
-        <div class="stage__trail"></div>
-        <div class="stage__nodes"></div>
-      </div>
+      <div class="stage stage--place" id="place-stage"></div>
     </section>
 
     <!-- 4. Ручний режим (шестерня) -->
@@ -132,7 +124,7 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 3.28</p>
+      <p class="version">версія 3.45</p>
     </section>
 
     <!-- 5. Гра -->
@@ -229,6 +221,46 @@
     <div class="result__actions result__actions--2">
       <button class="btn" type="button" data-close>Закрити</button>
       <button class="btn btn--primary" id="diploma-pdf" type="button" disabled>Завантажити PDF</button>
+    </div>
+  </dialog>
+
+  <!-- Аватарка -->
+  <dialog class="modal modal--wide" id="dlg-avatar">
+    <div class="modal__head">
+      <h2 class="title">Моя аватарка</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Закрити">✕</button>
+    </div>
+    <div class="avatar-grid" id="avatar-grid"></div>
+    <div class="avatar-actions">
+      <button class="btn" type="button" id="btn-camera">📷 Зробити фото</button>
+      <label class="btn">🖼 Завантажити фото<input type="file" accept="image/*" id="photo-file" hidden></label>
+    </div>
+    <input type="file" accept="image/*" capture="user" id="photo-capture" hidden>
+  </dialog>
+
+  <!-- Камера і редактор фото -->
+  <dialog class="modal" id="dlg-photo">
+    <div class="modal__head">
+      <h2 class="title" id="photo-title">Фото</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Закрити">✕</button>
+    </div>
+    <div class="cam" id="cam" hidden>
+      <video id="cam-video" playsinline muted autoplay></video>
+      <button class="btn btn--primary btn--block" type="button" id="cam-shot">📸 Зняти</button>
+    </div>
+    <div class="editor" id="editor" hidden>
+      <canvas id="editor-canvas" width="560" height="560" aria-label="Посунь фото, щоб обличчя було в колі"></canvas>
+      <div class="editor__tools">
+        <span aria-hidden="true">➖</span>
+        <input type="range" id="editor-zoom" min="1" max="4" step="0.01" value="1" aria-label="Масштаб">
+        <span aria-hidden="true">➕</span>
+        <button class="icon-btn" type="button" id="editor-rotate" aria-label="Повернути" title="Повернути">↻</button>
+      </div>
+      <p class="muted editor__hint">Посунь фото пальцем або мишкою, щоб обличчя було в колі</p>
+      <div class="result__actions result__actions--2">
+        <button class="btn" type="button" data-close>Скасувати</button>
+        <button class="btn btn--primary" type="button" id="editor-save">Зберегти</button>
+      </div>
     </div>
   </dialog>
 
