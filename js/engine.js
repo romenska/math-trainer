@@ -1,7 +1,7 @@
 // Ігрова логіка без DOM: черга прикладів, перевірка відповідей, бали, життя, результат.
 // Завдяки цьому її можна тестувати окремо (див. tests/engine.test.mjs).
 
-import { SCORING } from './config.js?v=3.46';
+import { SCORING } from './config.js?v=3.52';
 
 export function shuffle(arr, rng = Math.random) {
   const a = arr.slice();

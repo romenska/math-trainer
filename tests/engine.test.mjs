@@ -1,9 +1,9 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.46';
-import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.46';
-import { textHint, storyImage, storyVideo } from '../js/hints.js?v=3.46';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices } from '../js/pictures.js?v=3.46';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.52';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.52';
+import { textHint, storyImage, storyVideo } from '../js/hints.js?v=3.52';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices } from '../js/pictures.js?v=3.52';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -237,7 +237,7 @@ test('екзамен: 81 приклад 1×1…9×9, без повторів; п
 });
 
 await (async () => {
-  const { shareCode } = await import('../js/cloud.js?v=3.46');
+  const { shareCode } = await import('../js/cloud.js?v=3.52');
   const c = await shareCode('dev_k3j9x2mq81');
   assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
   assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));

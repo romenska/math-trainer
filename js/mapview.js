@@ -73,7 +73,7 @@ export function createMapView(root, { image }) {
         // бульбашка не виходить за краї карти: зсуваємо її, а «хвостик» лишається над міткою
         el.style.visibility = x < 0 || x > W || y < 0 || y > H ? 'hidden' : '';   // мітка за краєм — бульбашку ховаємо
         const half = el.offsetWidth / 2, lx = Math.min(Math.max(x, half + 6), W - half - 6);
-        const below = y - 46 - el.offsetHeight < 4;
+        const below = y - 80 - el.offsetHeight < 4;  // бульбашка над краплею
         el.classList.toggle('is-below', below);
         el.style.left = `${lx}px`; el.style.top = `${below ? y + 8 : y}px`;
         el.style.setProperty('--arrow', `${x - lx + half}px`);
@@ -93,7 +93,7 @@ export function createMapView(root, { image }) {
     }
     for (const m of data.markers) {
       html.push(`<button type="button" class="gpin gpin--${m.state}" data-id="${m.id}" data-at="${JSON.stringify([m.x, m.y])}"
-        aria-label="${m.title}"><span class="gpin__head"><span class="gpin__in">${m.inner}</span></span></button>`);
+        aria-label="${m.title}"><span class="gpin__head"><span class="gpin__in">${m.inner}</span></span>${m.badge ? `<span class="gpin__badge">${m.badge}</span>` : ''}</button>`);
     }
     const m = data.markers.find(x => String(x.id) === openId);
     if (m) {

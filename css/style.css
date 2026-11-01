@@ -212,12 +212,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.46");
+  background-image: url("../assets/tiles.webp?v=3.52");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.46"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.52"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -467,26 +467,34 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
   display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.15); cursor: pointer;
 }
 .gmap__ctrl button:hover { background: rgba(255,255,255,.85); }
-/* мітки-краплі: вістря — точно в точці, розмір не залежить від масштабу */
-.gpin { width: 30px; height: 36px; transform: translate(-50%, -100%); border: 0; background: none; padding: 0; cursor: pointer; z-index: 1; }
+/* мітки-краплі: вістря — точно в точці, розмір не залежить від масштабу; усередині — картинка уроку/рівня */
+.gpin { width: 60px; height: 72px; transform: translate(-50%, -100%); border: 0; background: none; padding: 0; cursor: pointer; z-index: 1; }
 .gpin__head {
-  position: absolute; left: 2px; top: 0; width: 26px; height: 26px; border-radius: 50% 50% 50% 0; rotate: -45deg;
-  background: #9aa3ad; border: 2px solid #fff; box-shadow: -1px 3px 6px rgba(0,0,0,.35); display: grid; place-items: center; overflow: hidden;
+  position: absolute; left: 4px; top: 0; width: 52px; height: 52px; border-radius: 50% 50% 50% 0; rotate: -45deg;
+  background: #8a929c; padding: 3px; box-shadow: -2px 4px 8px rgba(0,0,0,.35); display: grid; place-items: center;
 }
-.gpin__in { rotate: 45deg; color: #fff; font: 800 .8rem/1 var(--font); display: grid; place-items: center; }
-.gpin::after { content: ''; position: absolute; left: 50%; bottom: -3px; width: 12px; height: 5px; translate: -50% 0; border-radius: 50%; background: rgba(0,0,0,.25); }
-.gpin--done .gpin__head { background: #1e9e57; }
-.gpin--locked .gpin__head { background: #8a929c; }
-.gpin--locked .gpin__in { font-size: .65rem; }
+.gpin__in { rotate: 45deg; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: #fff; display: grid; place-items: center; }
+.gpin__in img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gpin__in .node__emoji { font-size: 1.5rem; }
+.gpin__in .tile { --tile: 46px; border-radius: 50%; }
+.gpin::after { content: ''; position: absolute; left: 50%; bottom: -3px; width: 16px; height: 6px; translate: -50% 0; border-radius: 50%; background: rgba(0,0,0,.25); }
+.gpin__badge {
+  position: absolute; right: -2px; top: -4px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  font: 800 .75rem/1 var(--font); color: #fff; background: #8a929c; box-shadow: 0 1px 4px rgba(0,0,0,.35); overflow: hidden;
+}
+.gpin--done .gpin__head, .gpin--done .gpin__badge { background: #1e9e57; }
+.gpin--locked .gpin__badge { font-size: .62rem; }
+.gpin--locked .gpin__in img { filter: grayscale(.85) brightness(1.05); opacity: .8; }
 .gpin--open .gpin__head { background: #f6b13b; }
-.gpin--current { width: 46px; height: 56px; z-index: 2; }
-.gpin--current .gpin__head { left: 3px; width: 40px; height: 40px; background: #f6b13b; border-width: 3px; }
-.gpin--current .gpin__in { width: 100%; height: 100%; }
-.gpin--current .avatar-img { width: 100%; height: 100%; object-fit: cover; scale: 1.42; }
+.gpin--current { z-index: 2; }
+.gpin--current .gpin__head { background: #f6b13b; }
+/* поточна мітка: усередині краплі — аватарка дитини */
+.gpin--current .gpin__in .avatar-img--hero { padding: 8%; background: #fff; scale: 1; }
+.gpin--current .gpin__badge .avatar-img { width: 100%; height: 100%; }
 .gpin:hover .gpin__head { filter: brightness(1.08); }
 /* бульбашка з назвою */
 .gbubble {
-  transform: translate(-50%, calc(-100% - 46px)); width: 210px; background: #fff; border-radius: 14px; padding: 10px;
+  transform: translate(-50%, calc(-100% - 80px)); width: 210px; background: #fff; border-radius: 14px; padding: 10px;
   box-shadow: 0 6px 20px rgba(0,0,0,.28); display: flex; gap: 10px; align-items: center; z-index: 4; cursor: default;
 }
 .gbubble::after { content: ''; position: absolute; left: var(--arrow, 50%); bottom: -8px; translate: -50% 0; border: 8px solid transparent; border-bottom: 0; border-top-color: #fff; }
@@ -516,7 +524,6 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .editor__hint { font-size: .78rem; text-align: center; margin: 8px 0 12px; }
 
 .avatar-img--hero { object-fit: contain; background: #fff; padding: 6%; }
-.gpin--current .avatar-img--hero { scale: 1.2; padding: 10%; }
 .avatar-tile img.avatar-img--hero, .avatar-tile img { object-fit: contain; background: #fff; }
 .avatar-tile[data-avatar="photo"] img { object-fit: cover; }
 .gbubble__pic .node__emoji { width: 56px; height: 56px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 1.6rem; }
