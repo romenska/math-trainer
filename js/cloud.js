@@ -2,8 +2,8 @@
 // Головна відмінність: хмара більше НЕ блокує запуск. Інтерфейс показується одразу
 // з локальних даних, а відповідь хмари підмішується, коли (і якщо) прийде.
 
-import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=3.83';
-import { isBetter } from './engine.js?v=3.83';
+import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=3.90';
+import { isBetter } from './engine.js?v=3.90';
 
 export function newDeviceId() {
   const rnd = crypto.getRandomValues(new Uint32Array(2));
@@ -75,4 +75,20 @@ export async function shareCode(deviceId) {
 export async function loadByCode(code) {
   const res = await fetch(`${CLOUD_URL}?action=view&code=${encodeURIComponent(code)}`);
   return res.json();
+}
+
+/** Тексти історій з листа «Історії» (або null, якщо хмара не відповіла). */
+export async function loadStories() {
+  if (!CLOUD_URL) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), CLOUD_TIMEOUT_MS * 2);
+  try {
+    const res = await fetch(`${CLOUD_URL}?action=stories`, { signal: ctrl.signal });
+    const data = await res.json();
+    return data?.status === 'success' && data.stories && typeof data.stories === 'object' ? data.stories : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }

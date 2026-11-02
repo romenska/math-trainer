@@ -1,7 +1,7 @@
 // Усі налаштування тренажера в одному місці. Логіка й інтерфейс їх лише читають.
 
 export const CLOUD_URL =
-  'https://script.google.com/macros/s/AKfycbzFmdAZ8PVX59u7Rawt4d6fxzNG25jQoFUTVexKxoWmBnntOKoTW-gLnYRj3FOzLgdLog/exec';
+  'https://script.google.com/macros/s/AKfycbyYCEk2A14Uf29eJXD1Wo3b8uRGfqkZCRZcWqUrUp_Fv_ll6QndplRBDGo8x5VqDRGRlQ/exec';
 export const CLOUD_TIMEOUT_MS = 6000;
 
 export const LESSONS = [
@@ -45,7 +45,7 @@ export const COURSE_LESSONS = 4;   // уроки курсу (без екзаме
  *  tilesOn   — картинки над числами увімкнені одразу
  *  tileChoices — варіанти відповіді показуються картинками
  *  penalty   — скільки балів знімати за помилку (якщо не вказано — SCORING.penalty)
- *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall' | 'story' | 'guess' | 'exam'
+ *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall' | 'story' | 'quiz' | 'picquiz' | 'guess' | 'exam'
  *  noReveal  — після помилки не показувати правильну відповідь (екзамен)
  *  errorHint — що показати після помилки: 'text' (за замовчуванням) або 'story' (картинка-історія)
  *  lessons   — у яких уроках є рівень (якщо не вказано — у всіх)
@@ -56,6 +56,12 @@ export const MODES = [
     hints: [], tilesOn: false, tileChoices: false },
   // Знайомство з історіями: картинка-історія + текст, під числа треба покласти картинки (як у «Пригадай»)
   { id: 'stories', name: 'Історії', kind: 'story', queue: 'all', retry: 'always', requeue: false, lives: 0,
+    hints: [], tilesOn: false, tileChoices: false },
+  // Вікторина: назва, текст і відео історії + 3 підказки, треба вибрати правильну (чи уважно дивились історію)
+  { id: 'quiz', name: 'Що було в історії?', kind: 'quiz', queue: 'all', retry: 'always', requeue: true, lives: 0,
+    hints: [], tilesOn: false, tileChoices: false },
+  // Знайди картинку: назва, відео/картинка з озвучкою, текст історії + питання; відповідь — картинка добутку з 3
+  { id: 'picquiz', name: 'Знайди картинку', kind: 'picquiz', queue: 'all', retry: 'always', requeue: true, lives: 0,
     hints: [], tilesOn: false, tileChoices: false },
   { id: 'associations', name: 'Асоціації', queue: 'all', retry: true, requeue: true, lives: 0,
     hints: ['text'], tilesOn: true, tileChoices: true },

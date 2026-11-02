@@ -5,7 +5,7 @@
 // Таблиця симетрична, і добутки з множниками ≥ 2 мають спільну картинку (2×6 і 3×4 — крокодил з вудкою).
 // А от «число 6» (1×6, равлик) і «добуток 2×3» (свисток) — різні картинки. Тому порівнюємо не числа, а картинки.
 
-import { shuffle } from './engine.js?v=3.83';
+import { shuffle } from './engine.js?v=3.90';
 
 /** Ідентифікатор картинки клітинки (r, c). */
 export function pictureId(r, c) {
@@ -144,4 +144,24 @@ export function makeGuessChoices(q, rng = Math.random) {
   const near = [i - 1, i + 1, i - 2, i + 2, i - 3, i + 3].filter(j => j >= 0 && j < ALL_VALUES.length).map(j => ALL_VALUES[j]);
   const wrong = shuffle(near.slice(0, 5), rng).slice(0, 3);
   return shuffle([q.answer, ...wrong], rng).map(value => ({ value }));
+}
+
+// ---------- «Знайди картинку»: відповідь на питання історії — картинка добутку ----------
+
+/** 3 картинки-варіанти: правильна (перетин a×b) + 2 пастки (картинка числа-добутку, сусіди в таблиці). */
+export function picChoices(q, n = 3, rng = Math.random) {
+  const right = { r: q.a, c: q.b, pid: pictureId(q.a, q.b), ok: true };
+  const used = new Set([right.pid]);
+  const p = q.a * q.b, out = [right];
+  const traps = [[1, p], [q.a, q.b + 1], [q.a, q.b - 1], [q.a + 1, q.b], [q.a - 1, q.b], [1, q.a], [1, q.b]];
+  const add = ([r, c]) => {
+    if (out.length >= n || r < 1 || c < 1 || r > 9 || c > 9) return;
+    const pid = pictureId(r, c);
+    if (used.has(pid)) return;
+    used.add(pid);
+    out.push({ r, c, pid, ok: false });
+  };
+  shuffle(traps, rng).forEach(add);
+  for (let guard = 0; out.length < n && guard < 300; guard++) add([2 + Math.floor(rng() * 8), 2 + Math.floor(rng() * 8)]);
+  return shuffle(out, rng).map((o, i) => ({ ...o, id: i, off: false }));
 }

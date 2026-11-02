@@ -212,12 +212,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.83");
+  background-image: url("../assets/tiles.webp?v=3.90");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.83"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.90"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -592,3 +592,22 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .ref-eq__item { display: grid; justify-items: center; gap: 2px; padding: 4px; }
 .ref-eq__item .tile { --tile: clamp(52px, 16vw, 80px); background-color: transparent; }
 .ref-eq__item b { font: 700 1.2rem var(--font-fun); }
+
+/* «Що було в історії?» */
+.quiz-head { display: grid; gap: 2px; text-align: center; width: 100%; }
+.quiz-title { font: 700 1.25rem var(--font-fun); }
+.quiz-ask { text-align: center; font-weight: 700; margin: 4px 0 8px; color: var(--muted); }
+.quiz-opts { display: grid; gap: 8px; }
+.quiz-opt { padding: 12px 14px; border: 2px solid var(--line); border-radius: 14px; background: #fff; font: 600 1rem var(--font); text-align: left; cursor: pointer; }
+.quiz-opt:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-opt:disabled { cursor: default; opacity: .6; }
+.quiz-opt.is-wrong { border-color: var(--bad); background: var(--bad-soft); text-decoration: line-through; }
+.quiz-opt.is-right { border-color: var(--ok); background: var(--ok-soft); opacity: 1; }
+.question.is-quiz #expr { order: -1; font-size: 1rem; }
+.question.is-quiz .text-hint { order: 1; }   /* у вікторинах: назва → відео/картинка → текст */   /* назва — угорі, далі текст і відео */
+.quiz-opts--pics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.quiz-opts--pics .quiz-opt { padding: 8px; display: grid; place-items: center; aspect-ratio: 1; }
+.quiz-opts--pics .quiz-opt .tile { --tile: clamp(56px, 21vw, 96px); }
+.quiz-opts--pics .quiz-opt.is-wrong { opacity: .45; }
+.quiz-speak { justify-self: center; margin-top: 4px; padding: 4px 12px; border: 2px solid var(--line); border-radius: 999px; background: #fff; font: 600 .9rem var(--font); cursor: pointer; }
+.quiz-head small { font-size: .9rem; font-family: var(--font); }

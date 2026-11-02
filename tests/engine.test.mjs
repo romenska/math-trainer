@@ -1,9 +1,10 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.83';
-import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.83';
-import { textHint, storyImage, storyVideo } from '../js/hints.js?v=3.83';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices } from '../js/pictures.js?v=3.83';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.90';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.90';
+import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=3.90';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=3.90';
+import { STORIES } from '../js/stories.js?v=3.90';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -100,9 +101,17 @@ test('марафон: закінчується одразу після перш�
   assert.ok(g0.finished); assert.equal(g0.result().passed, false, '0 балів — не зараховано');
 });
 
-test('текстова підказка: лише навідне питання з дужок', () => {
-  assert.equal(textHint(2, 2), 'в яку гру грали два дракончики?');
-  assert.ok(!textHint(2, 2).includes('доміно'));
+test('історії: у кожної назва, текст, озвучка, правильна і 2 неправильні підказки; підказка тренування = правильна', async () => {
+  const { STORIES } = await import('../js/stories.js?v=3.90');
+  assert.equal(Object.keys(STORIES).length, 37);
+  for (const [k, st] of Object.entries(STORIES)) {
+    assert.ok(st.title && st.text && st.voice && st.hint, k);
+    assert.equal(st.wrong.length, 2, k);
+    assert.ok(!st.wrong.includes(st.hint), k);
+  }
+  assert.equal(textHint(2, 2), STORIES['2x2'].hint);
+  assert.equal(textHint(7, 3), STORIES['3x7'].hint);
+  assert.equal(textHint(0, 5), STORIES['01'].hint);
 });
 
 test('відповідь після кінця гри ігнорується', () => {
@@ -131,9 +140,9 @@ test('підказки: є для всіх прикладів 2–9, симет�
 });
 
 test('послідовність: кожен урок починається з «Вгадай число», екзамен — останній', () => {
-  assert.equal(SEQUENCE.length, 4 * 8 + 1);
-  assert.deepEqual(SEQUENCE.slice(0, 8), ['1_guess', '1_stories', '1_associations', '1_remember', '1_recall', '1_training', '1_speed', '1_records']);
-  assert.equal(SEQUENCE[8], '2_guess');
+  assert.equal(SEQUENCE.length, 4 * 10 + 1);
+  assert.deepEqual(SEQUENCE.slice(0, 10), ['1_guess', '1_stories', '1_quiz', '1_picquiz', '1_associations', '1_remember', '1_recall', '1_training', '1_speed', '1_records']);
+  assert.equal(SEQUENCE[10], '2_guess');
   assert.equal(SEQUENCE.at(-1), '5_exam');
 });
 
@@ -237,7 +246,7 @@ test('екзамен: 81 приклад 1×1…9×9, без повторів; п
 });
 
 await (async () => {
-  const { shareCode } = await import('../js/cloud.js?v=3.83');
+  const { shareCode } = await import('../js/cloud.js?v=3.90');
   const c = await shareCode('dev_k3j9x2mq81');
   assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
   assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));
@@ -245,3 +254,23 @@ await (async () => {
 })();
 
 console.log(`\n${passed} тестів пройдено`);
+
+test('picChoices: 3 різні картинки, одна правильна; у кожної історії є питання', () => {
+  for (let a = 0; a <= 9; a++) for (let b = 0; b <= 9; b++) {
+    const ch = picChoices({ a, b, answer: a * b });
+    assert.equal(ch.length, 3);
+    assert.equal(ch.filter(o => o.ok).length, 1);
+    assert.equal(new Set(ch.map(o => o.pid)).size, 3);
+  }
+  for (const st of Object.values(STORIES)) assert.ok(st.ask && st.ask.endsWith('?'));
+});
+
+test('applyStories: тексти з таблиці накладаються, порожні поля не затирають', () => {
+  const before = STORIES['2x3'].text;
+  applyStories({ '2x3': { title: 'Свисток!', text: '', voice: '', ask: '', hint: 'Новий натяк', wrong: ['a', ''] }, zzz: { title: 'x' } });
+  assert.equal(STORIES['2x3'].title, 'Свисток!');
+  assert.equal(STORIES['2x3'].text, before);
+  assert.equal(textHint(2, 3), 'Новий натяк');
+  assert.equal(STORIES['2x3'].wrong.length, 2);
+  assert.ok(!STORIES.zzz);
+});
