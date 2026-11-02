@@ -212,12 +212,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.57");
+  background-image: url("../assets/tiles.webp?v=3.79");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.57"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.79"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -446,7 +446,7 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .gmap__world img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 .gmap__route { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .gmap__route path, .gmap__route polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.gmap__line { stroke: #8a939e; stroke-width: 4; stroke-dasharray: 0 9; }   /* лінія з крапочок */
+.gmap__line { stroke: #8a939e; stroke-width: 6.5; stroke-dasharray: 0 12; }   /* лінія з крапочок */
 .gmap__line.is-done { stroke: #1a73e8; }
 .gmap__layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; } /* мітки й бульбашка — над кнопками масштабу */
 .gmap__layer > * { position: absolute; pointer-events: auto; }
@@ -537,3 +537,16 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .gbubble__body small { font-size: .95rem; }
 .gbubble__body .btn { margin-top: 8px; padding: 12px 22px; font-size: 1.1rem; border-radius: 14px; }
 .gbubble__close { font-size: 1.1rem; right: 8px; top: 6px; }
+
+/* поточна мітка: пульсує і світиться, як раніше */
+.gpin--current .gpin__head { animation: pin-pulse 1.6s ease-in-out infinite; }
+@keyframes pin-pulse {
+  0%, 100% { scale: 1; box-shadow: -2px 4px 8px rgba(0,0,0,.35), 0 0 0 0 rgba(246,177,59,.55); }
+  50% { scale: 1.08; box-shadow: -2px 4px 8px rgba(0,0,0,.35), 0 0 0 10px rgba(246,177,59,0); }
+}
+@media (prefers-reduced-motion: reduce) { .gpin--current .gpin__head { animation: none; } }
+
+/* статистика: хто це */
+.stats__who { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font: 700 1.2rem var(--font-fun); }
+.stats__ava { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; flex: none; box-shadow: 0 0 0 3px #f6b13b; background: #fff; }
+.btn:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }

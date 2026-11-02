@@ -1,13 +1,13 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.57';
-import { createGame, makeChoices, isBetter } from './engine.js?v=3.57';
-import { storage } from './storage.js?v=3.57';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.57';
-import { textHint, storyImage, storyVideo } from './hints.js?v=3.57';
-import { createMapView } from './mapview.js?v=3.57';
-import { confetti } from './confetti.js?v=3.57';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.57';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.79';
+import { createGame, makeChoices, isBetter } from './engine.js?v=3.79';
+import { storage } from './storage.js?v=3.79';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.79';
+import { textHint, storyImage, storyVideo } from './hints.js?v=3.79';
+import { createMapView } from './mapview.js?v=3.79';
+import { confetti } from './confetti.js?v=3.79';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.79';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -15,7 +15,7 @@ const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(
 const MODE_ICONS = { guess: '🔢', stories: '📖', associations: '🧩', remember: '🧠', recall: '🔎', training: '🏋️', speed: '✅', records: '🏃', exam: '🎓' };
 const MODE_RULES = {
   guess: 'Знайомимось із новими картинками уроку! Кожна картинка — це число: герой-цифра або відповідь з таблиці. Вгадай, яке!',
-  stories: 'Подивись історію і прочитай підказку. Потім переклади під числа картинки з історії: хто множить і що вийшло.',
+  stories: 'Подивись відео-історію до кінця. Потім переклади під числа картинки з історії: хто множить і що вийшло.',
   associations: 'Над числами — картинки-асоціації, відповідь теж обираємо картинкою. Помилка? З’явиться підказка і ще одна спроба, а приклад повернеться трохи згодом.',
   remember: 'Приклад показано картинками. Під кожною картинкою обери її число. Помилка — з’явиться картинка-історія. Граємо, доки всі приклади не будуть розв’язані правильно.',
   recall: 'Приклад показано числами. Переклади під кожне число його картинку: картинку рядка, стовпчика і їх перетину в таблиці. Зайві картинки не чіпай!',
@@ -291,7 +291,9 @@ function nextQuestion() {
   hideHints();
   // Підказка «картинки» в тренуванні діє лише на один приклад
   if (app.game.mode.id === 'training') app.tilesOn = false;
-  if (app.game.mode.kind === 'story') { showText(q); showVideo(q) || showStory(q); } // історія видна весь час
+  // «Історії»: лише відео (або картинка), без тексту. Поки відео йде вперше — «Перевірити» неактивна
+  app.storyWatching = false;
+  if (app.game.mode.kind === 'story') { app.storyWatching = showVideo(q); if (!app.storyWatching) showStory(q); }
   app.locked = false; // до рендеру — інакше кнопки варіантів створяться вимкненими
   renderQuestion();
   renderHud();
@@ -370,7 +372,7 @@ function renderPuzzle(reveal = false) {
     const placed = new Set(app.slots.filter(Boolean).map(p => p.id));
     $('#puzzle').innerHTML = `<div class="bank">${app.bank.map(p => `<button type="button" class="bank__item"
       data-piece="${p.id}"${placed.has(p.id) ? ' hidden' : ''}${off ? ' disabled' : ''}>${tileHTML(p.r, p.c)}</button>`).join('')}</div>
-      <button class="btn btn--primary btn--block" type="button" data-check ${off || app.slots.includes(null) ? 'disabled' : ''}>Перевірити</button>`;
+      <button class="btn btn--primary btn--block" type="button" data-check ${off || app.slots.includes(null) || app.storyWatching ? 'disabled' : ''}>${app.storyWatching ? '🎬 Спочатку подивись історію' : 'Перевірити'}</button>`;
   }
 }
 
@@ -597,8 +599,8 @@ function playStoryVideo(vsrc, poster) {
   $('#story-video').hidden = false;
   $('#story-replay').hidden = true;
   vid.poster = poster || '';
-  vid.onerror = () => { stopStoryVideo(); if (poster) { $('#story').src = poster; $('#story').hidden = false; } };
-  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.57`; vid.dataset.src = vsrc; }
+  vid.onerror = () => { stopStoryVideo(); if (poster) { $('#story').src = poster; $('#story').hidden = false; } storyWatched(); };
+  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.79`; vid.dataset.src = vsrc; }
   try { vid.currentTime = 0; } catch { /* ще не завантажено */ }
   vid.muted = false;
   vid.play().then(() => { $('#story-sound').hidden = true; }).catch(() => {
@@ -611,7 +613,13 @@ function stopStoryVideo() {
   vid.pause();
   $('#story-video').hidden = true;
 }
-vid.addEventListener('ended', () => { $('#story-replay').hidden = false; });
+vid.addEventListener('ended', () => { $('#story-replay').hidden = false; storyWatched(); });
+/** Відео-історію переглянуто до кінця (або воно не відкрилось) — можна перевіряти. */
+function storyWatched() {
+  if (!app.storyWatching) return;
+  app.storyWatching = false;
+  if (app.game && isPuzzle(app.game.mode)) renderPuzzle();
+}
 const replayVideo = () => { $('#story-replay').hidden = true; vid.currentTime = 0; vid.play().catch(() => {}); };
 vid.addEventListener('click', replayVideo);
 $('#story-replay').addEventListener('click', replayVideo);
@@ -626,7 +634,7 @@ function showAutoHint() {
   const q = app.game.question;
   hideHints();
   if (q.pic) return; // у «Вгадай цифру/число» підказок немає
-  if (app.game.mode.kind === 'story') { showText(q); showVideo(q) || showStory(q); return; }
+  if (app.game.mode.kind === 'story') { showVideo(q) || showStory(q); return; }
   if (app.game.mode.errorHint === 'story') { if (!showStory(q)) showText(q); }
   else if (!showText(q)) showStory(q);
 }
@@ -792,7 +800,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.57');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.79');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -812,6 +820,8 @@ $('#dlg-result').addEventListener('cancel', e => e.preventDefault()); // Esc н�
 // ---------- Статистика ----------
 function openStats() {
   $('#stats-id').textContent = app.profile.deviceId;
+  $('#stats-ava').innerHTML = avatarImg();
+  $('#stats-name').textContent = app.profile.nickname || 'Учень';
   $('#stats-body').replaceChildren(...LESSONS.map(l => {
     const box = el('section', { className: 'stats__lesson' });
     const rows = modesFor(l.id).map(m => {
@@ -844,7 +854,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.57" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.79" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -875,7 +885,7 @@ const lessonTime = l => modesFor(l.id).reduce((t, m) => t + (Number(app.profile.
 function renderMap() {
   normalizeProgress();
   const cur = parseStage(app.profile.progress).lesson;
-  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.57` });
+  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.79` });
   const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
   const done = LESSONS.filter(lessonDone).length;
 
@@ -938,7 +948,7 @@ function renderLocation() {
   $('#place-title').textContent = l.place.name;
   $('#place-sub').textContent = `Урок ${l.id} · ×${l.factors.join(', ')}`;
   $('#place-stars').textContent = `⭐ ${passed}/${modes.length}`;
-  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.57` : `${ASSETS.artUrl('map-bg')}?v=3.57`;
+  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.79` : `${ASSETS.artUrl('map-bg')}?v=3.79`;
   if (!app.placeMap) app.placeMap = createMapView($('#place-stage'), { image: bg });
   app.placeMap.setImage(bg);
   const pts = l.place.levels?.length >= modes.length ? l.place.levels : levelPoints(modes.length);
@@ -996,7 +1006,7 @@ const HERO_NAMES = ['Дракончик', 'Дракоша з бантиком', 
   'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін', 'Зелений дракончик'];
 const DEFAULT_AVATAR = 13;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `assets/avatars/${n}.webp?v=3.57`;
+const heroUrl = n => `assets/avatars/${n}.webp?v=3.79`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1165,6 +1175,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.57'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.79'; });
 }
 boot();

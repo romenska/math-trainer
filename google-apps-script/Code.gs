@@ -63,7 +63,8 @@ function doGet(e) {
     var st = findStudentByCode(String(p.code || '').toLowerCase());
     if (!st) return json({ status: 'not_found' });
     var rv = recordsFromLog(st.id);
-    return json({ status: 'success', nickname: st.name, currentCombinedLevel: nextStage(rv), records: rv });
+    return json({ status: 'success', nickname: st.name, avatar: String(st.avatar), photo: st.avatar === 'photo' ? st.photo : '',
+      currentCombinedLevel: nextStage(rv), records: rv });
   }
   if (!p.deviceId) return json({ status: 'error', message: 'no deviceId' });
 
@@ -294,9 +295,11 @@ function findStudentByCode(code) {
   if (!/^[0-9a-f]{16}$/.test(code)) return null;
   var sh = studentsSheet();
   if (sh.getLastRow() < 2) return null;
-  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues();
+  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, STORED).getValues();
   for (var i = 0; i < rows.length; i++) {
-    if (rows[i][0] && shareCode(String(rows[i][0])) === code) return { id: String(rows[i][0]), name: rows[i][1] || 'Учень' };
+    if (rows[i][0] && shareCode(String(rows[i][0])) === code) {
+      return { id: String(rows[i][0]), name: rows[i][1] || 'Учень', avatar: rows[i][4] === '' ? 13 : rows[i][4], photo: String(rows[i][5] || '') };
+    }
   }
   return null;
 }

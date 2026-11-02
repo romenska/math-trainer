@@ -8,13 +8,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.57">
+  <link rel="stylesheet" href="css/style.css?v=3.79">
   <style>
     body { display: block; }
     .sp { max-width: 640px; margin: 0 auto; padding: 20px 16px 40px; }
     .sp__card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 14px; }
     .sp__head { display: flex; gap: 14px; align-items: center; }
-    .sp__avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--warn-soft); color: var(--warn); display: grid; place-items: center; font: 700 1.6rem var(--font-fun); flex: none; }
+    .sp__avatar { width: 64px; height: 64px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px #f6b13b; overflow: hidden; flex: none; }
+    .sp__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sp__avatar img.hero { object-fit: contain; padding: 6%; }
     .sp__name { font: 700 1.5rem var(--font-fun); margin: 0; }
     .sp__id { font-feature-settings: "calt" 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .78rem; color: var(--muted); word-break: break-all; }
     .sp__total { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; text-align: center; }
@@ -40,8 +42,8 @@
   </main>
 
   <script type="module">
-    import { CLOUD_URL, LESSONS, COURSE_LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.57';
-    import { shareCode } from './js/cloud.js?v=3.57';
+    import { CLOUD_URL, LESSONS, COURSE_LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.79';
+    import { shareCode } from './js/cloud.js?v=3.79';
 
     // Сторінку відкривають за кодом (?c=…, з QR на дипломі) — лише перегляд, без входу.
     // Старі посилання з ?id=… теж працюють.
@@ -78,7 +80,7 @@
       const pct = r => (r?.totalQuestions ? Math.round((Number(r.correct) || 0) / r.totalQuestions * 100) : 0);
 
       let html = `<section class="sp__card">
-        <div class="sp__head"><div class="sp__avatar">${esc(name.trim()[0]?.toUpperCase() || '?')}</div>
+        <div class="sp__head"><div class="sp__avatar">${avatarHTML(data)}</div>
           <div><h1 class="sp__name">${esc(name)}</h1><div class="sp__id">код перегляду ${esc(code)}</div></div></div>
         <div class="sp__total">
           <div><b>${doneStages}/${allStages}</b><span>рівнів пройдено</span></div>
@@ -89,7 +91,7 @@
       if (exam) {
         html += `<section class="sp__card sp__lesson"><div class="sp__lesson-head"><div><h2>🎓 Екзамен</h2>
           <p class="muted">Уся таблиця множення 1×1 … 9×9</p></div>
-          ${examRec ? `<button class="btn btn--small btn--diploma" type="button" data-award="${exam.id}">⬇ Сертифікат</button>` : ''}</div>
+</div>
           ${examRec ? `<div class="sp__row"><span>✅ Правильних відповідей</span><span class="r">${pct(examRec)}%</span>
             <span class="r muted">${Number(examRec.correct) || 0} з ${examRec.totalQuestions}</span></div>
             <div class="sp__row"><span>⏱ Тривалість</span><span class="r">${fmtTime(Number(examRec.time) || 0)}</span><span class="r muted"><small>${esc(examRec.date || '')}</small></span></div>`
@@ -101,7 +103,7 @@
         const n = modes.filter(m => passed(l.id, m.id)).length;
         html += `<section class="sp__card sp__lesson"><div class="sp__lesson-head"><div><h2>${esc(l.place.name)}</h2>
           <p class="muted">${esc(l.name)} · ${n}/${modes.length} ⭐</p></div>
-          ${lessonDone(l) ? `<button class="btn btn--small btn--diploma" type="button" data-award="${l.id}">⬇ Диплом</button>` : ''}</div>`;
+</div>`;
         for (const m of modes) {
           const r = records[`L${l.id}_${m.id}`];
           const ok = passed(l.id, m.id);
@@ -114,22 +116,13 @@
       body.innerHTML = html;
     }
 
-    // Завантажити диплом уроку або сертифікат екзамену
-    body.addEventListener('click', async e => {
-      const b = e.target.closest('[data-award]');
-      if (!b || !profile) return;
-      const lesson = LESSONS.find(l => l.id === Number(b.dataset.award));
-      const label = b.textContent;
-      b.disabled = true; b.textContent = 'Малюю…';
-      try {
-        const d = await import('./js/diploma.js?v=3.57');
-        const rec = profile.records[`L${lesson.id}_${lesson.exam ? 'exam' : 'records'}`] || {};
-        const date = d.parseRecordDate(rec.date) || new Date();
-        const canvas = lesson.exam ? await d.examCertificate({ name: profile.name, rec, date, code: profile.code })
-          : await d.lessonDiploma({ name: profile.name, lesson, date, code: profile.code });
-        await d.downloadPdf(canvas, `${lesson.exam ? 'Сертифікат' : 'Диплом'} — ${profile.name}.pdf`);
-      } finally { b.disabled = false; b.textContent = label; }
-    });
+    /** Аватарка учня: фото (data:image/…) або персонаж з assets/avatars (за замовчуванням — зелений дракончик, 13). */
+    function avatarHTML(d) {
+      if (d.avatar === 'photo' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.photo || '')) return `<img src="${d.photo}" alt="">`;
+      const n = Number(d.avatar);
+      return `<img class="hero" src="assets/avatars/${Number.isInteger(n) && n >= 0 && n <= 13 ? n : 13}.webp?v=3.79" alt="">`;
+    }
+
     main();
   </script>
 </body>
