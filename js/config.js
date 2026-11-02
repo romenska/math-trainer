@@ -95,8 +95,8 @@ export const SEQUENCE = LESSONS.flatMap(l => modesFor(l.id).map(m => `${l.id}_${
 export const ASSETS = {
   tiles: 'assets/tiles.webp',          // сітка 9×9 картинок-добутків
   zero: 'assets/zero.webp',            // сонечко для нуля
-  story: (a, b) => `assets/story/${a}x${b}.webp`,
-  storyZeroOne: 'assets/story/zero-one.webp',
+  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.05`,
+  storyZeroOne: 'assets/story/zero-one.webp?v=4.05',
   // Картинки карти. Поки файлу немає — показується намальована заглушка.
   // Коли картинку додано в assets/map/, допишіть її назву сюди (без .webp):
   //   'map-bg' — фон карти; 'loc1'…'loc4' — значки локацій; 'loc1-bg'…'loc4-bg' — фони екранів локацій;

@@ -1,13 +1,13 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=4.01';
-import { createGame, makeChoices, isBetter } from './engine.js?v=4.01';
-import { storage } from './storage.js?v=4.01';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.01';
-import { textHint, storyImage, storyVideo, storyOf, applyStories } from './hints.js?v=4.01';
-import { createMapView } from './mapview.js?v=4.01';
-import { confetti } from './confetti.js?v=4.01';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.01';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=4.05';
+import { createGame, makeChoices, isBetter } from './engine.js?v=4.05';
+import { storage } from './storage.js?v=4.05';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.05';
+import { textHint, storyImage, storyVideo, storyOf, applyStories } from './hints.js?v=4.05';
+import { createMapView } from './mapview.js?v=4.05';
+import { confetti } from './confetti.js?v=4.05';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.05';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -672,7 +672,7 @@ function playStoryVideo(vsrc, poster) {
   $('#story-replay').hidden = true;
   vid.poster = poster || '';
   vid.onerror = () => { stopStoryVideo(); if (poster) { $('#story').src = poster; $('#story').hidden = false; } storyWatched(); };
-  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=4.01`; vid.dataset.src = vsrc; }
+  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=4.05`; vid.dataset.src = vsrc; }
   try { vid.currentTime = 0; } catch { /* ще не завантажено */ }
   vid.muted = false;
   vid.play().then(() => { $('#story-sound').hidden = true; }).catch(() => {
@@ -915,7 +915,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.01');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.05');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -974,7 +974,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.01" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.05" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -1091,7 +1091,7 @@ function examChart(list, pct) {
 function renderMap() {
   normalizeProgress();
   const cur = parseStage(app.profile.progress).lesson;
-  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=4.01` });
+  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=4.05` });
   const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
   const done = LESSONS.filter(lessonDone).length;
 
@@ -1166,7 +1166,7 @@ function renderLocation() {
   $('#place-title').textContent = l.place.name;
   $('#place-sub').textContent = `Урок ${l.id} · ×${l.factors.join(', ')}`;
   $('#place-stars').textContent = `⭐ ${passed}/${modes.length}`;
-  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=4.01` : `${ASSETS.artUrl('map-bg')}?v=4.01`;
+  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=4.05` : `${ASSETS.artUrl('map-bg')}?v=4.05`;
   if (!app.placeMap) app.placeMap = createMapView($('#place-stage'), { image: bg });
   app.placeMap.setImage(bg);
   const pts = l.place.levels?.length >= modes.length ? l.place.levels
@@ -1226,7 +1226,7 @@ const HERO_NAMES = ['Дракончик', 'Дракоша з бантиком', 
   'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін', 'Зелений дракончик'];
 const DEFAULT_AVATAR = 13;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `assets/avatars/${n}.webp?v=4.01`;
+const heroUrl = n => `assets/avatars/${n}.webp?v=4.05`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1436,7 +1436,7 @@ function refHero(n) {
     : [2, 3, 4, 5, 6, 7, 8, 9].map(b => ({ a: n, b }));
   const list = items.map(({ a, b }) => {
     const img = storyImage(a, b);
-    const thumb = img ? `<img src="${img}?v=4.01" alt="" loading="lazy">` : tileHTML(a, b);
+    const thumb = img ? `<img src="${img}?v=4.05" alt="" loading="lazy">` : tileHTML(a, b);
     const text = n <= 1 ? 'Маяк завжди програє, сонечко завжди перемагає' : `${a} × ${b} = ${a * b}`;
     return `<button type="button" class="ref-story" data-a="${a}" data-b="${b}">
       <span class="ref-story__thumb">${thumb}${storyVideo(a, b) ? '<span class="ref-story__play">▶</span>' : ''}</span>
@@ -1458,8 +1458,8 @@ function refProduct(a, b, fromHero = null) {
   $('#ref-title').textContent = a <= 1 || b <= 1 ? 'Маяк і сонечко' : `${p}`;
   const vsrc = storyVideo(a, b), img = storyImage(a, b);
   const player = vsrc
-    ? `<video class="ref-video" playsinline controls preload="auto" poster="${img ? `${img}?v=4.01` : ''}" src="${vsrc}?v=4.01"></video>`
-    : img ? `<img class="ref-video" src="${img}?v=4.01" alt="Картинка-історія">`
+    ? `<video class="ref-video" playsinline controls preload="auto" poster="${img ? `${img}?v=4.05` : ''}" src="${vsrc}?v=4.05"></video>`
+    : img ? `<img class="ref-video" src="${img}?v=4.05" alt="Картинка-історія">`
     : `<div class="ref-video ref-video--tile">${tileHTML(a, b)}</div>`;
   const pic = (r, c, n, glow = false) => `<span class="ref-eq__item${glow ? ' ref-glow' : ''}">${tileHTML(r, c)}<b>${n}</b></span>`;
   const eq = (x, y) => `<div class="ref-eq">${pic(x, 1, x)}<span class="op">×</span>${pic(1, y, y)}<span class="op">=</span>${pic(x, y, x * y, true)}</div>`;
@@ -1530,6 +1530,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.01'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.05'; });
 }
 boot();
