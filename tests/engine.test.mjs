@@ -1,10 +1,10 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.92';
-import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.92';
-import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=3.92';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=3.92';
-import { STORIES } from '../js/stories.js?v=3.92';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.93';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.93';
+import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=3.93';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=3.93';
+import { STORIES } from '../js/stories.js?v=3.93';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -102,16 +102,16 @@ test('марафон: закінчується одразу після перш�
 });
 
 test('історії: у кожної назва, текст, озвучка, правильна і 2 неправильні підказки; підказка тренування = правильна', async () => {
-  const { STORIES } = await import('../js/stories.js?v=3.92');
+  const { STORIES } = await import('../js/stories.js?v=3.93');
   assert.equal(Object.keys(STORIES).length, 37);
   for (const [k, st] of Object.entries(STORIES)) {
     assert.ok(st.title && st.text && st.voice && st.hint, k);
     assert.equal(st.wrong.length, 2, k);
     assert.ok(!st.wrong.includes(st.hint), k);
   }
-  assert.equal(textHint(2, 2), STORIES['2x2'].hint);
-  assert.equal(textHint(7, 3), STORIES['3x7'].hint);
-  assert.equal(textHint(0, 5), STORIES['01'].hint);
+  assert.equal(textHint(2, 2), STORIES['2x2'].ask);   // підказка — питання з історії
+  assert.equal(textHint(7, 3), STORIES['3x7'].ask);
+  assert.ok(textHint(0, 5).includes('сонечко') && textHint(1, 5).includes('маяк'));
 });
 
 test('відповідь після кінця гри ігнорується', () => {
@@ -246,7 +246,7 @@ test('екзамен: 81 приклад 1×1…9×9, без повторів; п
 });
 
 await (async () => {
-  const { shareCode } = await import('../js/cloud.js?v=3.92');
+  const { shareCode } = await import('../js/cloud.js?v=3.93');
   const c = await shareCode('dev_k3j9x2mq81');
   assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
   assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));
@@ -268,10 +268,10 @@ test('picChoices: 3 різні картинки, одна правильна; у
 
 test('applyStories: тексти з таблиці накладаються, порожні поля не затирають', () => {
   const before = STORIES['2x3'].text;
-  applyStories({ '2x3': { title: 'Свисток!', text: '', voice: '', ask: '', hint: 'Новий натяк', wrong: ['a', ''] }, zzz: { title: 'x' } });
+  applyStories({ '2x3': { title: 'Свисток!', text: '', voice: '', ask: 'Нове питання?', hint: 'Новий натяк', wrong: ['a', ''] }, zzz: { title: 'x' } });
   assert.equal(STORIES['2x3'].title, 'Свисток!');
   assert.equal(STORIES['2x3'].text, before);
-  assert.equal(textHint(2, 3), 'Новий натяк');
+  assert.equal(textHint(2, 3), 'Нове питання?');
   assert.equal(STORIES['2x3'].wrong.length, 2);
   assert.ok(!STORIES.zzz);
 });

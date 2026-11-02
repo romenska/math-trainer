@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.92">
+  <link rel="stylesheet" href="css/style.css?v=3.93">
   <style>
     body { display: block; }
     .sp { max-width: 640px; margin: 0 auto; padding: 20px 16px 40px; }
@@ -42,8 +42,8 @@
   </main>
 
   <script type="module">
-    import { CLOUD_URL, LESSONS, COURSE_LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.92';
-    import { shareCode } from './js/cloud.js?v=3.92';
+    import { CLOUD_URL, LESSONS, COURSE_LESSONS, modesFor, SEQUENCE } from './js/config.js?v=3.93';
+    import { shareCode } from './js/cloud.js?v=3.93';
 
     // Сторінку відкривають за кодом (?c=…, з QR на дипломі) — лише перегляд, без входу.
     // Старі посилання з ?id=… теж працюють.
@@ -120,7 +120,7 @@
     function avatarHTML(d) {
       if (d.avatar === 'photo' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d.photo || '')) return `<img src="${d.photo}" alt="">`;
       const n = Number(d.avatar);
-      return `<img class="hero" src="assets/avatars/${Number.isInteger(n) && n >= 0 && n <= 13 ? n : 13}.webp?v=3.92" alt="">`;
+      return `<img class="hero" src="assets/avatars/${Number.isInteger(n) && n >= 0 && n <= 13 ? n : 13}.webp?v=3.93" alt="">`;
     }
 
     main();

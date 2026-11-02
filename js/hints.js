@@ -1,5 +1,5 @@
-import { STORIES } from './stories.js?v=3.92';
-import { ASSETS } from './config.js?v=3.92';
+import { STORIES } from './stories.js?v=3.93';
+import { ASSETS } from './config.js?v=3.93';
 // Текстові підказки-асоціації. Ключ — менший×більший множник (симетрія враховується автоматично).
 export const HINTS = {
   "2x2": "доміно (в яку гру грали два дракончики?)",
@@ -66,11 +66,19 @@ export function applyStories(remote) {
 /** Історія a×b: { title, text, voice, hint, wrong:[2] } або null. */
 export const storyOf = (a, b) => STORIES[storyKey(a, b)] || null;
 
-/** Текстова підказка для a×b (правильна підказка історії) або null. */
+/**
+ * Текстова підказка для a×b — питання з історії, яке нагадує її і натякає на відповідь
+ * («У що грали два дракончики?»). Для ×0 і ×1 — питання про маяк і сонечко. Або null.
+ */
 export function textHint(a, b) {
+  if (isZeroOne(a, b)) {
+    return a === 0 || b === 0
+      ? 'Пригадай історію: хто завжди перемагає — маяк чи сонечко? А сонечко — це нуль…'
+      : 'Пригадай історію: маяк (1) завжди програє. Хто ж тоді перемагає?';
+  }
   const st = storyOf(a, b);
-  if (st) return st.hint;
-  if (isZeroOne(a, b)) return ZERO_ONE_HINT;
+  if (st?.ask) return st.ask;
+  if (st?.hint) return st.hint;
   const full = HINTS[`${Math.min(a, b)}x${Math.max(a, b)}`];
   if (!full) return null;
   const m = full.match(/\(([^)]+)\)/);
