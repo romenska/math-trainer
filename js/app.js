@@ -1,13 +1,13 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.81';
-import { createGame, makeChoices, isBetter } from './engine.js?v=3.81';
-import { storage } from './storage.js?v=3.81';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.81';
-import { textHint, storyImage, storyVideo } from './hints.js?v=3.81';
-import { createMapView } from './mapview.js?v=3.81';
-import { confetti } from './confetti.js?v=3.81';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.81';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.82';
+import { createGame, makeChoices, isBetter } from './engine.js?v=3.82';
+import { storage } from './storage.js?v=3.82';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.82';
+import { textHint, storyImage, storyVideo } from './hints.js?v=3.82';
+import { createMapView } from './mapview.js?v=3.82';
+import { confetti } from './confetti.js?v=3.82';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.82';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -599,7 +599,7 @@ function playStoryVideo(vsrc, poster) {
   $('#story-replay').hidden = true;
   vid.poster = poster || '';
   vid.onerror = () => { stopStoryVideo(); if (poster) { $('#story').src = poster; $('#story').hidden = false; } storyWatched(); };
-  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.81`; vid.dataset.src = vsrc; }
+  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.82`; vid.dataset.src = vsrc; }
   try { vid.currentTime = 0; } catch { /* ще не завантажено */ }
   vid.muted = false;
   vid.play().then(() => { $('#story-sound').hidden = true; }).catch(() => {
@@ -799,7 +799,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.81');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.82');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -853,7 +853,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.81" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.82" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -884,7 +884,7 @@ const lessonTime = l => modesFor(l.id).reduce((t, m) => t + (Number(app.profile.
 function renderMap() {
   normalizeProgress();
   const cur = parseStage(app.profile.progress).lesson;
-  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.81` });
+  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.82` });
   const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
   const done = LESSONS.filter(lessonDone).length;
 
@@ -947,7 +947,7 @@ function renderLocation() {
   $('#place-title').textContent = l.place.name;
   $('#place-sub').textContent = `Урок ${l.id} · ×${l.factors.join(', ')}`;
   $('#place-stars').textContent = `⭐ ${passed}/${modes.length}`;
-  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.81` : `${ASSETS.artUrl('map-bg')}?v=3.81`;
+  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.82` : `${ASSETS.artUrl('map-bg')}?v=3.82`;
   if (!app.placeMap) app.placeMap = createMapView($('#place-stage'), { image: bg });
   app.placeMap.setImage(bg);
   const pts = l.place.levels?.length >= modes.length ? l.place.levels : levelPoints(modes.length);
@@ -1004,7 +1004,7 @@ const HERO_NAMES = ['Дракончик', 'Дракоша з бантиком', 
   'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін', 'Зелений дракончик'];
 const DEFAULT_AVATAR = 13;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `assets/avatars/${n}.webp?v=3.81`;
+const heroUrl = n => `assets/avatars/${n}.webp?v=3.82`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1167,12 +1167,44 @@ $('#editor-save').addEventListener('click', () => {
   else setAvatar('photo', data);
 });
 
+// ---------- Кнопка «Назад» браузера / телефона ----------
+// Тримаємо в історії «запобіжний» запис. «Назад» знімає його — ми ловимо це і самі робимо крок угору
+// (вікно → закрити, гра → рівні, рівні → карта), а запис повертаємо. Так дитина не «випадає» з гри.
+// На карті: перше «Назад» показує підказку, друге протягом 2 с — справді виходить зі сторінки.
+const visibleScreen = () => document.querySelector('.screen:not([hidden])')?.id;
+let needGuard = false, exitArmedUntil = 0;
+function pushGuard() { history.pushState({ mt: Date.now() }, ''); needGuard = false; }
+// Chrome пропускає записи історії, додані без дотику користувача, тож оновлюємо запобіжник на кожен дотик
+const refreshGuard = () => { if (needGuard || !history.state?.mt) pushGuard(); };
+addEventListener('pointerdown', refreshGuard, true);
+addEventListener('keydown', refreshGuard, true);
+
+addEventListener('popstate', () => {
+  const dlg = document.querySelector('dialog[open]');
+  const screen = visibleScreen();
+  if (dlg) {
+    if (dlg.id === 'dlg-result') { dlg.close(); app.game = null; goBack(); }   // як кнопка «До рівнів»
+    else dlg.close();
+  } else if (screen === 'screen-game') {
+    app.game = null; goBack();                                                // вийти з гри
+  } else if (screen === 'screen-location' || screen === 'screen-menu') {
+    openMap();
+  } else if (screen === 'screen-map' || screen === 'screen-login') {
+    if (Date.now() < exitArmedUntil) { history.back(); return; }             // друге «Назад» — виходимо
+    exitArmedUntil = Date.now() + 2000;
+    toast('Натисни «Назад» ще раз, щоб вийти');
+  }
+  pushGuard();
+  needGuard = true;   // і ще раз — з наступним дотиком (надійно для Chrome)
+});
+
 // ---------- Старт ----------
 function boot() {
+  if (!history.state?.mt) pushGuard();
   if (!app.profile.deviceId) { show('screen-login'); return; }
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.81'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.82'; });
 }
 boot();
