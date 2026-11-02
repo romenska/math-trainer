@@ -1,5 +1,5 @@
-import { STORIES } from './stories.js?v=3.96';
-import { ASSETS } from './config.js?v=3.96';
+import { STORIES } from './stories.js?v=4.01';
+import { ASSETS } from './config.js?v=4.01';
 // Текстові підказки-асоціації. Ключ — менший×більший множник (симетрія враховується автоматично).
 export const HINTS = {
   "2x2": "доміно (в яку гру грали два дракончики?)",
@@ -48,7 +48,7 @@ const isZeroOne = (a, b) => a <= 1 || b <= 1;
 export const storyKey = (a, b) => (isZeroOne(a, b) ? '01' : `${Math.min(a, b)}x${Math.max(a, b)}`);
 /**
  * Накласти тексти історій з Google Таблиці поверх вбудованих (STORIES змінюється на місці).
- * Беруться лише непорожні поля; неповний набір підказок ігнорується.
+ * Беруться лише непорожні поля.
  */
 export function applyStories(remote) {
   if (!remote || typeof remote !== 'object') return 0;
@@ -57,13 +57,12 @@ export function applyStories(remote) {
     const st = STORIES[key];
     if (!st || !r || typeof r !== 'object') continue;
     for (const f of ['title', 'text', 'voice', 'ask', 'hint']) if (typeof r[f] === 'string' && r[f].trim()) st[f] = r[f].trim();
-    if (Array.isArray(r.wrong) && r.wrong.length === 2 && r.wrong.every(w => typeof w === 'string' && w.trim())) st.wrong = r.wrong.map(w => w.trim());
     n++;
   }
   return n;
 }
 
-/** Історія a×b: { title, text, voice, hint, wrong:[2] } або null. */
+/** Історія a×b: { title, text, voice, ask, hint } або null. */
 export const storyOf = (a, b) => STORIES[storyKey(a, b)] || null;
 
 /**

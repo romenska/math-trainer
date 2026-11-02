@@ -1,7 +1,7 @@
 // Усі налаштування тренажера в одному місці. Логіка й інтерфейс їх лише читають.
 
 export const CLOUD_URL =
-  'https://script.google.com/macros/s/AKfycbwthR5KZomPf5FeA9fK_W3rEQCoAjUVh-QWVs2N9-HI7c0NNY5fonZaz7sfj7h5ijipVg/exec';
+  'https://script.google.com/macros/s/AKfycbxBDdnrJtmU7WZXVVzvAMs-WYmmelm8S8-wwtHs-j_e695oUz8pMeIa81G2Hn38aLMpBQ/exec';
 export const CLOUD_TIMEOUT_MS = 6000;
 
 export const LESSONS = [
@@ -45,10 +45,11 @@ export const COURSE_LESSONS = 4;   // уроки курсу (без екзаме
  *  tilesOn   — картинки над числами увімкнені одразу
  *  tileChoices — варіанти відповіді показуються картинками
  *  penalty   — скільки балів знімати за помилку (якщо не вказано — SCORING.penalty)
- *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall' | 'story' | 'quiz' | 'picquiz' | 'guess' | 'exam'
+ *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall' | 'story' | 'picquiz' | 'guess' | 'exam'
  *  noReveal  — після помилки не показувати правильну відповідь (екзамен)
  *  errorHint — що показати після помилки: 'text' (за замовчуванням) або 'story' (картинка-історія)
  *  lessons   — у яких уроках є рівень (якщо не вказано — у всіх)
+ *  hidden    — рівень прихований: його немає на карті, в меню і в умовах переходу між рівнями
  */
 export const MODES = [
   // Перший рівень кожного уроку: знайомство з НОВИМИ картинками цього уроку (герої-цифри і добутки)
@@ -58,7 +59,7 @@ export const MODES = [
   { id: 'stories', name: 'Історії', kind: 'story', queue: 'all', retry: 'always', requeue: false, lives: 0,
     hints: [], tilesOn: false, tileChoices: false },
   // Знайди картинку: назва, відео/картинка з озвучкою, текст історії + питання по історії; відповідь — картинка добутку з 3
-  { id: 'picquiz', name: 'Знайди картинку', kind: 'picquiz', queue: 'all', retry: 'always', requeue: true, lives: 0,
+  { id: 'picquiz', name: 'Знайди картинку', kind: 'picquiz', hidden: true, queue: 'all', retry: 'always', requeue: true, lives: 0,
     hints: [], tilesOn: false, tileChoices: false },
   { id: 'associations', name: 'Асоціації', queue: 'all', retry: true, requeue: true, lives: 0,
     hints: ['text'], tilesOn: true, tileChoices: true },
@@ -86,7 +87,7 @@ export const SCORING = {
 export const FEEDBACK_MS = { right: 350, wrong: 900 };
 
 // Послідовність проходження: урок 1 (усі рівні) → урок 2 → …
-export const modesFor = lessonId => MODES.filter(m => (m.lessons
+export const modesFor = lessonId => MODES.filter(m => !m.hidden && (m.lessons
   ? m.lessons.includes(Number(lessonId)) : Number(lessonId) <= COURSE_LESSONS));
 export const SEQUENCE = LESSONS.flatMap(l => modesFor(l.id).map(m => `${l.id}_${m.id}`));
 

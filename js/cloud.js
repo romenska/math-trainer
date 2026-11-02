@@ -2,8 +2,8 @@
 // Головна відмінність: хмара більше НЕ блокує запуск. Інтерфейс показується одразу
 // з локальних даних, а відповідь хмари підмішується, коли (і якщо) прийде.
 
-import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=3.96';
-import { isBetter } from './engine.js?v=3.96';
+import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=4.01';
+import { isBetter } from './engine.js?v=4.01';
 
 export function newDeviceId() {
   const rnd = crypto.getRandomValues(new Uint32Array(2));
@@ -92,4 +92,52 @@ export async function loadStories() {
   } finally {
     clearTimeout(timer);
   }
+}
+
+// ---------- Журнал входів (лист «Входи») ----------
+
+/** Коротко про браузер і систему з userAgent: «Chrome 130», «Android 14». */
+export function describeAgent(ua = navigator.userAgent) {
+  const m = (re) => (ua.match(re) || [])[1];
+  const browser = m(/EdgA?\/([\d]+)/) ? `Edge ${m(/EdgA?\/([\d]+)/)}`
+    : m(/SamsungBrowser\/([\d]+)/) ? `Samsung Internet ${m(/SamsungBrowser\/([\d]+)/)}`
+    : m(/OPR\/([\d]+)/) ? `Opera ${m(/OPR\/([\d]+)/)}`
+    : m(/Firefox\/([\d]+)/) ? `Firefox ${m(/Firefox\/([\d]+)/)}`
+    : m(/CriOS\/([\d]+)/) ? `Chrome ${m(/CriOS\/([\d]+)/)} (iOS)`
+    : m(/Chrome\/([\d]+)/) ? `Chrome ${m(/Chrome\/([\d]+)/)}${/; wv\)/.test(ua) ? ' (WebView)' : ''}`
+    : m(/Version\/([\d.]+).*Safari/) ? `Safari ${m(/Version\/([\d.]+).*Safari/)}` : 'інший';
+  const os = m(/Android ([\d.]+)/) ? `Android ${m(/Android ([\d.]+)/)}`
+    : m(/(?:iPhone|CPU) OS ([\d_]+)/) ? `iOS ${m(/(?:iPhone|CPU) OS ([\d_]+)/).replace(/_/g, '.')}`
+    : /Windows NT 10/.test(ua) ? 'Windows 10/11' : /Windows/.test(ua) ? 'Windows'
+    : /Mac OS X/.test(ua) ? 'macOS' : /CrOS/.test(ua) ? 'ChromeOS' : /Linux/.test(ua) ? 'Linux' : 'інша';
+  return { browser, os };
+}
+
+/** IP і країна — з відкритого сервісу api.country.is (ключ не потрібен). Не відповів за 4 с — без них. */
+async function ipInfo() {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 4000);
+  try {
+    const d = await (await fetch('https://api.country.is/', { signal: ctrl.signal })).json();
+    const code = String(d.country || '');
+    let name = '';
+    try { name = code ? new Intl.DisplayNames(['uk'], { type: 'region' }).of(code) : ''; } catch { /* старий браузер */ }
+    return { ip: String(d.ip || ''), country: name && name !== code ? `${name} (${code})` : code };
+  } catch {
+    return { ip: '', country: '' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Записати вхід у лист «Входи». kind: 'реєстрація' | 'вхід' (паролем) | 'запуск' (відкрив тренажер). */
+export async function logLogin(deviceId, nickname, kind) {
+  if (!CLOUD_URL || !deviceId) return;
+  const { browser, os } = describeAgent();
+  const { ip, country } = await ipInfo();
+  pushResult({
+    action: 'login', deviceId, nickname, kind, ip, country, browser, os,
+    app: matchMedia('(display-mode: standalone)').matches ? 'встановлений' : 'у браузері',
+    screen: `${screen.width}×${screen.height}`, lang: navigator.language || '', ua: navigator.userAgent,
+  });
 }
