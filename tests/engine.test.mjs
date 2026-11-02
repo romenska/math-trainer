@@ -1,9 +1,9 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.79';
-import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.79';
-import { textHint, storyImage, storyVideo } from '../js/hints.js?v=3.79';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices } from '../js/pictures.js?v=3.79';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=3.81';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=3.81';
+import { textHint, storyImage, storyVideo } from '../js/hints.js?v=3.81';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices } from '../js/pictures.js?v=3.81';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -127,7 +127,7 @@ test('підказки: є для всіх прикладів 2–9, симет�
   assert.equal(textHint(3, 7), textHint(7, 3));
   assert.equal(storyImage(5, 2), 'assets/story/2x5.webp');
   assert.equal(storyImage(8, 7), 'assets/story/7x8.webp');
-  assert.equal(storyImage(9, 9), null, '9×9 ще без картинки');
+  assert.equal(storyImage(9, 9), 'assets/story/9x9.webp');
 });
 
 test('послідовність: кожен урок починається з «Вгадай число», екзамен — останній', () => {
@@ -237,7 +237,7 @@ test('екзамен: 81 приклад 1×1…9×9, без повторів; п
 });
 
 await (async () => {
-  const { shareCode } = await import('../js/cloud.js?v=3.79');
+  const { shareCode } = await import('../js/cloud.js?v=3.81');
   const c = await shareCode('dev_k3j9x2mq81');
   assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
   assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));

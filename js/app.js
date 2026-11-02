@@ -1,13 +1,13 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.79';
-import { createGame, makeChoices, isBetter } from './engine.js?v=3.79';
-import { storage } from './storage.js?v=3.79';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.79';
-import { textHint, storyImage, storyVideo } from './hints.js?v=3.79';
-import { createMapView } from './mapview.js?v=3.79';
-import { confetti } from './confetti.js?v=3.79';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.79';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=3.81';
+import { createGame, makeChoices, isBetter } from './engine.js?v=3.81';
+import { storage } from './storage.js?v=3.81';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode } from './cloud.js?v=3.81';
+import { textHint, storyImage, storyVideo } from './hints.js?v=3.81';
+import { createMapView } from './mapview.js?v=3.81';
+import { confetti } from './confetti.js?v=3.81';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions } from './pictures.js?v=3.81';
 
 const $ = sel => document.querySelector(sel);
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
@@ -223,7 +223,6 @@ $('#mode-list').addEventListener('click', e => {
   if (!b) return;
   app.sel.mode = b.dataset.mode;
   renderMenu();
-  toast(MODE_RULES[app.sel.mode], 5000);
 });
 $('#input-mode').addEventListener('click', e => {
   const b = e.target.closest('[data-input]');
@@ -600,7 +599,7 @@ function playStoryVideo(vsrc, poster) {
   $('#story-replay').hidden = true;
   vid.poster = poster || '';
   vid.onerror = () => { stopStoryVideo(); if (poster) { $('#story').src = poster; $('#story').hidden = false; } storyWatched(); };
-  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.79`; vid.dataset.src = vsrc; }
+  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=3.81`; vid.dataset.src = vsrc; }
   try { vid.currentTime = 0; } catch { /* ще не завантажено */ }
   vid.muted = false;
   vid.play().then(() => { $('#story-sound').hidden = true; }).catch(() => {
@@ -800,7 +799,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.79');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=3.81');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -854,7 +853,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.79" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=3.81" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -885,7 +884,7 @@ const lessonTime = l => modesFor(l.id).reduce((t, m) => t + (Number(app.profile.
 function renderMap() {
   normalizeProgress();
   const cur = parseStage(app.profile.progress).lesson;
-  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.79` });
+  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=3.81` });
   const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
   const done = LESSONS.filter(lessonDone).length;
 
@@ -925,7 +924,7 @@ function renderMap() {
 function openPlace(id) {
   id = Number(id);
   app.map?.closeBubble();
-  if (getLesson(id).exam) { app.returnTo = 'map'; toast(MODE_RULES.exam, 4000); startGame(id, 'exam'); return; }
+  if (getLesson(id).exam) { app.returnTo = 'map'; startGame(id, 'exam'); return; }
   openLocation(id);
 }
 
@@ -948,7 +947,7 @@ function renderLocation() {
   $('#place-title').textContent = l.place.name;
   $('#place-sub').textContent = `Урок ${l.id} · ×${l.factors.join(', ')}`;
   $('#place-stars').textContent = `⭐ ${passed}/${modes.length}`;
-  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.79` : `${ASSETS.artUrl('map-bg')}?v=3.79`;
+  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=3.81` : `${ASSETS.artUrl('map-bg')}?v=3.81`;
   if (!app.placeMap) app.placeMap = createMapView($('#place-stage'), { image: bg });
   app.placeMap.setImage(bg);
   const pts = l.place.levels?.length >= modes.length ? l.place.levels : levelPoints(modes.length);
@@ -981,7 +980,6 @@ function renderLocation() {
 function startLevel(modeId) {
   app.placeMap?.closeBubble();
   app.returnTo = 'location';
-  toast(MODE_RULES[modeId], 3000);
   startGame(app.place, modeId);
 }
 
@@ -1006,7 +1004,7 @@ const HERO_NAMES = ['Дракончик', 'Дракоша з бантиком', 
   'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін', 'Зелений дракончик'];
 const DEFAULT_AVATAR = 13;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `assets/avatars/${n}.webp?v=3.79`;
+const heroUrl = n => `assets/avatars/${n}.webp?v=3.81`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1175,6 +1173,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.79'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=3.81'; });
 }
 boot();
