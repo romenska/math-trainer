@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=3.93">
-  <script type="module" src="js/app.js?v=3.93"></script>
+  <link rel="stylesheet" href="css/style.css?v=3.96">
+  <script type="module" src="js/app.js?v=3.96"></script>
 </head>
 <body>
   <!-- Фон вікна входу: бліді приклади і цифри -->
@@ -84,7 +84,7 @@
       </header>
       <div class="stage stage--map" id="map-stage"></div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 3.93</p>
+      <p class="version">версія 3.96</p>
     </section>
 
     <!-- Довідник: таблиця множення в картинках -->
@@ -115,6 +115,23 @@
       <div class="stage stage--place" id="place-stage"></div>
     </section>
 
+    <!-- 3б. Екзамен: графік спроб і старт -->
+    <section class="screen" id="screen-exam" hidden>
+      <header class="bar">
+        <button class="icon-btn" id="btn-exam-back" type="button" aria-label="До карти" title="До карти"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
+        <div class="game-title">
+          <div>🎓 Екзамен</div>
+          <div class="muted">Уся таблиця множення · 81 приклад</div>
+        </div>
+        <span class="pill pill--stars" id="exam-best" title="Найкращий результат"></span>
+      </header>
+      <div class="exam-page">
+        <h2 class="exam-page__title">Мої спроби</h2>
+        <div class="exam-chart" id="exam-chart"></div>
+        <button class="btn btn--primary btn--big btn--block" id="btn-exam-start" type="button">🎓 Почати екзамен</button>
+      </div>
+    </section>
+
     <!-- 4. Ручний режим (шестерня) -->
     <section class="screen" id="screen-menu" hidden>
       <header class="bar">
@@ -143,7 +160,7 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 3.93</p>
+      <p class="version">версія 3.96</p>
     </section>
 
     <!-- 5. Гра -->

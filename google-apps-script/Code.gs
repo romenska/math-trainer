@@ -84,7 +84,8 @@ function doGet(e) {
     avatar: r[4] === '' ? '' : String(r[4]),
     photo: String(r[5] || ''),
     currentCombinedLevel: nextStage(records),
-    records: records
+    records: records,
+    examHistory: examHistoryFromLog(p.deviceId)
   });
 }
 
@@ -156,6 +157,18 @@ function recordsFromLog(deviceId, rows) {
     var best = isBetter(rec, old) ? rec : old;
     best.passed = rec.passed || Boolean(old && old.passed);
     out[key] = best;
+  }
+  return out;
+}
+
+/** Усі спроби екзамену учня (для графіка на сторінці екзамену), від старих до нових. */
+function examHistoryFromLog(deviceId, rows) {
+  rows = rows || logRows();
+  var out = [];
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    if (String(row[S.id]) !== String(deviceId) || stageOf(row) !== '5_exam' || !row[S.date]) continue;
+    out.push({ date: new Date(row[S.date]).toISOString(), correct: num(row[S.correct]), total: num(row[S.total]), time: num(row[S.time]) });
   }
   return out;
 }

@@ -212,12 +212,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=3.93");
+  background-image: url("../assets/tiles.webp?v=3.96");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=3.93"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=3.96"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -611,3 +611,26 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .quiz-opts--pics .quiz-opt.is-wrong { opacity: .45; }
 .quiz-speak { justify-self: center; margin-top: 4px; padding: 4px 12px; border: 2px solid var(--line); border-radius: 999px; background: #fff; font: 600 .9rem var(--font); cursor: pointer; }
 .quiz-head small { font-size: .9rem; font-family: var(--font); }
+
+/* ---------- Сторінка екзамену: графік спроб ---------- */
+.exam-page { display: grid; gap: 14px; }
+.exam-page__title { margin: 4px 0 0; font: 700 1.1rem var(--font-fun); }
+.exam-chart { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 6px 6px; background: var(--card); }
+.exam-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.exam-chart .grid { stroke: var(--line); stroke-width: 1; }
+.exam-chart .axis { fill: var(--muted); font: 11px var(--font); }
+.exam-chart .axis--pct { fill: var(--ok); }
+.exam-chart .axis--time { fill: var(--primary); }
+.exam-chart .line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.exam-chart .line--pct { stroke: var(--ok); }
+.exam-chart .line--time { stroke: var(--primary); stroke-dasharray: 6 4; }
+.exam-chart .dot--pct { fill: var(--ok); }
+.exam-chart .dot--time { fill: var(--card); stroke: var(--primary); stroke-width: 2; }
+.exam-chart .val { font: 700 10.5px var(--font); }
+.exam-chart .val--pct { fill: var(--ok); }
+.exam-chart .val--time { fill: var(--primary); }
+.exam-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; margin-top: 6px; font-size: .85rem; color: var(--muted); }
+.exam-legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 6px; }
+.exam-legend .k-pct { border-color: var(--ok); }
+.exam-legend .k-time { border-color: var(--primary); border-top-style: dashed; }
+.exam-empty { text-align: center; color: var(--muted); padding: 28px 12px; }

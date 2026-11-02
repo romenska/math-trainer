@@ -1,7 +1,7 @@
 // Усі налаштування тренажера в одному місці. Логіка й інтерфейс їх лише читають.
 
 export const CLOUD_URL =
-  'https://script.google.com/macros/s/AKfycbyPl7JD8ApUQ6DTfdCdj1EtG0gEr7JMCWQPdNY5zNu2PA4jZY7JW-PS-8K24UGAuloFQA/exec';
+  'https://script.google.com/macros/s/AKfycbwthR5KZomPf5FeA9fK_W3rEQCoAjUVh-QWVs2N9-HI7c0NNY5fonZaz7sfj7h5ijipVg/exec';
 export const CLOUD_TIMEOUT_MS = 6000;
 
 export const LESSONS = [
