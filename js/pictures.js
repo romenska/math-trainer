@@ -5,7 +5,7 @@
 // Таблиця симетрична, і добутки з множниками ≥ 2 мають спільну картинку (2×6 і 3×4 — крокодил з вудкою).
 // А от «число 6» (1×6, равлик) і «добуток 2×3» (свисток) — різні картинки. Тому порівнюємо не числа, а картинки.
 
-import { shuffle } from './engine.js?v=3.90';
+import { shuffle } from './engine.js?v=3.92';
 
 /** Ідентифікатор картинки клітинки (r, c). */
 export function pictureId(r, c) {
@@ -148,20 +148,26 @@ export function makeGuessChoices(q, rng = Math.random) {
 
 // ---------- «Знайди картинку»: відповідь на питання історії — картинка добутку ----------
 
-/** 3 картинки-варіанти: правильна (перетин a×b) + 2 пастки (картинка числа-добутку, сусіди в таблиці). */
+/**
+ * 3 картинки-варіанти: правильна (картинка добутку a×b) + 2 картинки ІНШИХ добутків.
+ * Пастки — сусідні добутки в таблиці (a×(b±1), (a±1)×b); для ×0 і ×1 — картинка добутку з тим самим
+ * числом (1×6 — равлик, а пастка 2×3 — свисток), далі випадкові добутки.
+ */
 export function picChoices(q, n = 3, rng = Math.random) {
   const right = { r: q.a, c: q.b, pid: pictureId(q.a, q.b), ok: true };
   const used = new Set([right.pid]);
   const p = q.a * q.b, out = [right];
-  const traps = [[1, p], [q.a, q.b + 1], [q.a, q.b - 1], [q.a + 1, q.b], [q.a - 1, q.b], [1, q.a], [1, q.b]];
   const add = ([r, c]) => {
-    if (out.length >= n || r < 1 || c < 1 || r > 9 || c > 9) return;
+    if (out.length >= n || r < 2 || c < 2 || r > 9 || c > 9) return;   // лише картинки добутків
     const pid = pictureId(r, c);
     if (used.has(pid)) return;
     used.add(pid);
     out.push({ r, c, pid, ok: false });
   };
-  shuffle(traps, rng).forEach(add);
+  const same = [];
+  for (let r = 2; r <= 9; r++) for (let c = r; c <= 9; c++) if (r * c === p) same.push([r, c]);
+  shuffle(same, rng).forEach(add);
+  shuffle([[q.a, q.b + 1], [q.a, q.b - 1], [q.a + 1, q.b], [q.a - 1, q.b], [q.b, q.a + 1], [q.b + 1, q.a]], rng).forEach(add);
   for (let guard = 0; out.length < n && guard < 300; guard++) add([2 + Math.floor(rng() * 8), 2 + Math.floor(rng() * 8)]);
   return shuffle(out, rng).map((o, i) => ({ ...o, id: i, off: false }));
 }

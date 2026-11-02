@@ -30,7 +30,7 @@ var STORED = 6; // перші 6 колонок «Учнів» — дані; ре
 
 // Порядок рівнів — як у тренажері (js/config.js)
 var LESSON_NAMES = { 1: 'Драконова бухта', 2: 'Острів метеликів', 3: 'Равликове містечко', 4: 'Королівство Глобуса', 5: 'Екзамен' };
-var MODES = ['guess', 'stories', 'quiz', 'picquiz', 'associations', 'remember', 'recall', 'training', 'speed', 'records'];
+var MODES = ['guess', 'stories', 'picquiz', 'associations', 'remember', 'recall', 'training', 'speed', 'records'];
 var MODE_NAMES = { guess: 'Вгадай число', stories: 'Історії', quiz: 'Що було в історії?', picquiz: 'Знайди картинку', associations: 'Асоціації', remember: 'Запам’ятай',
   recall: 'Пригадай', training: 'Тренування', speed: 'Перевірка', records: 'Марафон', exam: 'Екзамен' };
 var SEQUENCE = [];

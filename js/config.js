@@ -1,7 +1,7 @@
 // Усі налаштування тренажера в одному місці. Логіка й інтерфейс їх лише читають.
 
 export const CLOUD_URL =
-  'https://script.google.com/macros/s/AKfycbyYCEk2A14Uf29eJXD1Wo3b8uRGfqkZCRZcWqUrUp_Fv_ll6QndplRBDGo8x5VqDRGRlQ/exec';
+  'https://script.google.com/macros/s/AKfycbyPl7JD8ApUQ6DTfdCdj1EtG0gEr7JMCWQPdNY5zNu2PA4jZY7JW-PS-8K24UGAuloFQA/exec';
 export const CLOUD_TIMEOUT_MS = 6000;
 
 export const LESSONS = [
@@ -57,10 +57,7 @@ export const MODES = [
   // Знайомство з історіями: картинка-історія + текст, під числа треба покласти картинки (як у «Пригадай»)
   { id: 'stories', name: 'Історії', kind: 'story', queue: 'all', retry: 'always', requeue: false, lives: 0,
     hints: [], tilesOn: false, tileChoices: false },
-  // Вікторина: назва, текст і відео історії + 3 підказки, треба вибрати правильну (чи уважно дивились історію)
-  { id: 'quiz', name: 'Що було в історії?', kind: 'quiz', queue: 'all', retry: 'always', requeue: true, lives: 0,
-    hints: [], tilesOn: false, tileChoices: false },
-  // Знайди картинку: назва, відео/картинка з озвучкою, текст історії + питання; відповідь — картинка добутку з 3
+  // Знайди картинку: назва, відео/картинка з озвучкою, текст історії + питання по історії; відповідь — картинка добутку з 3
   { id: 'picquiz', name: 'Знайди картинку', kind: 'picquiz', queue: 'all', retry: 'always', requeue: true, lives: 0,
     hints: [], tilesOn: false, tileChoices: false },
   { id: 'associations', name: 'Асоціації', queue: 'all', retry: true, requeue: true, lives: 0,
