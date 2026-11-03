@@ -102,8 +102,8 @@ export const SEQUENCE = LESSONS.flatMap(l => modesFor(l.id).map(m => `${l.id}_${
 export const ASSETS = {
   tiles: 'assets/tiles.webp',          // сітка 9×9 картинок-добутків
   zero: 'assets/zero.webp',            // сонечко для нуля
-  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.11`,
-  storyZeroOne: 'assets/story/zero-one.webp?v=4.11',
+  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.13`,
+  storyZeroOne: 'assets/story/zero-one.webp?v=4.13',
   // Картинки карти. Поки файлу немає — показується намальована заглушка.
   // Коли картинку додано в assets/map/, допишіть її назву сюди (без .webp):
   //   'map-bg' — фон карти; 'loc1'…'loc4' — значки локацій; 'loc1-bg'…'loc4-bg' — фони екранів локацій;
@@ -129,7 +129,7 @@ export const ASSETS = {
   // Є аудіо історії — відео грає без звуку разом з ним. Немає аудіо — звук відео або голос пристрою.
   audioStory: [],
   audioHint: [],
-  audio: (kind, key) => `assets/audio/${kind}/${key}.mp3?v=4.11`,
+  audio: (kind, key) => `assets/audio/${kind}/${key}.mp3?v=4.13`,
   stories: [
     '2x2', '2x3', '2x4', '2x5', '2x6', '2x7', '2x8', '2x9',
     '3x2', '3x3', '3x4', '3x5', '3x6', '3x7', '3x8', '3x9',
