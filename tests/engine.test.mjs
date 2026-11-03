@@ -1,10 +1,10 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=4.09';
-import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=4.09';
-import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=4.09';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=4.09';
-import { STORIES } from '../js/stories.js?v=4.09';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=4.11';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=4.11';
+import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=4.11';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=4.11';
+import { STORIES } from '../js/stories.js?v=4.11';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -101,7 +101,7 @@ test('марафон: перша помилка — зійшов з дистан
 });
 
 test('історії: у кожної назва, текст, озвучка, правильна і 2 неправильні підказки; підказка тренування = правильна', async () => {
-  const { STORIES } = await import('../js/stories.js?v=4.09');
+  const { STORIES } = await import('../js/stories.js?v=4.11');
   assert.equal(Object.keys(STORIES).length, 37);
   for (const [k, st] of Object.entries(STORIES)) {
     assert.ok(st.title && st.text && st.voice && st.hint, k);
@@ -243,7 +243,7 @@ test('екзамен: 81 приклад 1×1…9×9, без повторів; п
 });
 
 await (async () => {
-  const { shareCode } = await import('../js/cloud.js?v=4.09');
+  const { shareCode } = await import('../js/cloud.js?v=4.11');
   const c = await shareCode('dev_k3j9x2mq81');
   assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
   assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));
@@ -270,4 +270,18 @@ test('applyStories: тексти з таблиці накладаються, п�
   assert.equal(STORIES['2x3'].text, before);
   assert.equal(textHint(2, 3), 'Нове питання?');
   assert.ok(!STORIES.zzz);
+});
+
+test('медіа з GitHub: назви з «х» і «x», будь-який порядок, ×0/×1 → zero-one', async () => {
+  const { parseMediaName, indexFiles } = await import('../js/media.js?v=4.11');
+  assert.deepEqual(parseMediaName('5х7.mp4'), { key: '5x7', ext: 'mp4' });
+  assert.deepEqual(parseMediaName('7X5.MP4'), { key: '7x5', ext: 'mp4' });
+  assert.deepEqual(parseMediaName('1х0.mp4'), { key: 'zero-one', ext: 'mp4' });
+  assert.deepEqual(parseMediaName('zero-one.mp3'), { key: 'zero-one', ext: 'mp3' });
+  assert.equal(parseMediaName('readme.md'), null);
+  const idx = indexFiles('assets/story', [{ type: 'file', name: '5х9.mp4', sha: 'abcdef123456' }, { type: 'file', name: '5x9.webp', sha: '1' }], ['mp4']);
+  assert.deepEqual(Object.keys(idx), ['5x9']);
+  assert.ok(idx['5x9'].startsWith('assets/story/5%D1%859.mp4?h=abcdef12'));
+  const dup = indexFiles('assets/story', [{ type: 'file', name: '5x5.mp4', sha: 'small', size: 900 }, { type: 'file', name: '5х5.mp4', sha: 'big', size: 5000 }], ['mp4']);
+  assert.ok(dup['5x5'].includes('h=small'), 'з двох однакових — менший файл');
 });

@@ -1,15 +1,17 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=4.09';
-import { createGame, makeChoices, isBetter } from './engine.js?v=4.09';
-import { storage } from './storage.js?v=4.09';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.09';
-import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio } from './hints.js?v=4.09';
-import { createMapView } from './mapview.js?v=4.09';
-import { confetti } from './confetti.js?v=4.09';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.09';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=4.11';
+import { createGame, makeChoices, isBetter } from './engine.js?v=4.11';
+import { storage } from './storage.js?v=4.11';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.11';
+import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.11';
+import { discoverMedia } from './media.js?v=4.11';
+import { createMapView } from './mapview.js?v=4.11';
+import { confetti } from './confetti.js?v=4.11';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.11';
 
 const $ = sel => document.querySelector(sel);
+const withV = url => (url.includes('?') ? url : `${url}?v=4.11`);   // версія для кешу, якщо в адресі її ще немає
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
 
 const MODE_ICONS = { guess: '🔢', stories: '📖', picquiz: '🖼️', associations: '🧩', remember: '🧠', recall: '🔎', training: '🏋️', speed: '✅', records: '🏃', exam: '🎓' };
@@ -699,7 +701,7 @@ function playStoryVideo(vsrc, poster, audio = null) {
   $('#story-replay').hidden = true;
   vid.poster = poster || '';
   vid.onerror = () => { stopStoryVideo(); if (poster) { $('#story').src = poster; $('#story').hidden = false; } storyWatched(); };
-  if (vid.dataset.src !== vsrc) { vid.src = `${vsrc}?v=4.09`; vid.dataset.src = vsrc; }
+  if (vid.dataset.src !== vsrc) { vid.src = withV(vsrc); vid.dataset.src = vsrc; }
   try { vid.currentTime = 0; } catch { /* ще не завантажено */ }
   if (audio) {   // відео без звуку + озвучка історії окремим файлом
     vid.muted = true;
@@ -973,7 +975,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.09');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.11');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -1032,7 +1034,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.09" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.11" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -1149,7 +1151,7 @@ function examChart(list, pct) {
 function renderMap() {
   normalizeProgress();
   const cur = parseStage(app.profile.progress).lesson;
-  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=4.09` });
+  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=4.11` });
   const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
   const done = LESSONS.filter(lessonDone).length;
 
@@ -1224,7 +1226,7 @@ function renderLocation() {
   $('#place-title').textContent = l.place.name;
   $('#place-sub').textContent = `Урок ${l.id} · ×${l.factors.join(', ')}`;
   $('#place-stars').textContent = `⭐ ${passed}/${modes.length}`;
-  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=4.09` : `${ASSETS.artUrl('map-bg')}?v=4.09`;
+  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=4.11` : `${ASSETS.artUrl('map-bg')}?v=4.11`;
   if (!app.placeMap) app.placeMap = createMapView($('#place-stage'), { image: bg });
   app.placeMap.setImage(bg);
   const pts = l.place.levels?.length >= modes.length ? l.place.levels
@@ -1284,7 +1286,7 @@ const HERO_NAMES = ['Дракончик', 'Дракоша з бантиком', 
   'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін', 'Зелений дракончик'];
 const DEFAULT_AVATAR = 13;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `assets/avatars/${n}.webp?v=4.09`;
+const heroUrl = n => `assets/avatars/${n}.webp?v=4.11`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1529,7 +1531,7 @@ function refProduct(a, b, fromHero = null) {
   const vsrc = storyView() === 'video' ? storyVideo(a, b) : null;   // режим «Картинка» — лише картинки
   const img = storyImage(a, b), audio = storyAudio(a, b, 'story');
   const player = vsrc
-    ? `<video class="ref-video" playsinline controls preload="auto" poster="${img || ''}" src="${vsrc}?v=4.09"${audio ? ' muted' : ''}></video>`
+    ? `<video class="ref-video" playsinline controls preload="auto" poster="${img || ''}" src="${withV(vsrc)}"${audio ? ' muted' : ''}></video>`
     : img ? `<img class="ref-video" src="${img}" alt="Картинка-історія">`
     : `<div class="ref-video ref-video--tile">${tileHTML(a, b)}</div>`;
   const pic = (r, c, n, glow = false) => `<span class="ref-eq__item${glow ? ' ref-glow' : ''}">${tileHTML(r, c)}<b>${n}</b></span>`;
@@ -1601,6 +1603,7 @@ function syncStories() {
 // ---------- Старт ----------
 function boot() {
   syncStories();
+  discoverMedia(m => { applyMedia(m); if (!app.game) refreshScreen(); });   // нові відео/аудіо з GitHub — без правок коду
   if (!history.state?.mt) pushGuard();
   if (!app.profile.deviceId) { show('screen-login'); return; }
   // запуск тренажера — один запис на вкладку (оновлення сторінки не рахується)
@@ -1609,6 +1612,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.09'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.11'; });
 }
 boot();

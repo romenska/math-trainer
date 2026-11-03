@@ -1,5 +1,5 @@
-import { STORIES } from './stories.js?v=4.09';
-import { ASSETS } from './config.js?v=4.09';
+import { STORIES } from './stories.js?v=4.11';
+import { ASSETS } from './config.js?v=4.11';
 // Текстові підказки-асоціації. Ключ — менший×більший множник (симетрія враховується автоматично).
 export const HINTS = {
   "2x2": "доміно (в яку гру грали два дракончики?)",
@@ -84,8 +84,22 @@ export function textHint(a, b) {
   return m ? m[1].trim() : full;
 }
 
+// Файли, знайдені в репозиторії автоматично (js/media.js): { video, image, audioStory, audioHint } → { '5x7': url }
+const MEDIA = { video: {}, image: {}, audioStory: {}, audioHint: {} };
+export function applyMedia(m) {
+  for (const k of Object.keys(MEDIA)) MEDIA[k] = (m && typeof m[k] === 'object' && m[k]) || {};
+}
+/** Знайдений файл для a×b (будь-який порядок множників; ×0 і ×1 — 'zero-one'). */
+function found(kind, a, b) {
+  const map = MEDIA[kind];
+  if (isZeroOne(a, b)) return map['zero-one'] || null;
+  return map[`${a}x${b}`] || map[`${b}x${a}`] || null;
+}
+
 /** Адреса картинки-історії для a×b або null (тоді кнопку просто не показуємо). */
 export function storyImage(a, b) {
+  const auto = found('image', a, b);
+  if (auto) return auto;
   if (isZeroOne(a, b)) return ASSETS.storyZeroOne;
   if (ASSETS.stories.includes(`${a}x${b}`)) return ASSETS.story(a, b);
   if (ASSETS.stories.includes(`${b}x${a}`)) return ASSETS.story(b, a); // 7×5 = 5×7
@@ -95,11 +109,16 @@ export function storyImage(a, b) {
 /** Адреса відео-історії для a×b або null. */
 /** Аудіо до історії: kind 'story' — озвучка історії, 'hint' — озвучка підказки. Або null. */
 export function storyAudio(a, b, kind = 'story') {
+  const auto = found(kind === 'hint' ? 'audioHint' : 'audioStory', a, b);
+  if (auto) return auto;
   const key = storyKey(a, b);
   return (kind === 'hint' ? ASSETS.audioHint : ASSETS.audioStory).includes(key) ? ASSETS.audio(kind, key) : null;
 }
 
 export function storyVideo(a, b) {
+  const auto = found('video', a, b);
+  if (auto) return auto;
+  if (isZeroOne(a, b)) return ASSETS.videos.includes('zero-one') ? ASSETS.video('zero-one') : null;
   for (const k of [`${a}x${b}`, `${b}x${a}`]) if (ASSETS.videos.includes(k)) return ASSETS.video(k);
   return null;
 }
