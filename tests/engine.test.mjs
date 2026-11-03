@@ -1,10 +1,10 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=4.05';
-import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=4.05';
-import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=4.05';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=4.05';
-import { STORIES } from '../js/stories.js?v=4.05';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=4.07';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=4.07';
+import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=4.07';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=4.07';
+import { STORIES } from '../js/stories.js?v=4.07';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -84,25 +84,24 @@ test('перевірка: 2 помилки з 30 → пройдено', () => {
   assert.equal(g.result().passed, true); assert.equal(g.result().questions, 30);
 });
 
-test('марафон: без повторів підряд, фініш з балами = пройдено', () => {
+test('марафон: усі приклади уроку на час, без помилок = пройдено', () => {
   const g = createGame({ lesson: L4, mode: getMode('records'), rng });
-  let prev = null;
-  for (let i = 0; i < 200; i++) { const q = g.next(); assert.notEqual(q.key, prev); prev = q.key; g.answer(q.answer); }
-  g.finish(); assert.ok(g.result().passed); assert.equal(g.result().score, 200);
+  let n = 0;
+  while (g.next()) { g.answer(g.question.answer); n++; }
+  assert.equal(n, g.progress().total); assert.ok(n > 0);
+  assert.ok(g.result().passed); assert.equal(g.result().errors, 0);
+  assert.ok(getMode('records').typed, 'відповідь лише набирати');
 });
 
-test('марафон: закінчується одразу після першої помилки', () => {
+test('марафон: перша помилка — зійшов з дистанції (не пройдено)', () => {
   const g = createGame({ lesson: L1, mode: getMode('records'), rng });
   for (let i = 0; i < 5; i++) { g.next(); g.answer(g.question.answer); }
   g.next(); assert.equal(g.answer(-1).then, 'end');
-  assert.ok(g.finished); assert.equal(g.result().score, 5, 'бали не знімаються'); assert.ok(g.result().passed);
-  const g0 = createGame({ lesson: L1, mode: getMode('records'), rng });
-  g0.next(); g0.answer(-1);
-  assert.ok(g0.finished); assert.equal(g0.result().passed, false, '0 балів — не зараховано');
+  assert.ok(g.finished); assert.equal(g.result().score, 5, 'бали не знімаються'); assert.equal(g.result().passed, false);
 });
 
 test('історії: у кожної назва, текст, озвучка, правильна і 2 неправильні підказки; підказка тренування = правильна', async () => {
-  const { STORIES } = await import('../js/stories.js?v=4.05');
+  const { STORIES } = await import('../js/stories.js?v=4.07');
   assert.equal(Object.keys(STORIES).length, 37);
   for (const [k, st] of Object.entries(STORIES)) {
     assert.ok(st.title && st.text && st.voice && st.hint, k);
@@ -244,7 +243,7 @@ test('екзамен: 81 приклад 1×1…9×9, без повторів; п
 });
 
 await (async () => {
-  const { shareCode } = await import('../js/cloud.js?v=4.05');
+  const { shareCode } = await import('../js/cloud.js?v=4.07');
   const c = await shareCode('dev_k3j9x2mq81');
   assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
   assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));

@@ -47,6 +47,7 @@ export const COURSE_LESSONS = 4;   // уроки курсу (без екзаме
  *  penalty   — скільки балів знімати за помилку (якщо не вказано — SCORING.penalty)
  *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall' | 'story' | 'picquiz' | 'guess' | 'exam'
  *  noReveal  — після помилки не показувати правильну відповідь (екзамен)
+ *  typed     — відповідь лише набирати на клавіатурі (без варіантів), незалежно від налаштування
  *  errorHint — що показати після помилки: 'text' (за замовчуванням) або 'story' (картинка-історія)
  *  lessons   — у яких уроках є рівень (якщо не вказано — у всіх)
  *  hidden    — рівень прихований: його немає на карті, в меню і в умовах переходу між рівнями
@@ -72,7 +73,9 @@ export const MODES = [
     hints: ['text', 'story', 'video', 'tiles'], tilesOn: false, tileChoices: false },
   { id: 'speed', name: 'Перевірка', queue: 'all', retry: false, requeue: false, lives: 3,
     hints: [], tilesOn: false, tileChoices: false },
-  { id: 'records', name: 'Марафон', queue: 'endless', retry: false, requeue: false, lives: 1, penalty: 0, // до першої помилки, бали не знімаються
+  // Марафон: усі приклади уроку на час, до першої помилки; без підказок, відповідь лише набирати.
+  // Пройдено — якщо добіг до фінішу без жодної помилки. Рекорд — найкращий час.
+  { id: 'records', name: 'Марафон', queue: 'all', retry: false, requeue: false, lives: 1, penalty: 0, typed: true,
     hints: [], tilesOn: false, tileChoices: false },
   // Екзамен: 81 приклад по одному разу, без підказок і без другої спроби; правильну відповідь не показуємо
   { id: 'exam', name: 'Екзамен', kind: 'exam', lessons: [5], queue: 'all', retry: false, requeue: false, lives: 0, penalty: 0,
@@ -95,8 +98,8 @@ export const SEQUENCE = LESSONS.flatMap(l => modesFor(l.id).map(m => `${l.id}_${
 export const ASSETS = {
   tiles: 'assets/tiles.webp',          // сітка 9×9 картинок-добутків
   zero: 'assets/zero.webp',            // сонечко для нуля
-  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.05`,
-  storyZeroOne: 'assets/story/zero-one.webp?v=4.05',
+  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.07`,
+  storyZeroOne: 'assets/story/zero-one.webp?v=4.07',
   // Картинки карти. Поки файлу немає — показується намальована заглушка.
   // Коли картинку додано в assets/map/, допишіть її назву сюди (без .webp):
   //   'map-bg' — фон карти; 'loc1'…'loc4' — значки локацій; 'loc1-bg'…'loc4-bg' — фони екранів локацій;

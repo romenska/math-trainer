@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=4.05">
-  <script type="module" src="js/app.js?v=4.05"></script>
+  <link rel="stylesheet" href="css/style.css?v=4.07">
+  <script type="module" src="js/app.js?v=4.07"></script>
 </head>
 <body>
   <!-- Фон вікна входу: бліді приклади і цифри -->
@@ -84,7 +84,7 @@
       </header>
       <div class="stage stage--map" id="map-stage"></div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 4.05</p>
+      <p class="version">версія 4.07</p>
     </section>
 
     <!-- Довідник: таблиця множення в картинках -->
@@ -159,8 +159,14 @@
         <button class="icon-btn icon-btn--tall" type="button" data-open-stats aria-label="Статистика" title="Статистика">📊</button>
       </div>
 
+      <h2 class="label">Історія</h2>
+      <div class="segmented" id="story-view" role="radiogroup" aria-label="Як показувати історію">
+        <button type="button" role="radio" data-view="image">🖼️ Картинка</button>
+        <button type="button" role="radio" data-view="video">🎬 Відео</button>
+      </div>
+
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 4.05</p>
+      <p class="version">версія 4.07</p>
     </section>
 
     <!-- 5. Гра -->
@@ -196,7 +202,10 @@
 
       <div class="question" id="question">
         <div class="text-hint" id="text-hint" hidden></div>
-        <img class="story" id="story" alt="Картинка-історія" hidden>
+        <div class="story-pic">
+          <img class="story" id="story" alt="Картинка-історія" hidden>
+          <button class="story-play" id="story-play" type="button" hidden aria-label="Дивитися відео" title="Дивитися відео"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></button>
+        </div>
         <div class="story-video" id="story-video" hidden>
           <video class="story" id="story-vid" playsinline preload="auto"></video>
           <button class="story-video__btn" id="story-sound" type="button" hidden>🔇 Увімкнути звук</button>
