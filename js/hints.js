@@ -1,5 +1,5 @@
-import { STORIES } from './stories.js?v=4.08';
-import { ASSETS } from './config.js?v=4.08';
+import { STORIES } from './stories.js?v=4.09';
+import { ASSETS } from './config.js?v=4.09';
 // Текстові підказки-асоціації. Ключ — менший×більший множник (симетрія враховується автоматично).
 export const HINTS = {
   "2x2": "доміно (в яку гру грали два дракончики?)",

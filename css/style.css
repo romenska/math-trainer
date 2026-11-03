@@ -212,12 +212,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=4.08");
+  background-image: url("../assets/tiles.webp?v=4.09");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=4.08"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=4.09"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -643,7 +643,7 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
   display: grid; place-items: center; padding: 0 0 0 3px; background: rgba(255, 255, 255, .72); color: var(--ink);
   box-shadow: 0 4px 14px rgba(0, 0, 0, .18); backdrop-filter: blur(3px); cursor: pointer; }
 .story-play:hover { background: rgba(255, 255, 255, .9); }
-#story-view { margin-bottom: 14px; }
+.ref-modes--story { grid-template-columns: 1fr 1fr; margin-top: -4px; }
 
 /* Іконки шапки */
 .icon-btn--home { color: var(--ok); }
@@ -662,3 +662,4 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .ref-eqs { display: grid; gap: 10px; }
 .ref-eqs .ref-eq { margin: 0; border: 2px solid var(--line); border-radius: 18px; background: #fff; padding: 8px 6px; box-shadow: 0 4px 12px -8px rgba(60,40,10,.25); }
 .btn-repeat svg { vertical-align: -3px; margin-right: 4px; }
+.question.is-story .story-pic, .question.is-story .story-video { order: -1; }   /* «Історії»: спочатку картинка, під нею текст */

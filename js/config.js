@@ -49,8 +49,7 @@ export const COURSE_LESSONS = 4;   // уроки курсу (без екзаме
  *  noReveal  — після помилки не показувати правильну відповідь (екзамен)
  *  typed     — відповідь лише набирати на клавіатурі (без варіантів), незалежно від налаштування
  *  choicesOnly — відповідь лише кнопками-варіантами (навіть у режимі «Набрати»)
- *  errorHint — 'text': після помилки лише текстова підказка; 'story': лише картинка-історія (без відео)
- *  errorHint — що показати після помилки: 'text' (за замовчуванням) або 'story' (картинка-історія)
+ *  errorHint — після помилки показується лише текстова підказка
  *  lessons   — у яких уроках є рівень (якщо не вказано — у всіх)
  *  hidden    — рівень прихований: його немає на карті, в меню і в умовах переходу між рівнями
  */
@@ -70,7 +69,7 @@ export const MODES = [
   { id: 'remember', name: 'Запам’ятай', kind: 'remember', queue: 'all', retry: 'always', requeue: false, lives: 0,
     hints: ['text'], errorHint: 'text', tilesOn: false, tileChoices: false },
   { id: 'recall', name: 'Пригадай', kind: 'recall', queue: 'all', retry: 'always', requeue: false, lives: 0,
-    hints: ['text'], errorHint: 'story', tilesOn: false, tileChoices: false },
+    hints: ['text'], errorHint: 'text', tilesOn: false, tileChoices: false },
   { id: 'training', name: 'Тренування', queue: 'all', retry: true, requeue: true, lives: 0,
     hints: ['text', 'story', 'video', 'tiles'], tilesOn: false, tileChoices: false },
   { id: 'speed', name: 'Перевірка', queue: 'all', retry: false, requeue: false, lives: 3,
@@ -100,8 +99,8 @@ export const SEQUENCE = LESSONS.flatMap(l => modesFor(l.id).map(m => `${l.id}_${
 export const ASSETS = {
   tiles: 'assets/tiles.webp',          // сітка 9×9 картинок-добутків
   zero: 'assets/zero.webp',            // сонечко для нуля
-  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.08`,
-  storyZeroOne: 'assets/story/zero-one.webp?v=4.08',
+  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.09`,
+  storyZeroOne: 'assets/story/zero-one.webp?v=4.09',
   // Картинки карти. Поки файлу немає — показується намальована заглушка.
   // Коли картинку додано в assets/map/, допишіть її назву сюди (без .webp):
   //   'map-bg' — фон карти; 'loc1'…'loc4' — значки локацій; 'loc1-bg'…'loc4-bg' — фони екранів локацій;
@@ -125,7 +124,7 @@ export const ASSETS = {
   // Є аудіо історії — відео грає без звуку разом з ним. Немає аудіо — звук відео або голос пристрою.
   audioStory: [],
   audioHint: [],
-  audio: (kind, key) => `assets/audio/${kind}/${key}.mp3?v=4.08`,
+  audio: (kind, key) => `assets/audio/${kind}/${key}.mp3?v=4.09`,
   stories: [
     '2x2', '2x3', '2x4', '2x5', '2x6', '2x7', '2x8', '2x9',
     '3x2', '3x3', '3x4', '3x5', '3x6', '3x7', '3x8', '3x9',
