@@ -1,5 +1,5 @@
-import { STORIES } from './stories.js?v=4.07';
-import { ASSETS } from './config.js?v=4.07';
+import { STORIES } from './stories.js?v=4.08';
+import { ASSETS } from './config.js?v=4.08';
 // Текстові підказки-асоціації. Ключ — менший×більший множник (симетрія враховується автоматично).
 export const HINTS = {
   "2x2": "доміно (в яку гру грали два дракончики?)",
@@ -93,6 +93,12 @@ export function storyImage(a, b) {
 }
 
 /** Адреса відео-історії для a×b або null. */
+/** Аудіо до історії: kind 'story' — озвучка історії, 'hint' — озвучка підказки. Або null. */
+export function storyAudio(a, b, kind = 'story') {
+  const key = storyKey(a, b);
+  return (kind === 'hint' ? ASSETS.audioHint : ASSETS.audioStory).includes(key) ? ASSETS.audio(kind, key) : null;
+}
+
 export function storyVideo(a, b) {
   for (const k of [`${a}x${b}`, `${b}x${a}`]) if (ASSETS.videos.includes(k)) return ASSETS.video(k);
   return null;

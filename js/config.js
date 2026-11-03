@@ -48,13 +48,15 @@ export const COURSE_LESSONS = 4;   // уроки курсу (без екзаме
  *  kind      — тип завдання: 'choice' (за замовчуванням) | 'remember' | 'recall' | 'story' | 'picquiz' | 'guess' | 'exam'
  *  noReveal  — після помилки не показувати правильну відповідь (екзамен)
  *  typed     — відповідь лише набирати на клавіатурі (без варіантів), незалежно від налаштування
+ *  choicesOnly — відповідь лише кнопками-варіантами (навіть у режимі «Набрати»)
+ *  errorHint — 'text': після помилки лише текстова підказка; 'story': лише картинка-історія (без відео)
  *  errorHint — що показати після помилки: 'text' (за замовчуванням) або 'story' (картинка-історія)
  *  lessons   — у яких уроках є рівень (якщо не вказано — у всіх)
  *  hidden    — рівень прихований: його немає на карті, в меню і в умовах переходу між рівнями
  */
 export const MODES = [
   // Перший рівень кожного уроку: знайомство з НОВИМИ картинками цього уроку (герої-цифри і добутки)
-  { id: 'guess', name: 'Вгадай число', kind: 'guess', lessons: [1, 2, 3, 4], queue: 'all', retry: true, requeue: true, lives: 0,
+  { id: 'guess', name: 'Вгадай число', kind: 'guess', lessons: [1, 2, 3, 4], queue: 'all', retry: 'always', requeue: true, lives: 0, choicesOnly: true,
     hints: [], tilesOn: false, tileChoices: false },
   // Знайомство з історіями: картинка-історія + текст, під числа треба покласти картинки (як у «Пригадай»)
   { id: 'stories', name: 'Історії', kind: 'story', queue: 'all', retry: 'always', requeue: false, lives: 0,
@@ -62,11 +64,11 @@ export const MODES = [
   // Знайди картинку: назва, відео/картинка з озвучкою, текст історії + питання по історії; відповідь — картинка добутку з 3
   { id: 'picquiz', name: 'Знайди картинку', kind: 'picquiz', hidden: true, queue: 'all', retry: 'always', requeue: true, lives: 0,
     hints: [], tilesOn: false, tileChoices: false },
-  { id: 'associations', name: 'Асоціації', queue: 'all', retry: true, requeue: true, lives: 0,
+  { id: 'associations', name: 'Асоціації', queue: 'all', retry: 'always', requeue: true, lives: 0, errorHint: 'text',
     hints: ['text'], tilesOn: true, tileChoices: true },
   // Нові рівні: відповідь складається з кількох частин, пробуємо доки не буде правильно
   { id: 'remember', name: 'Запам’ятай', kind: 'remember', queue: 'all', retry: 'always', requeue: false, lives: 0,
-    hints: ['text'], errorHint: 'story', tilesOn: false, tileChoices: false },
+    hints: ['text'], errorHint: 'text', tilesOn: false, tileChoices: false },
   { id: 'recall', name: 'Пригадай', kind: 'recall', queue: 'all', retry: 'always', requeue: false, lives: 0,
     hints: ['text'], errorHint: 'story', tilesOn: false, tileChoices: false },
   { id: 'training', name: 'Тренування', queue: 'all', retry: true, requeue: true, lives: 0,
@@ -98,8 +100,8 @@ export const SEQUENCE = LESSONS.flatMap(l => modesFor(l.id).map(m => `${l.id}_${
 export const ASSETS = {
   tiles: 'assets/tiles.webp',          // сітка 9×9 картинок-добутків
   zero: 'assets/zero.webp',            // сонечко для нуля
-  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.07`,
-  storyZeroOne: 'assets/story/zero-one.webp?v=4.07',
+  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.08`,
+  storyZeroOne: 'assets/story/zero-one.webp?v=4.08',
   // Картинки карти. Поки файлу немає — показується намальована заглушка.
   // Коли картинку додано в assets/map/, допишіть її назву сюди (без .webp):
   //   'map-bg' — фон карти; 'loc1'…'loc4' — значки локацій; 'loc1-bg'…'loc4-bg' — фони екранів локацій;
@@ -118,6 +120,12 @@ export const ASSETS = {
     '4x3', '4x4', '4x5', '4x6', '4x7', '4x8', '4x9',
   ],
   video: key => `assets/story/${key}.mp4`,
+  // Окремі аудіо (mp3): озвучка історії і озвучка підказки. Ключ — як у історій: '2x3' (менший×більший) або '01'.
+  // Файли: assets/audio/story/2x3.mp3 і assets/audio/hint/2x3.mp3. Додали файл — допишіть ключ у список.
+  // Є аудіо історії — відео грає без звуку разом з ним. Немає аудіо — звук відео або голос пристрою.
+  audioStory: [],
+  audioHint: [],
+  audio: (kind, key) => `assets/audio/${kind}/${key}.mp3?v=4.08`,
   stories: [
     '2x2', '2x3', '2x4', '2x5', '2x6', '2x7', '2x8', '2x9',
     '3x2', '3x3', '3x4', '3x5', '3x6', '3x7', '3x8', '3x9',

@@ -2,8 +2,8 @@
 // Головна відмінність: хмара більше НЕ блокує запуск. Інтерфейс показується одразу
 // з локальних даних, а відповідь хмари підмішується, коли (і якщо) прийде.
 
-import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=4.07';
-import { isBetter } from './engine.js?v=4.07';
+import { CLOUD_URL, CLOUD_TIMEOUT_MS } from './config.js?v=4.08';
+import { isBetter } from './engine.js?v=4.08';
 
 export function newDeviceId() {
   const rnd = crypto.getRandomValues(new Uint32Array(2));

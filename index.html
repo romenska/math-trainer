@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=4.07">
-  <script type="module" src="js/app.js?v=4.07"></script>
+  <link rel="stylesheet" href="css/style.css?v=4.08">
+  <script type="module" src="js/app.js?v=4.08"></script>
 </head>
 <body>
   <!-- Фон вікна входу: бліді приклади і цифри -->
@@ -78,19 +78,20 @@
           </div>
         </div>
         <div class="bar__actions">
-          <button class="icon-btn" id="btn-ref" type="button" aria-label="Довідник" title="Довідник"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7M9 11h5"/></svg></button>
-          <button class="icon-btn" id="btn-settings" type="button" aria-label="Ручні налаштування" title="Ручні налаштування"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+          <button class="icon-btn icon-btn--ref" id="btn-ref" type="button" aria-label="Таблиця множення" title="Таблиця множення"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18" stroke="currentColor" stroke-width="1.6"/><path d="M4.6 4.6l2.8 2.8M7.4 4.6 4.6 7.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+          <button class="icon-btn icon-btn--stats" type="button" data-open-stats aria-label="Статистика" title="Статистика"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="12" width="4" height="8" rx="1.2" fill="currentColor" opacity=".55"/><rect x="10" y="7" width="4" height="13" rx="1.2" fill="currentColor" opacity=".8"/><rect x="16" y="3.5" width="4" height="16.5" rx="1.2" fill="currentColor"/><path d="M3 21h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+          <button class="icon-btn icon-btn--admin" id="btn-settings" type="button" aria-label="Усі тренування (ручний режим)" title="Усі тренування (ручний режим)"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg></button>
         </div>
       </header>
       <div class="stage stage--map" id="map-stage"></div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 4.07</p>
+      <p class="version">версія 4.08</p>
     </section>
 
     <!-- Довідник: таблиця множення в картинках -->
     <section class="screen" id="screen-ref" hidden>
       <header class="bar">
-        <button class="icon-btn" id="btn-ref-back" type="button" aria-label="До карти" title="До карти"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
+        <button class="icon-btn icon-btn--home" id="btn-ref-back" type="button" aria-label="Додому" title="Додому"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.2V20h4.5v-5h3v5H18v-9.8L12 5.3z" fill="currentColor"/></svg></button>
         <div class="game-title"><div>Довідник</div><div class="muted">Таблиця множення в картинках</div></div>
         <span class="bar__spacer" aria-hidden="true"></span>
       </header>
@@ -105,7 +106,7 @@
     <!-- 3. Локація (урок) -->
     <section class="screen" id="screen-location" hidden>
       <header class="bar">
-        <button class="icon-btn" id="btn-place-back" type="button" aria-label="До карти" title="До карти"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
+        <button class="icon-btn icon-btn--home" id="btn-place-back" type="button" aria-label="Додому" title="Додому"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.2V20h4.5v-5h3v5H18v-9.8L12 5.3z" fill="currentColor"/></svg></button>
         <div class="game-title">
           <div id="place-title">Локація</div>
           <div class="muted" id="place-sub"></div>
@@ -118,7 +119,7 @@
     <!-- 3б. Екзамен: графік спроб і старт -->
     <section class="screen" id="screen-exam" hidden>
       <header class="bar">
-        <button class="icon-btn" id="btn-exam-back" type="button" aria-label="До карти" title="До карти"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
+        <button class="icon-btn icon-btn--home" id="btn-exam-back" type="button" aria-label="Додому" title="Додому"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.2V20h4.5v-5h3v5H18v-9.8L12 5.3z" fill="currentColor"/></svg></button>
         <div class="game-title">
           <div>🎓 Екзамен</div>
           <div class="muted">Уся таблиця множення · 81 приклад</div>
@@ -135,7 +136,7 @@
     <!-- 4. Ручний режим (шестерня) -->
     <section class="screen" id="screen-menu" hidden>
       <header class="bar">
-        <button class="icon-btn" id="btn-menu-back" type="button" aria-label="До карти" title="До карти"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></button>
+        <button class="icon-btn icon-btn--home" id="btn-menu-back" type="button" aria-label="Додому" title="Додому"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.2V20h4.5v-5h3v5H18v-9.8L12 5.3z" fill="currentColor"/></svg></button>
         <div class="game-title"><div>Ручний режим</div><div class="muted">будь-який урок і рівень</div></div>
         <div class="bar__actions">
           <button class="icon-btn icon-btn--danger" id="btn-logout" type="button" aria-label="Вийти" title="Вийти">
@@ -156,7 +157,6 @@
           <button type="button" role="radio" data-input="novice">🌱 Вибрати</button>
           <button type="button" role="radio" data-input="expert">⌨️ Набрати</button>
         </div>
-        <button class="icon-btn icon-btn--tall" type="button" data-open-stats aria-label="Статистика" title="Статистика">📊</button>
       </div>
 
       <h2 class="label">Історія</h2>
@@ -166,14 +166,14 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 4.07</p>
+      <p class="version">версія 4.08</p>
     </section>
 
     <!-- 5. Гра -->
     <section class="screen" id="screen-game" hidden>
       <header class="bar">
-        <button class="icon-btn" id="btn-exit" type="button" aria-label="Вийти до карти" title="Вийти до карти">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
+        <button class="icon-btn icon-btn--home" id="btn-exit" type="button" aria-label="Вийти з тренування" title="Вийти з тренування">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.2V20h4.5v-5h3v5H18v-9.8L12 5.3z" fill="currentColor"/></svg>
         </button>
         <div class="game-title">
           <div id="game-lesson">Урок</div>
@@ -272,9 +272,8 @@
   <!-- Картка довідника -->
   <dialog class="modal modal--wide ref-card" id="dlg-ref">
     <div class="modal__head">
-      <button class="icon-btn" id="ref-up" type="button" aria-label="Назад" hidden>←</button>
       <h2 class="title" id="ref-title"></h2>
-      <button class="icon-btn" type="button" data-close aria-label="Закрити">✕</button>
+      <button class="icon-btn" type="button" id="ref-close" aria-label="Закрити">✕</button>
     </div>
     <div id="ref-body"></div>
   </dialog>
