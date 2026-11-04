@@ -1,17 +1,17 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=4.18';
-import { createGame, makeChoices, isBetter } from './engine.js?v=4.18';
-import { storage } from './storage.js?v=4.18';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.18';
-import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.18';
-import { discoverMedia } from './media.js?v=4.18';
-import { createMapView } from './mapview.js?v=4.18';
-import { confetti } from './confetti.js?v=4.18';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.18';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, getLesson, getMode, modesFor } from './config.js?v=4.21';
+import { createGame, makeChoices, isBetter } from './engine.js?v=4.21';
+import { storage } from './storage.js?v=4.21';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.21';
+import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.21';
+import { discoverMedia } from './media.js?v=4.21';
+import { createMapView } from './mapview.js?v=4.21';
+import { confetti } from './confetti.js?v=4.21';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.21';
 
 const $ = sel => document.querySelector(sel);
-const withV = url => (url.includes('?') ? url : `${url}?v=4.18`);   // версія для кешу, якщо в адресі її ще немає
+const withV = url => (url.includes('?') ? url : `${url}?v=4.21`);   // версія для кешу, якщо в адресі її ще немає
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
 
 const MODE_ICONS = { guess: '🔢', stories: '📖', review: '🔁', picquiz: '🖼️', associations: '🧩', remember: '🧠', recall: '🔎', training: '🏋️', speed: '✅', records: '🏃', exam: '🎓' };
@@ -183,10 +183,15 @@ async function sync({ fromLogin = false } = {}) {
 function openMenu(resetSelection = true) {
   normalizeProgress();
   if (resetSelection) app.sel = parseStage(app.profile.progress);
-  if (!modesFor(app.sel.lesson).some(m => m.id === app.sel.mode)) app.sel.mode = modesFor(app.sel.lesson)[0].id;
+  if (!selValid()) app.sel.mode = modesFor(app.sel.lesson)[0].id;
   renderMenu();
   show('screen-menu');
 }
+
+// Ручний режим: у «Екзамені» крім самого екзамену — 4 «Повторення» (sel.mode = 'review', sel.review = номер уроку)
+const isExamLesson = id => !!getLesson(id)?.exam;
+const selValid = () => (app.sel.mode === 'review' && isExamLesson(app.sel.lesson) && app.sel.review)
+  || (app.sel.mode !== 'review' && modesFor(app.sel.lesson).some(m => m.id === app.sel.mode));
 
 function renderMenu() {
   const { profile, sel } = app;
@@ -216,8 +221,18 @@ function renderMenu() {
       ${isNext ? '<span class="mode__next">наступний</span>' : ''}`;
     return b;
   }));
+  if (isExamLesson(sel.lesson)) modes.prepend(...LESSONS.filter(l => !l.exam).map(l => {
+    const b = el('button', { type: 'button', className: 'mode' });
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(sel.mode === 'review' && sel.review === l.id));
+    b.dataset.review = l.id;
+    b.innerHTML = `<span class="mode__icon" aria-hidden="true">${MODE_ICONS.review}</span>Повторення<small>урок ${l.id} · ×${l.factors.join(', ')}</small>
+      ${isPassed(l.id, 'review') ? '<span class="mode__check" aria-label="зараховано">✓</span>' : ''}`;
+    return b;
+  }));
 
-  $('#btn-start').textContent = getLesson(sel.lesson).exam ? '🎓 До екзамену: мої спроби і старт' : 'Старт';
+  const review = sel.mode === 'review' && isExamLesson(sel.lesson);
+  $('#btn-start').textContent = review ? `🔁 Старт: повторення уроку ${sel.review}` : getLesson(sel.lesson).exam ? '🎓 До екзамену: мої спроби і старт' : 'Старт';
   document.querySelectorAll('#input-mode [data-input]').forEach(b =>
     b.setAttribute('aria-checked', String(b.dataset.input === profile.inputMode)));
 }
@@ -226,10 +241,12 @@ $('#lesson-list').addEventListener('click', e => {
   const b = e.target.closest('[data-lesson]');
   if (!b) return;
   app.sel.lesson = Number(b.dataset.lesson);
-  if (!modesFor(app.sel.lesson).some(m => m.id === app.sel.mode)) app.sel.mode = modesFor(app.sel.lesson)[0].id;
+  if (!selValid()) app.sel.mode = modesFor(app.sel.lesson)[0].id;
   renderMenu();
 });
 $('#mode-list').addEventListener('click', e => {
+  const r = e.target.closest('[data-review]');
+  if (r) { app.sel.mode = 'review'; app.sel.review = Number(r.dataset.review); renderMenu(); return; }
   const b = e.target.closest('[data-mode]');
   if (!b) return;
   app.sel.mode = b.dataset.mode;
@@ -253,6 +270,7 @@ $('#input-mode').addEventListener('click', e => {
 });
 document.querySelectorAll('[data-open-stats]').forEach(b => b.addEventListener('click', openStats));
 $('#btn-start').addEventListener('click', () => {
+  if (app.sel.mode === 'review' && isExamLesson(app.sel.lesson)) { const n = app.sel.review; app.returnTo = 'menu'; startGame(n, 'review'); return; }
   if (getLesson(app.sel.lesson).exam) { openExam('menu'); return; }   // екзамен — через сторінку з графіком спроб
   app.returnTo = 'menu'; startGame(app.sel.lesson, app.sel.mode);
 });
@@ -981,7 +999,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.18');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.21');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -1040,7 +1058,7 @@ const levelPoints = n => Array.from({ length: n }, (_, i) => [
 ]);
 
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.18" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.21" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -1168,14 +1186,14 @@ function examChart(list, pct) {
 function renderMap() {
   normalizeProgress();
   const cur = parseStage(app.profile.progress).lesson;
-  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=4.18` });
+  if (!app.map) app.map = createMapView($('#map-stage'), { image: `${ASSETS.artUrl('map-bg')}?v=4.21` });
   const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
   const done = LESSONS.filter(lessonDone).length;
 
   const markers = LESSONS.map(l => {
     const modes = modesFor(l.id);
     const passed = modes.filter(m => isPassed(l.id, m.id)).length;
-    const locked = !l.exam && stageIdx(l.id, modes[0].id) > progressIdx();   // екзамен відкритий завжди
+    const locked = false;   // усі уроки, тренування й екзамен відкриті завжди, незалежно від пройденого
     const state = l.id === cur && !lessonDone(l) ? 'current' : lessonDone(l) ? 'done' : locked ? 'locked' : 'open';
     // усередині краплі — картинка уроку; стан — маленька позначка на краплі (аватарка / ✓ / 🔒)
     const inner = state === 'current' ? avatarImg() : hasArt(`loc${l.id}`) ? artImg(`loc${l.id}`, '') : tileHTML(l.place.tile, 1);
@@ -1243,7 +1261,7 @@ function renderLocation() {
   $('#place-title').textContent = l.place.name;
   $('#place-sub').textContent = `Урок ${l.id} · ×${l.factors.join(', ')}`;
   $('#place-stars').textContent = `⭐ ${passed}/${modes.length}`;
-  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=4.18` : `${ASSETS.artUrl('map-bg')}?v=4.18`;
+  const bg = hasArt(`loc${l.id}-bg`) ? `${ASSETS.artUrl(`loc${l.id}-bg`)}?v=4.21` : `${ASSETS.artUrl('map-bg')}?v=4.21`;
   if (!app.placeMap) app.placeMap = createMapView($('#place-stage'), { image: bg });
   app.placeMap.setImage(bg);
   const pts = l.place.levels?.length >= modes.length ? l.place.levels
@@ -1253,7 +1271,7 @@ function renderLocation() {
   const markers = modes.map((m, i) => {
     const idx = stageIdx(l.id, m.id);
     const done = isPassed(l.id, m.id);
-    const state = idx === pIdx && !done ? 'current' : done ? 'done' : idx > pIdx ? 'locked' : 'open';
+    const state = idx === pIdx && !done ? 'current' : done ? 'done' : 'open';   // закритих рівнів немає
     const inner = state === 'current' ? avatarImg() : hasArt(`lvl-${m.id}`) ? artImg(`lvl-${m.id}`, '') : `<span class="node__emoji">${MODE_ICONS[m.id]}</span>`;
     const badge = '';   // стан видно за кольором краплі: зелена — пройдено, сіра — закрито, жовта — поточна
     const rec = app.profile.records[recordKey(l.id, m.id)];
@@ -1284,8 +1302,10 @@ function startLevel(modeId) {
 function goBack() {
   if (app.returnTo === 'location') { app.place = app.sel.lesson; openLocation(app.place); }
   else if (app.returnTo === 'exam') openExam();
-  else if (app.returnTo === 'menu') openMenu(false);
-  else openMap();
+  else if (app.returnTo === 'menu') {
+    if (app.sel.mode === 'review') app.sel = { lesson: LESSONS.find(l => l.exam).id, mode: 'review', review: app.sel.lesson };   // назад до «Екзамену»
+    openMenu(false);
+  } else openMap();
 }
 
 /** Перемалювати відкритий екран (після синхронізації з хмарою). */
@@ -1298,12 +1318,12 @@ function refreshScreen() {
 }
 
 // ---------- Аватарка і фото ----------
-// Аватарки — персонажі гри в повний зріст (assets/avatars/0…16.webp); 13 — зелений дракончик, він за замовчуванням
+// Аватарки — персонажі гри в повний зріст (assets/avatars/0…18.webp); 13 — зелений дракончик, він за замовчуванням
 const HERO_NAMES = ['Дракончик', 'Дракоша з бантиком', 'Динозаврик', 'Мураха', 'Рибка', 'Сонечко', 'Маяк', 'Равлик',
-  'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін', 'Зелений дракончик', 'Черв’ячок', 'Муха', 'Гелікоптер'];
+  'Порося', 'Глобус', 'Гусениця', 'Телевізор', 'Дельфін', 'Зелений дракончик', 'Черв’ячок', 'Муха', 'Гелікоптер', 'Бджілка', 'Божа корівка'];
 const DEFAULT_AVATAR = 13;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `assets/avatars/${n}.webp?v=4.18`;
+const heroUrl = n => `assets/avatars/${n}.webp?v=4.21`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1629,6 +1649,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.18'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.21'; });
 }
 boot();
