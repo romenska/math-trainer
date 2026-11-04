@@ -1,7 +1,7 @@
 // Ігрова логіка без DOM: черга прикладів, перевірка відповідей, бали, життя, результат.
 // Завдяки цьому її можна тестувати окремо (див. tests/engine.test.mjs).
 
-import { SCORING } from './config.js?v=4.13';
+import { SCORING } from './config.js?v=4.18';
 
 export function shuffle(arr, rng = Math.random) {
   const a = arr.slice();
@@ -14,9 +14,12 @@ export function shuffle(arr, rng = Math.random) {
 
 const makeQuestion = (a, b) => ({ a, b, answer: a * b, key: `${a}x${b}` });
 
+/** З нулем лишаємо тільки 0×0, 0×1 і 1×0 — інші «×0» не пропонуємо. */
+export const allowedPair = (a, b) => a * b !== 0 || (a <= 1 && b <= 1);
+
 export function buildQueue(factors, rng = Math.random) {
   const all = [];
-  for (const f of factors) for (let n = 0; n <= 9; n++) all.push(makeQuestion(f, n));
+  for (const f of factors) for (let n = 0; n <= 9; n++) if (allowedPair(f, n)) all.push(makeQuestion(f, n));
   return shuffle(all, rng);
 }
 
@@ -74,7 +77,7 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
     do {
       const f = lesson.factors[Math.floor(rng() * lesson.factors.length)];
       q = makeQuestion(f, Math.floor(rng() * 10));
-    } while (s.question && q.key === s.question.key);   // без повтору підряд
+    } while ((s.question && q.key === s.question.key) || !allowedPair(q.a, q.b));   // без повтору підряд
     return q;
   }
 
@@ -93,7 +96,8 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
     s.hintOnCurrent = false;
     s.wrongOnCurrent = false;
     s.question = endless ? randomQuestion() : queue.shift() || null;
-    if (!s.question) { end(mode.lives === 0 || s.lives > 0); return null; }
+    // strict («Повторення»): зараховано, лише якщо не було жодної помилки і жодної підказки
+    if (!s.question) { end(mode.strict ? s.stats.errors === 0 && s.stats.hints === 0 : mode.lives === 0 || s.lives > 0); return null; }
     s.stats.questions += 1;
     return s.question;
   }

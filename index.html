@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=4.13">
-  <script type="module" src="js/app.js?v=4.13"></script>
+  <link rel="stylesheet" href="css/style.css?v=4.18">
+  <script type="module" src="js/app.js?v=4.18"></script>
 </head>
 <body>
   <!-- Фон вікна входу: бліді приклади і цифри -->
@@ -85,7 +85,7 @@
       </header>
       <div class="stage stage--map" id="map-stage"></div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 4.13</p>
+      <p class="version">версія 4.18</p>
     </section>
 
     <!-- Довідник: таблиця множення в картинках -->
@@ -131,7 +131,10 @@
         <span class="pill pill--stars" id="exam-best" title="Найкращий результат"></span>
       </header>
       <div class="exam-page">
-        <h2 class="exam-page__title">Мої спроби</h2>
+        <h2 class="exam-page__title">Повторення уроків</h2>
+        <p class="muted exam-page__note">Як екзамен, але з підказками. Зараховується без жодної помилки і без підказок.</p>
+        <div class="review-list" id="review-list"></div>
+        <h2 class="exam-page__title">Мої спроби екзамену</h2>
         <div class="exam-chart" id="exam-chart"></div>
         <button class="btn btn--primary btn--big btn--block" id="btn-exam-start" type="button">🎓 Почати екзамен</button>
       </div>
@@ -164,7 +167,7 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 4.13</p>
+      <p class="version">версія 4.18</p>
     </section>
 
     <!-- 5. Гра -->

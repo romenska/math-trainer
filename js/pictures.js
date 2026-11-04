@@ -5,7 +5,7 @@
 // Таблиця симетрична, і добутки з множниками ≥ 2 мають спільну картинку (2×6 і 3×4 — крокодил з вудкою).
 // А от «число 6» (1×6, равлик) і «добуток 2×3» (свисток) — різні картинки. Тому порівнюємо не числа, а картинки.
 
-import { shuffle } from './engine.js?v=4.13';
+import { shuffle } from './engine.js?v=4.18';
 
 /** Ідентифікатор картинки клітинки (r, c). */
 export function pictureId(r, c) {
@@ -90,7 +90,7 @@ export function storyQuestions(factors, rng = Math.random) {
   const out = [], seen = new Set();
   for (const a of factors) {
     if (a <= 1) {
-      const b = 2 + Math.floor(rng() * 8);
+      const b = a === 0 ? 1 : 2 + Math.floor(rng() * 8);   // з нулем — лише 0×1 (інші «×0» не пропонуємо)
       out.push({ a, b, answer: a * b, key: `${a}x${b}` });
       continue;
     }

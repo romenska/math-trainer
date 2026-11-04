@@ -4,7 +4,7 @@
 export const GITHUB_REPO = 'romenska/math-trainer';
 
 export const CLOUD_URL =
-  'https://script.google.com/macros/s/AKfycbxBDdnrJtmU7WZXVVzvAMs-WYmmelm8S8-wwtHs-j_e695oUz8pMeIa81G2Hn38aLMpBQ/exec';
+  'https://script.google.com/macros/s/AKfycbwOR5r4U_66bbiEkoqtIbS63nJ_L70swpl8Gy3fIhqng6E2m1xhfNZjLnNiJKbtOj9s4A/exec';
 export const CLOUD_TIMEOUT_MS = 6000;
 
 export const LESSONS = [
@@ -55,6 +55,7 @@ export const COURSE_LESSONS = 4;   // уроки курсу (без екзаме
  *  errorHint — після помилки показується лише текстова підказка
  *  lessons   — у яких уроках є рівень (якщо не вказано — у всіх)
  *  hidden    — рівень прихований: його немає на карті, в меню і в умовах переходу між рівнями
+ *  strict    — зараховано лише без помилок і без підказок
  */
 export const MODES = [
   // Перший рівень кожного уроку: знайомство з НОВИМИ картинками цього уроку (герої-цифри і добутки)
@@ -81,6 +82,10 @@ export const MODES = [
   // Пройдено — якщо добіг до фінішу без жодної помилки. Рекорд — найкращий час.
   { id: 'records', name: 'Марафон', queue: 'all', retry: false, requeue: false, lives: 1, penalty: 0, typed: true,
     hints: [], tilesOn: false, tileChoices: false },
+  // Повторення уроку (на сторінці екзамену): усі приклади уроку, інтерфейс як в екзамені, але з усіма підказками.
+  // Зараховано, якщо не було жодної помилки і жодної підказки. У проходження карти не входить.
+  { id: 'review', name: 'Повторення', kind: 'exam', hidden: true, strict: true, lessons: [1, 2, 3, 4], queue: 'all', retry: false,
+    requeue: false, lives: 0, penalty: 0, hints: ['text', 'story', 'video', 'tiles'], tilesOn: false, tileChoices: false, noReveal: true },
   // Екзамен: 81 приклад по одному разу, без підказок і без другої спроби; правильну відповідь не показуємо
   { id: 'exam', name: 'Екзамен', kind: 'exam', lessons: [5], queue: 'all', retry: false, requeue: false, lives: 0, penalty: 0,
     hints: [], tilesOn: false, tileChoices: false, noReveal: true },
@@ -102,8 +107,8 @@ export const SEQUENCE = LESSONS.flatMap(l => modesFor(l.id).map(m => `${l.id}_${
 export const ASSETS = {
   tiles: 'assets/tiles.webp',          // сітка 9×9 картинок-добутків
   zero: 'assets/zero.webp',            // сонечко для нуля
-  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.13`,
-  storyZeroOne: 'assets/story/zero-one.webp?v=4.13',
+  story: (a, b) => `assets/story/${a}x${b}.webp?v=4.18`,
+  storyZeroOne: 'assets/story/zero-one.webp?v=4.18',
   // Картинки карти. Поки файлу немає — показується намальована заглушка.
   // Коли картинку додано в assets/map/, допишіть її назву сюди (без .webp):
   //   'map-bg' — фон карти; 'loc1'…'loc4' — значки локацій; 'loc1-bg'…'loc4-bg' — фони екранів локацій;
@@ -129,7 +134,7 @@ export const ASSETS = {
   // Є аудіо історії — відео грає без звуку разом з ним. Немає аудіо — звук відео або голос пристрою.
   audioStory: [],
   audioHint: [],
-  audio: (kind, key) => `assets/audio/${kind}/${key}.mp3?v=4.13`,
+  audio: (kind, key) => `assets/audio/${kind}/${key}.mp3?v=4.18`,
   stories: [
     '2x2', '2x3', '2x4', '2x5', '2x6', '2x7', '2x8', '2x9',
     '3x2', '3x3', '3x4', '3x5', '3x6', '3x7', '3x8', '3x9',

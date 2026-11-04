@@ -28,16 +28,18 @@ var S = { date: 0, id: 1, name: 2, level: 3, mode: 4, input: 5, total: 6, correc
 var STUDENT_HEADERS = ['Device ID', "Ім'я", 'Режим вводу', 'Зареєстровано', 'Аватар', 'Фото', 'Остання гра', 'Ігор зіграно',
   'Пройдено рівнів', 'Пройдено до', 'Наступний рівень', 'Екзамен'];
 var STORED = 6; // перші 6 колонок «Учнів» — дані; решта розраховується
-// Аватар: номер аватарки 0–13 (13 — зелений дракончик, за замовчуванням) або «photo» — тоді показується фото з колонки «Фото» (data:image/jpeg;base64,…)
+// Аватар: номер аватарки 0–16 (13 — зелений дракончик, за замовчуванням) або «photo» — тоді показується фото з колонки «Фото» (data:image/jpeg;base64,…)
 
 // Порядок рівнів — як у тренажері (js/config.js)
 var LESSON_NAMES = { 1: 'Драконова бухта', 2: 'Острів метеликів', 3: 'Равликове містечко', 4: 'Королівство Глобуса', 5: 'Екзамен' };
 var MODES = ['guess', 'stories', 'associations', 'remember', 'recall', 'training', 'speed', 'records'];
-var MODE_NAMES = { guess: 'Вгадай число', stories: 'Історії', picquiz: 'Знайди картинку', associations: 'Асоціації', remember: 'Запам’ятай',
+var MODE_NAMES = { guess: 'Вгадай число', stories: 'Історії', picquiz: 'Знайди картинку', review: 'Повторення', associations: 'Асоціації', remember: 'Запам’ятай',
   recall: 'Пригадай', training: 'Тренування', speed: 'Перевірка', records: 'Марафон', exam: 'Екзамен' };
 var SEQUENCE = [];
 for (var l = 1; l <= 4; l++) for (var m = 0; m < MODES.length; m++) SEQUENCE.push(l + '_' + MODES[m]);
 SEQUENCE.push('5_exam');
+// Тренування, що не входять у проходження (рекорди зберігаються, прогрес не рахують)
+var EXTRA_STAGES = ['1_review', '2_review', '3_review', '4_review'];
 
 // ===================== Вхідні запити =====================
 
@@ -130,7 +132,7 @@ function appendStats(d) {
 /** Етап гри з рядка журналу: колонка «Етап», а для старих рядків — з назви уроку і режиму. */
 function stageOf(row) {
   var stage = String(row[S.stage] || '');
-  if (SEQUENCE.indexOf(stage) !== -1) return stage;
+  if (SEQUENCE.indexOf(stage) !== -1 || EXTRA_STAGES.indexOf(stage) !== -1) return stage;
   var mode = String(row[S.mode] || '');
   if (mode === 'exam') return '5_exam';
   if (mode === 'numbers') mode = 'guess';           // старі «Вгадай цифру/число» → «Вгадай число» уроку 1

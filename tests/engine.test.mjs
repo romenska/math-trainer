@@ -1,10 +1,10 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=4.13';
-import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=4.13';
-import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=4.13';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=4.13';
-import { STORIES } from '../js/stories.js?v=4.13';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=4.18';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=4.18';
+import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=4.18';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=4.18';
+import { STORIES } from '../js/stories.js?v=4.18';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -14,8 +14,10 @@ const test = (name, fn) => { fn(); passed++; console.log('✓', name); };
 
 test('черга: кожен приклад уроку рівно один раз', () => {
   const q = buildQueue(L1.factors, rng);
-  assert.equal(q.length, 30);
-  assert.equal(new Set(q.map(x => x.key)).size, 30);
+  assert.equal(q.length, 21);   // 0×0, 0×1, 1×0…1×9, 2×1…2×9 — інших «×0» немає
+  assert.equal(new Set(q.map(x => x.key)).size, 21);
+  assert.ok(q.every(x => x.a * x.b !== 0 || (x.a <= 1 && x.b <= 1)));
+  assert.equal(buildQueue([3, 4], rng).length, 18);
 });
 
 test('варіанти: 4 різні, рівно один правильний, без від’ємних', () => {
@@ -29,11 +31,11 @@ test('варіанти: 4 різні, рівно один правильний, 
   }
 });
 
-test('тренування без помилок: 30 балів, пройдено', () => {
+test('тренування без помилок: 21 бал, пройдено', () => {
   const g = createGame({ lesson: L1, mode: getMode('training'), rng });
   while (g.next()) assert.equal(g.answer(g.question.answer).then, 'next');
   const r = g.result();
-  assert.equal(r.score, 30); assert.equal(r.questions, 30); assert.equal(r.errors, 0); assert.ok(r.passed);
+  assert.equal(r.score, 21); assert.equal(r.questions, 21); assert.equal(r.errors, 0); assert.ok(r.passed);
 });
 
 test('тренування: помилка → ще спроба → приклад повертається в чергу', () => {
@@ -43,7 +45,7 @@ test('тренування: помилка → ще спроба → прикл�
   assert.equal(r1.then, 'retry'); assert.equal(r1.reveal, false);
   assert.equal(g.answer(q.answer).then, 'next');
   assert.equal(g.stats.score, 0);
-  assert.equal(g.progress().total, 31);
+  assert.equal(g.progress().total, 22);
   let seen = 0;
   while (g.next()) { if (g.question.key === q.key) seen++; g.answer(g.question.answer); }
   assert.equal(seen, 1, 'приклад з помилкою з’являється ще раз');
@@ -77,11 +79,11 @@ test('перевірка: 3 помилки → кінець, не пройден
   assert.ok(g.finished); assert.equal(g.result().passed, false); assert.equal(g.next(), null);
 });
 
-test('перевірка: 2 помилки з 30 → пройдено', () => {
+test('перевірка: 2 помилки з 21 → пройдено', () => {
   const g = createGame({ lesson: L1, mode: getMode('speed'), rng });
   let i = 0;
   while (g.next()) g.answer(i++ < 2 ? -1 : g.question.answer);
-  assert.equal(g.result().passed, true); assert.equal(g.result().questions, 30);
+  assert.equal(g.result().passed, true); assert.equal(g.result().questions, 21);
 });
 
 test('марафон: усі приклади уроку на час, без помилок = пройдено', () => {
@@ -101,7 +103,7 @@ test('марафон: перша помилка — зійшов з дистан
 });
 
 test('історії: у кожної назва, текст, озвучка, правильна і 2 неправильні підказки; підказка тренування = правильна', async () => {
-  const { STORIES } = await import('../js/stories.js?v=4.13');
+  const { STORIES } = await import('../js/stories.js?v=4.18');
   assert.equal(Object.keys(STORIES).length, 37);
   for (const [k, st] of Object.entries(STORIES)) {
     assert.ok(st.title && st.text && st.voice && st.hint, k);
@@ -188,7 +190,7 @@ test('«Запам’ятай»/«Пригадай»: помилки не зак
   assert.equal(g.judge(true).then, 'next');
   assert.equal(g.stats.errors, 5); assert.equal(g.stats.score, 0);
   while (g.next()) g.judge(true);
-  assert.equal(g.result().questions, 30); assert.ok(g.result().passed);
+  assert.equal(g.result().questions, 21); assert.ok(g.result().passed);
 });
 
 test('картинки: число 6 ≠ добуток 2×3, а 2×6 = 3×4', () => {
@@ -243,7 +245,7 @@ test('екзамен: 81 приклад 1×1…9×9, без повторів; п
 });
 
 await (async () => {
-  const { shareCode } = await import('../js/cloud.js?v=4.13');
+  const { shareCode } = await import('../js/cloud.js?v=4.18');
   const c = await shareCode('dev_k3j9x2mq81');
   assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
   assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));
@@ -273,7 +275,7 @@ test('applyStories: тексти з таблиці накладаються, п�
 });
 
 test('медіа з GitHub: назви з «х» і «x», будь-який порядок, ×0/×1 → zero-one', async () => {
-  const { parseMediaName, indexFiles } = await import('../js/media.js?v=4.13');
+  const { parseMediaName, indexFiles } = await import('../js/media.js?v=4.18');
   assert.deepEqual(parseMediaName('5х7.mp4'), { key: '5x7', ext: 'mp4' });
   assert.deepEqual(parseMediaName('7X5.MP4'), { key: '7x5', ext: 'mp4' });
   assert.deepEqual(parseMediaName('1х0.mp4'), { key: 'zero-one', ext: 'mp4' });
@@ -284,4 +286,20 @@ test('медіа з GitHub: назви з «х» і «x», будь-який п�
   assert.ok(idx['5x9'].startsWith('assets/story/5%D1%859.mp4?h=abcdef12'));
   const dup = indexFiles('assets/story', [{ type: 'file', name: '5x5.mp4', sha: 'small', size: 900 }, { type: 'file', name: '5х5.mp4', sha: 'big', size: 5000 }], ['mp4']);
   assert.ok(dup['5x5'].includes('h=small'), 'з двох однакових — менший файл');
+});
+
+test('повторення: зараховано лише без помилок і без підказок', () => {
+  const m = getMode('review');
+  let g = createGame({ lesson: L1, mode: m, rng });
+  while (g.next()) g.answer(g.question.answer);
+  assert.ok(g.result().passed);
+  g = createGame({ lesson: L1, mode: m, rng });
+  let i = 0;
+  while (g.next()) { if (i++ === 0) g.useHint(); g.answer(g.question.answer); }
+  assert.equal(g.result().passed, false, 'з підказкою — не зараховано');
+  g = createGame({ lesson: L1, mode: m, rng });
+  i = 0;
+  while (g.next()) g.answer(i++ === 3 ? -1 : g.question.answer);
+  assert.equal(g.result().passed, false, 'з помилкою — не зараховано');
+  assert.ok(!SEQUENCE.some(s => s.endsWith('_review')), 'у проходження не входить');
 });
