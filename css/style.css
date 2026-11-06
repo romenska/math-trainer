@@ -213,12 +213,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=4.44");
+  background-image: url("../assets/tiles.webp?v=4.47");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=4.44"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=4.47"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -821,3 +821,71 @@ body { padding: 0; display: block; background: var(--card); }
 .wmap .gpin--gate { transform: translate(-30px, -26px); }
 .wmap .gpin::after { display: none; }
 .wmap .gpin { transform-origin: 30px 26px; }   /* масштаб — довкола центру кружечка */
+
+/* ===== Карта в стилі Duolingo Kids ===== */
+#screen-map { position: static; inset: auto; background: #fff; }
+body:has(#screen-map:not([hidden])) { background: #fff; }
+#screen-map > .bar { position: sticky; top: 0; left: auto; right: auto; z-index: 6; margin: 0 -4px; border-radius: 18px;
+  background: rgba(255,255,255,.94); box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+#screen-map .stage--map.dmap { position: static; inset: auto; height: auto; background: #fff; border-radius: 0; box-shadow: none; margin: 0; overflow: visible; }
+#screen-map .stage-note { position: static; translate: none; margin: 8px auto; display: block; width: fit-content; }
+#screen-map .version { position: static; text-align: center; margin: 16px 0 0; }
+.dpath { display: flex; flex-direction: column; align-items: center; gap: 26px; padding: 28px 0 40px; }
+.dstep { position: relative; translate: var(--x) 0; display: grid; justify-items: center; gap: 6px; }
+.dnode { --size: 92px; --c: #58cc02; position: relative; width: var(--size); height: var(--size); border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; transition: transform .12s; }
+.dnode--lesson { --size: 128px; }
+.dnode:active { transform: translateY(4px) scale(.97); }
+.dnode__ring { position: absolute; inset: -9px; border-radius: 50%; background: #e5e5e5; }
+.dnode--lesson .dnode__ring { background: conic-gradient(#ffc800 calc(var(--p) * 1%), #e5e5e5 0); }
+.dnode__pic { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: #fff; box-shadow: 0 6px 0 rgba(0,0,0,.14); display: grid; place-items: center; }
+.dnode__pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dnode__pic .node__emoji { font-size: 2.6rem; }
+.dnode.is-open .dnode__ring { background: var(--c); }
+.dnode.is-done .dnode__ring { background: #ffc800; }
+.dnode--lesson.is-done .dnode__ring { background: #ffc800; }
+.dnode.is-current .dnode__ring { background: var(--c); animation: dring 1.4s ease-in-out infinite; }
+.dnode--lesson.is-current .dnode__ring { background: conic-gradient(#ffc800 calc(var(--p) * 1%), #58cc02 0); }
+@keyframes dring { 50% { box-shadow: 0 0 0 9px rgba(88,204,2,.25); scale: 1.05; } }
+.dnode.is-locked .dnode__pic img, .dnode.is-locked .node__emoji { filter: grayscale(1) brightness(1.1); opacity: .55; }
+.dnode.is-locked .dnode__ring { background: #e5e5e5; }
+.dnode__badge { position: absolute; right: -6px; bottom: -4px; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: #ffc800; color: #fff; font: 900 1rem var(--font); box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+.dnode.is-locked .dnode__badge { background: #afafaf; font-size: .85rem; }
+.dnode__me { position: absolute; left: -52px; top: 50%; translate: 0 -50%; width: 52px; height: 52px; }
+.dnode__me .avatar-img { width: 100%; height: 100%; }
+.dstart { position: absolute; top: -34px; z-index: 2; padding: 6px 14px; border-radius: 12px; background: #fff; border: 2px solid #e5e5e5;
+  color: #58cc02; font: 900 .9rem var(--font); text-transform: uppercase; letter-spacing: .04em; animation: dbob 1.4s ease-in-out infinite; }
+.dstart::after { content: ''; position: absolute; left: 50%; bottom: -8px; translate: -50% 0; border: 7px solid transparent; border-bottom: 0; border-top-color: #e5e5e5; }
+@keyframes dbob { 50% { translate: 0 -5px; } }
+.dlabel { display: grid; justify-items: center; text-align: center; max-width: 170px; }
+.dlabel b { font: 700 .95rem var(--font-fun); color: #3c3c3c; }
+.dlabel small { color: #8a8a8a; font-size: .75rem; }
+.dbanner { position: sticky; top: 76px; z-index: 5; display: flex; align-items: center; gap: 12px; margin: 12px 0 0; padding: 12px 14px; border-radius: 16px;
+  background: var(--c); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.15); }
+.dbanner small { display: block; font: 800 .72rem var(--font); opacity: .85; letter-spacing: .06em; }
+.dbanner b { font: 800 1.15rem var(--font-fun); }
+.dbanner__back { width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255,255,255,.25); color: #fff; font: 900 1.8rem/1 var(--font); }
+.dbanner__stars { margin-left: auto; font-weight: 800; }
+.dmodal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(20,30,45,.4); }
+.dmodal[hidden] { display: none; }
+.dmodal .dmodal__card { position: relative; transform: none; width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow: auto; flex-wrap: wrap; justify-content: center; }
+.dmodal .dmodal__card::after { display: none; }
+@media (prefers-reduced-motion: reduce) { .dnode.is-current .dnode__ring, .dstart { animation: none; } }
+.dpath { gap: 34px; }
+.dstep:has(.dstart) { margin-top: 26px; }
+.dstart { top: -46px; }
+
+/* без замочків: закрите — просто сіре; пройдене — зелений обідок і зелена галочка */
+.dnode.is-done .dnode__ring, .dnode--lesson.is-done .dnode__ring { background: #58cc02; }
+.dnode__badge { background: #58cc02; }
+/* поточне: кнопка «дихає», а за нею (нижній шар) — аватарка розміром з кнопку, визирає на 80 % */
+.dstep { isolation: isolate; }
+.dnode.is-current { animation: dpulse 1.6s ease-in-out infinite; }
+@keyframes dpulse { 50% { transform: scale(1.06); } }
+.dnode__me { position: absolute; z-index: -1; top: 0; left: 50%; width: 92px; height: 92px; translate: calc(-50% - 92px * .8) 0;
+  animation: dpeek 2.2s ease-in-out infinite; }
+.dnode__me--lesson { width: 128px; height: 128px; translate: calc(-50% - 128px * .8) 0; }
+.dstep:has(.dstart) .dnode__me { top: 0; }
+.dnode__me .avatar-img { width: 100%; height: 100%; object-fit: contain; }
+@keyframes dpeek { 50% { rotate: -6deg; } }
+@media (prefers-reduced-motion: reduce) { .dnode.is-current, .dnode__me { animation: none; } }

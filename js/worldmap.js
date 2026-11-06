@@ -170,9 +170,9 @@ export function createWorldMap(root, { panel, gap } = {}) {
 
   // ---------- жести ----------
   const pointers = new Map();
-  let moved = 0, last = null;
+  let moved = 0, last = null, downAt = null;
   root.addEventListener('pointerdown', e => {
-    if (!pointers.size) moved = 0;                 // новий дотик: попереднє перетягування не рахується
+    downAt = [e.clientX, e.clientY];               // де почався цей дотик — клік чи перетягування вирішуємо по ньому
     if (e.target.closest('.gpin, .wdlg, .gmap__ctrl')) return;
     root.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, [e.clientX, e.clientY]);
@@ -200,6 +200,7 @@ export function createWorldMap(root, { panel, gap } = {}) {
     }
   });
   const up = e => { if (pointers.delete(e.pointerId)) last = null; };
+  root.addEventListener('lostpointercapture', e => { pointers.delete(e.pointerId); last = null; });
   root.addEventListener('pointerup', up);
   root.addEventListener('pointercancel', up);
   root.addEventListener('wheel', e => {
@@ -231,7 +232,8 @@ export function createWorldMap(root, { panel, gap } = {}) {
     const go = e.target.closest('[data-open]');
     if (go) { closeDialog(); onPick(go.dataset.open); return; }
     const pin = e.target.closest('.gpin');
-    if (pin && moved < 6) openDialog(pin.dataset.id);
+    // мітка: відкриваємо, якщо палець/мишка не зсунулись між натисканням і відпусканням
+    if (pin && (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 12)) openDialog(pin.dataset.id);
   });
   root.addEventListener('keydown', e => { if (e.key === 'Escape' && !dlg.hidden) closeDialog(); });
 
