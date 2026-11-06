@@ -172,6 +172,7 @@ export function createWorldMap(root, { panel, gap } = {}) {
   const pointers = new Map();
   let moved = 0, last = null;
   root.addEventListener('pointerdown', e => {
+    if (!pointers.size) moved = 0;                 // новий дотик: попереднє перетягування не рахується
     if (e.target.closest('.gpin, .wdlg, .gmap__ctrl')) return;
     root.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, [e.clientX, e.clientY]);

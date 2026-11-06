@@ -1,17 +1,17 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, TEXTS, HEROES_CFG, MAP_CFG, COURSE, COURSE_ID, OP, getLesson, getMode, modesFor } from './config.js?v=4.43';
-import { createGame, makeChoices, isBetter } from './engine.js?v=4.43';
-import { storage } from './storage.js?v=4.43';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.43';
-import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.43';
-import { discoverMedia } from './media.js?v=4.43';
-import { createWorldMap, placeholderPanel, defaultSpots } from './worldmap.js?v=4.43';
-import { confetti } from './confetti.js?v=4.43';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.43';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, TEXTS, HEROES_CFG, MAP_CFG, COURSE, COURSE_ID, OP, getLesson, getMode, modesFor } from './config.js?v=4.44';
+import { createGame, makeChoices, isBetter } from './engine.js?v=4.44';
+import { storage } from './storage.js?v=4.44';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.44';
+import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.44';
+import { discoverMedia } from './media.js?v=4.44';
+import { createWorldMap, placeholderPanel, defaultSpots } from './worldmap.js?v=4.44';
+import { confetti } from './confetti.js?v=4.44';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.44';
 
 const $ = sel => document.querySelector(sel);
-const withV = url => (url.includes('?') ? url : `${url}?v=4.43`);   // версія для кешу, якщо в адресі її ще немає
+const withV = url => (url.includes('?') ? url : `${url}?v=4.44`);   // версія для кешу, якщо в адресі її ще немає
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
 
 // Значки й правила рівнів — з course.json
@@ -187,7 +187,7 @@ let courseList = null;
 async function renderCourses() {
   const box = $('#course-list');
   if (!courseList) {
-    try { courseList = (await (await fetch('courses/index.json?v=4.43')).json()).courses || []; } catch { courseList = []; }
+    try { courseList = (await (await fetch('courses/index.json?v=4.44')).json()).courses || []; } catch { courseList = []; }
   }
   box.hidden = courseList.length < 2;
   box.previousElementSibling.hidden = box.hidden;
@@ -1052,7 +1052,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.43');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.44');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -1103,7 +1103,7 @@ $('#stats-body').addEventListener('click', e => {
 
 // ---------- Карта гри ----------
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.43" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.44" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -1305,7 +1305,7 @@ function renderMap() {
     });
 
     panels.push({
-      src: `${ASSETS.mapImage(l.id)}?v=4.43`, state: !open ? 'locked' : done ? 'done' : 'open', reveal,
+      src: `${ASSETS.mapImage(l.id)}?v=4.44`, state: !open ? 'locked' : done ? 'done' : 'open', reveal,
       entry: l.place.gate || [0, 50], out: l.place.out || [100, 50], link: l.place.entry, seamless: Boolean(l.place.seamless), route: l.place.route || [],
       // відрізок k веде до тренування k — пройдений, якщо пройдено те тренування; останній (до наступного уроку) — якщо пройдено урок
       routeDone: (l.place.route || []).map((_, k) => (k < stops.length ? isPassed(stops[k].lesson, stops[k].mode) : done)),
@@ -1356,7 +1356,7 @@ function refreshScreen() {
 const HERO_NAMES = HEROES_CFG?.names || [];   // персонажі-аватарки — з course.json
 const DEFAULT_AVATAR = HEROES_CFG?.default ?? 0;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `${ASSETS.hero(n)}?v=4.43`;
+const heroUrl = n => `${ASSETS.hero(n)}?v=4.44`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1690,6 +1690,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.43'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.44'; });
 }
 boot();
