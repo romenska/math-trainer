@@ -1,8 +1,8 @@
 // Диплом: малюємо на canvas (персонажі зі спрайту, ім'я, за що, дата, ID, QR) і зберігаємо як PDF.
 // PDF збираємо самі: одна сторінка A4 (альбомна) з картинкою JPEG — без сторонніх бібліотек.
 
-import qrcode from './vendor/qrcode.mjs?v=4.21';
-import { ASSETS } from './config.js?v=4.21';
+import qrcode from './vendor/qrcode.mjs?v=4.43';
+import { ASSETS, TEXTS, COURSE, HEROES_CFG } from './config.js?v=4.43';
 
 const W = 2339, H = 1654;           // A4 альбомна, ~200 dpi
 const GOLD = '#d9962b', GOLD_DARK = '#a8691a', INK = '#3b2f2a', MUTED = '#8a7b70';
@@ -115,7 +115,7 @@ export async function drawDiploma(d) {
 
   // персонажі уроку зверху (0 — сонечко, 1–9 — герої-цифри зі спрайту)
   try {
-    const [tiles, sun] = await Promise.all([loadImg(`${ASSETS.tiles}?v=4.21`), loadImg(`${ASSETS.zero}?v=4.21`)]);
+    const [tiles, sun] = await Promise.all([loadImg(`${ASSETS.tiles}?v=4.43`), loadImg(`${ASSETS.zero}?v=4.43`)]);
     const T = tiles.naturalWidth / 9;
     const heroes = d.heroes?.length ? d.heroes : [3, 2, 0, 6, 8];
     const size = heroes.length <= 2 ? 300 : heroes.length === 3 ? 280 : 250, gap = 60;
@@ -176,7 +176,7 @@ export async function drawDiploma(d) {
   ctx.fillStyle = MUTED; ctx.font = `500 30px ${BODY}`;
   let footY = qrY + qrSize + 45;
   if (d.time) { ctx.font = `600 32px ${FUN}`; ctx.fillText(d.time, 220, footY); footY += 50; ctx.font = `500 30px ${BODY}`; }
-  ctx.fillText('Тренажер множення', 220, footY);
+  ctx.fillText(TEXTS.diplomaFooter || COURSE.title || '', 220, footY);
   return cv;
 }
 
@@ -228,8 +228,8 @@ export function examCertificate({ name, rec, date, code }) {
   const time = date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   return drawDiploma({
     heading: 'СЕРТИФІКАТ', name,
-    title: 'про складання екзамену з курсу «Множення»', subtitle: 'уся таблиця множення: від 1×1 до 9×9',
-    heroes: [2, 6, 8],
+    title: TEXTS.certificateTitle || '', subtitle: TEXTS.certificateSubtitle || '',
+    heroes: HEROES_CFG?.certificateHeroes || [0],
     stats: [
       { label: 'правильних відповідей', value: `${pct}%`, note: `${Number(rec.correct) || 0} з ${rec.totalQuestions}` },
       { label: 'тривалість', value: fmtTime(Number(rec.time) || 0), note: 'хвилин : секунд' },

@@ -1,11 +1,12 @@
 // Картинки таблиці множення: що на якій клітинці і як збирати завдання з картинок.
+import { OP, LESSONS } from './config.js?v=4.43';
 //
 // Спрайт — таблиця 9×9: перший рядок/стовпчик — картинки ЧИСЕЛ (1 — маяк, 2 — дракон, …, 9 — глобус),
 // клітинка на перетині (r, c) — картинка-асоціація ДОБУТКУ. Нуль — сонечко.
 // Таблиця симетрична, і добутки з множниками ≥ 2 мають спільну картинку (2×6 і 3×4 — крокодил з вудкою).
 // А от «число 6» (1×6, равлик) і «добуток 2×3» (свисток) — різні картинки. Тому порівнюємо не числа, а картинки.
 
-import { shuffle } from './engine.js?v=4.21';
+import { shuffle } from './engine.js?v=4.43';
 
 /** Ідентифікатор картинки клітинки (r, c). */
 export function pictureId(r, c) {
@@ -108,9 +109,10 @@ export function storyQuestions(factors, rng = Math.random) {
 
 /** Уся таблиця множення 1×1 … 9×9 — 81 приклад. */
 export function examQuestions() {
-  const out = [];
-  for (let a = 1; a <= 9; a++) for (let b = 1; b <= 9; b++) out.push({ a, b, answer: a * b, key: `${a}x${b}` });
-  return out;
+  if (OP.exam) return OP.exam();
+  // інші дії: усі приклади всіх уроків курсу, кожен один раз
+  const seen = new Set();
+  return LESSONS.filter(l => !l.exam).flatMap(l => l.factors.flatMap(f => OP.pairs(f))).filter(q => !seen.has(q.key) && seen.add(q.key));
 }
 
 // ---------- «Вгадай число»: нові картинки уроку ----------

@@ -1,0 +1,274 @@
+{
+  "$about": "Увесь вміст курсу. Логіка гри (js/) читає його і нічого не знає про конкретний предмет. Новий курс = копія цієї папки з іншим вмістом; відкривається як ?course=<назва папки>.",
+  "id": "subtraction",
+  "title": "Тренажер віднімання",
+  "description": "Тренажер віднімання для дітей",
+  "operation": "sub",
+  "texts": {
+    "title": "Тренажер віднімання",
+    "examSubtitle": "Усі приклади курсу · 100",
+    "examNote": "100 прикладів, на все — 33:20 (по 20 секунд на приклад). Під кульками видно, де ти маєш бути за часом. Прохідний бал — 60% правильних відповідей. Якщо час вийде, рахуються відповіді, дані до того.",
+    "examStop": "100 прикладів · 33:20 на все · прохідний бал 60%",
+    "examRange": "0−0 … 18−9",
+    "diplomaFooter": "Тренажер віднімання",
+    "certificateTitle": "про складання екзамену з курсу «Віднімання»",
+    "certificateSubtitle": "усі приклади: 0−0 … 18−9"
+  },
+  "backend": {
+    "cloudUrl": "",
+    "githubRepo": "romenska/math-trainer",
+    "timeoutMs": 6000,
+    "$about": "Порожня cloudUrl — прогрес лише на пристрої. Для таблиці: копія Google-скрипта, нове розгортання, адресу сюди."
+  },
+  "scoring": {
+    "clean": 1,
+    "penalty": 1
+  },
+  "feedbackMs": {
+    "right": 350,
+    "wrong": 900
+  },
+  "map": {
+    "$about": "Карта — вертикальні картинки уроків одна за одною зліва направо, між ними проміжок (gap), де гра сама малює перехід — дорожку, місток чи ворота (place.entry) — від точки виходу place.out одного уроку до точки входу place.gate наступного (x%, y% картинки; за замовчуванням посередині лівого / правого краю). Немає картинки — малюється заглушка (theme).",
+    "panel": {
+      "width": 1000,
+      "height": 1500
+    },
+    "image": "courses/subtraction/map/lesson{id}.webp",
+    "gap": 250
+  },
+  "courseLessons": 4,
+  "lessons": [
+    {
+      "id": 1,
+      "name": "Урок 1: Віднімання 0, 1, 2",
+      "factors": [
+        0,
+        1,
+        2
+      ],
+      "place": {
+        "name": "Драконова бухта",
+        "tile": 2,
+        "theme": "bay",
+        "entry": "gate",
+        "exit": "bridge"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Урок 2: Віднімання 3, 4",
+      "factors": [
+        3,
+        4
+      ],
+      "place": {
+        "name": "Острів метеликів",
+        "tile": 3,
+        "theme": "island",
+        "entry": "bridge",
+        "exit": "bridge"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Урок 3: Віднімання 5, 6",
+      "factors": [
+        5,
+        6
+      ],
+      "place": {
+        "name": "Равликове містечко",
+        "tile": 6,
+        "theme": "farm",
+        "entry": "gate",
+        "exit": "road"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Урок 4: Віднімання 7, 8, 9",
+      "factors": [
+        7,
+        8,
+        9
+      ],
+      "place": {
+        "name": "Королівство Глобуса",
+        "tile": 9,
+        "theme": "castle",
+        "entry": "gate",
+        "exit": "gate"
+      }
+    },
+    {
+      "id": 5,
+      "exam": true,
+      "name": "Екзамен: віднімання — усі приклади",
+      "factors": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "place": {
+        "name": "Екзамен",
+        "tile": 9,
+        "theme": "finish",
+        "entry": "gate",
+        "exit": "none"
+      }
+    }
+  ],
+  "modes": [
+    {
+      "id": "training",
+      "name": "Тренування",
+      "queue": "all",
+      "retry": true,
+      "requeue": true,
+      "lives": 0,
+      "hints": [
+        "text"
+      ],
+      "tilesOn": false,
+      "tileChoices": false,
+      "icon": "🏋️",
+      "rules": "Розв’язуй приклади. Якщо важко — відкрий підказку (за такий приклад бал не нараховується). Помилка — ще одна спроба."
+    },
+    {
+      "id": "speed",
+      "name": "Перевірка",
+      "queue": "all",
+      "retry": false,
+      "requeue": false,
+      "lives": 3,
+      "hints": [],
+      "tilesOn": false,
+      "tileChoices": false,
+      "icon": "✅",
+      "rules": "Без підказок, 3 життя. Перевірку пройдено, якщо розв’язати всі приклади уроку, не втративши всі життя."
+    },
+    {
+      "id": "records",
+      "name": "Марафон",
+      "queue": "all",
+      "retry": false,
+      "requeue": false,
+      "lives": 1,
+      "penalty": 0,
+      "typed": true,
+      "hints": [],
+      "tilesOn": false,
+      "tileChoices": false,
+      "icon": "🏃",
+      "rules": "Забіг на час: усі приклади уроку, відповідь набирай сам, без підказок. Одна помилка — і ти сходиш з дистанції. Добіжи до фінішу без помилок і покращ свій час 🏆!"
+    },
+    {
+      "id": "review",
+      "name": "Повторення",
+      "kind": "exam",
+      "hidden": true,
+      "strict": true,
+      "secPerQuestion": 20,
+      "lessons": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "queue": "all",
+      "retry": false,
+      "requeue": false,
+      "lives": 0,
+      "penalty": 0,
+      "hints": [
+        "text"
+      ],
+      "tilesOn": false,
+      "tileChoices": false,
+      "noReveal": true,
+      "icon": "🔁",
+      "rules": "Усі приклади уроку, відповідь набирай сам. Можна відкривати підказки, але повторення зараховується, лише якщо не було жодної помилки і жодної підказки 💪"
+    },
+    {
+      "id": "exam",
+      "name": "Екзамен",
+      "kind": "exam",
+      "lessons": [
+        5
+      ],
+      "queue": "all",
+      "retry": false,
+      "requeue": false,
+      "lives": 0,
+      "penalty": 0,
+      "secPerQuestion": 20,
+      "timeLimit": true,
+      "passPct": 0.6,
+      "hints": [],
+      "tilesOn": false,
+      "tileChoices": false,
+      "noReveal": true,
+      "icon": "🎓",
+      "rules": "Усі приклади курсу: 100, кожен один раз. Відповідь набирай сам, без варіантів і підказок. На кожен приклад — 20 секунд. Удачі! 🍀"
+    }
+  ],
+  "heroes": {
+    "image": "assets/avatars/{n}.webp",
+    "default": 13,
+    "certificateHeroes": [
+      2,
+      6,
+      8
+    ],
+    "names": [
+      "Дракончик",
+      "Дракоша з бантиком",
+      "Динозаврик",
+      "Мураха",
+      "Рибка",
+      "Сонечко",
+      "Маяк",
+      "Равлик",
+      "Порося",
+      "Глобус",
+      "Гусениця",
+      "Телевізор",
+      "Дельфін",
+      "Зелений дракончик",
+      "Черв’ячок",
+      "Муха",
+      "Гелікоптер",
+      "Бджілка",
+      "Божа корівка"
+    ]
+  },
+  "assets": {
+    "tiles": null,
+    "zero": null,
+    "story": "courses/subtraction/story/{key}.webp",
+    "video": "courses/subtraction/story/{key}.mp4",
+    "audio": "courses/subtraction/audio/{kind}/{key}.mp3",
+    "art": "courses/subtraction/map/{name}.webp",
+    "artList": [],
+    "stories": [],
+    "videos": [],
+    "audioStory": [],
+    "audioHint": [],
+    "mediaDirs": {
+      "story": "courses/subtraction/story",
+      "audioStory": "courses/subtraction/audio/story",
+      "audioHint": "courses/subtraction/audio/hint"
+    }
+  },
+  "stories": {},
+  "hints": {},
+  "zeroOneHint": ""
+}

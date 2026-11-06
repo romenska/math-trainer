@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=4.21">
-  <script type="module" src="js/app.js?v=4.21"></script>
+  <link rel="stylesheet" href="css/style.css?v=4.43">
+  <script type="module" src="js/app.js?v=4.43"></script>
 </head>
 <body>
   <!-- Фон вікна входу: бліді приклади і цифри -->
@@ -58,7 +58,7 @@
           <span class="tile login__hero login__hero--big" style="--r:0;--c:1;--d:0s"></span>
           <span class="tile login__hero" style="--r:0;--c:5;--d:.6s"></span>
         </div>
-        <h1 class="login__title">Тренажер множення</h1>
+        <h1 class="login__title" data-text="title">Тренажер множення</h1>
         <form id="login-form" class="stack" autocomplete="off">
           <input id="login-input" class="field" type="text" maxlength="40" placeholder="Вкажи своє ім'я" required aria-describedby="login-hint">
           <p class="hint-text login__hint" id="login-hint">Вже грав на іншому пристрої? Введи в поле свій пароль (починається з <code>dev_</code>) — і прогрес повернеться.</p>
@@ -78,21 +78,21 @@
           </div>
         </div>
         <div class="bar__actions">
-          <button class="icon-btn icon-btn--ref" id="btn-ref" type="button" aria-label="Таблиця множення" title="Таблиця множення"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18" stroke="currentColor" stroke-width="1.6"/><path d="M4.6 4.6l2.8 2.8M7.4 4.6 4.6 7.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+          <button class="icon-btn icon-btn--ref" id="btn-ref" type="button" aria-label="Таблиця множення" title="Таблиця множення" data-text-label="refButton"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18" stroke="currentColor" stroke-width="1.6"/><path d="M4.6 4.6l2.8 2.8M7.4 4.6 4.6 7.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
           <button class="icon-btn icon-btn--stats" type="button" data-open-stats aria-label="Статистика" title="Статистика"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="12" width="4" height="8" rx="1.2" fill="currentColor" opacity=".55"/><rect x="10" y="7" width="4" height="13" rx="1.2" fill="currentColor" opacity=".8"/><rect x="16" y="3.5" width="4" height="16.5" rx="1.2" fill="currentColor"/><path d="M3 21h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
           <button class="icon-btn icon-btn--admin" id="btn-settings" type="button" aria-label="Усі тренування (ручний режим)" title="Усі тренування (ручний режим)"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg></button>
         </div>
       </header>
       <div class="stage stage--map" id="map-stage"></div>
       <p class="stage-note muted" id="map-note"></p>
-      <p class="version">версія 4.21</p>
+      <p class="version">версія 4.43</p>
     </section>
 
     <!-- Довідник: таблиця множення в картинках -->
     <section class="screen" id="screen-ref" hidden>
       <header class="bar">
         <button class="icon-btn icon-btn--home" id="btn-ref-back" type="button" aria-label="Додому" title="Додому"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.2V20h4.5v-5h3v5H18v-9.8L12 5.3z" fill="currentColor"/></svg></button>
-        <div class="game-title"><div>Довідник</div><div class="muted">Таблиця множення в картинках</div></div>
+        <div class="game-title"><div data-text="refTitle">Довідник</div><div class="muted" data-text="refSubtitle">Таблиця множення в картинках</div></div>
         <span class="bar__spacer" aria-hidden="true"></span>
       </header>
       <div class="segmented ref-modes" id="ref-modes" role="radiogroup" aria-label="Що показувати">
@@ -107,26 +107,13 @@
       <div class="ref-grid" id="ref-grid"></div>
     </section>
 
-    <!-- 3. Локація (урок) -->
-    <section class="screen" id="screen-location" hidden>
-      <header class="bar">
-        <button class="icon-btn icon-btn--home" id="btn-place-back" type="button" aria-label="Додому" title="Додому"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.2V20h4.5v-5h3v5H18v-9.8L12 5.3z" fill="currentColor"/></svg></button>
-        <div class="game-title">
-          <div id="place-title">Локація</div>
-          <div class="muted" id="place-sub"></div>
-        </div>
-        <span class="pill pill--stars" id="place-stars" title="Пройдено рівнів"></span>
-      </header>
-      <div class="stage stage--place" id="place-stage"></div>
-    </section>
-
     <!-- 3б. Екзамен: графік спроб і старт -->
     <section class="screen" id="screen-exam" hidden>
       <header class="bar">
         <button class="icon-btn icon-btn--home" id="btn-exam-back" type="button" aria-label="Додому" title="Додому"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.2V20h4.5v-5h3v5H18v-9.8L12 5.3z" fill="currentColor"/></svg></button>
         <div class="game-title">
           <div>🎓 Екзамен</div>
-          <div class="muted">Уся таблиця множення · 81 приклад</div>
+          <div class="muted" data-text="examSubtitle">Уся таблиця множення · 81 приклад</div>
         </div>
         <span class="pill pill--stars" id="exam-best" title="Найкращий результат"></span>
       </header>
@@ -135,6 +122,7 @@
         <p class="muted exam-page__note">Як екзамен, але з підказками. Зараховується без жодної помилки і без підказок.</p>
         <div class="review-list" id="review-list"></div>
         <h2 class="exam-page__title">Мої спроби екзамену</h2>
+        <p class="muted exam-page__note" data-text="examNote">81 приклад, на все — 27 хвилин (по 20 секунд на приклад). Під кульками видно, як іде час. Прохідний бал — 60% правильних відповідей. Якщо час вийде, рахуються відповіді, дані до того.</p>
         <div class="exam-chart" id="exam-chart"></div>
         <button class="btn btn--primary btn--big btn--block" id="btn-exam-start" type="button">🎓 Почати екзамен</button>
       </div>
@@ -152,6 +140,9 @@
         </div>
       </header>
 
+      <h2 class="label">Курс</h2>
+      <div class="course-list" id="course-list" role="radiogroup" aria-label="Курс"></div>
+
       <h2 class="label">Урок</h2>
       <div class="lessons" id="lesson-list" role="radiogroup" aria-label="Урок"></div>
 
@@ -167,7 +158,7 @@
       </div>
 
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 4.21</p>
+      <p class="version">версія 4.43</p>
     </section>
 
     <!-- 5. Гра -->

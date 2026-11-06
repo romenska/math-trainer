@@ -7,11 +7,11 @@
 // Назва — два множники через «x» (можна й українською «х» або «×»): 5x7, 5х7, 7x5 — одна історія.
 // Список файлів береться з GitHub API (один запит на папку) і зберігається на пристрої на 10 хвилин.
 
-import { GITHUB_REPO } from './config.js?v=4.21';
+import { GITHUB_REPO, ASSETS } from './config.js?v=4.43';
 
 const CACHE_KEY = 'math_trainer_media';
 const TTL_MS = 10 * 60 * 1000;
-const DIRS = { story: 'assets/story', audioStory: 'assets/audio/story', audioHint: 'assets/audio/hint' };
+const DIRS = { story: 'assets/story', audioStory: 'assets/audio/story', audioHint: 'assets/audio/hint', ...ASSETS.mediaDirs };
 
 /** «5х7.mp4» → { key: '5x7', ext: 'mp4' }; «zero-one.mp3» або «1x0.mp3» → key 'zero-one'. */
 export function parseMediaName(name) {

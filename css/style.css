@@ -213,12 +213,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=4.21");
+  background-image: url("../assets/tiles.webp?v=4.43");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=4.21"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=4.43"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -415,11 +415,19 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .exam-bar { margin: 0 0 12px; }
 .exam-bar__top { display: flex; justify-content: space-between; align-items: center; font-size: .9rem; color: var(--muted); margin-bottom: 8px; }
 .exam-bar__top b { color: var(--ink); }
-.exam-dots { display: grid; grid-template-columns: repeat(27, 1fr); gap: 3px; }
-.exam-dots span { aspect-ratio: 1; border-radius: 50%; background: #e3ddd2; transition: background-color .2s, transform .2s; }
-.exam-dots span.ok { background: var(--ok); }
-.exam-dots span.bad { background: var(--bad); }
-.exam-dots span.cur { box-shadow: 0 0 0 2px var(--primary); transform: scale(1.15); }
+.exam-dots { display: grid; grid-template-columns: repeat(27, 1fr); gap: 0; position: relative; }
+.exam-dots span {
+  /* кулька-відповідь; під нею — прямокутна заливка часу: клітинки без проміжків, тож заливка йде суцільною
+     смугою зліва направо і рядок за рядком — до кульки, до якої «за часом» уже треба дійти */
+  --dot: #e3ddd2;
+  aspect-ratio: 1; transition: transform .2s;
+  background: radial-gradient(circle closest-side, var(--dot) 0 70%, transparent 76%),
+    linear-gradient(to right, #b9dafb calc(var(--p, 0) * 100%), transparent 0);
+}
+.exam-dots span.ok { --dot: var(--ok); }
+.exam-dots span.bad { --dot: var(--bad); }
+.exam-dots span.hint { --dot: #f5c518; }   /* правильно, але з підказкою */
+.exam-dots span.cur { background: radial-gradient(circle closest-side, #fff 0 52%, var(--primary) 56% 74%, transparent 80%), linear-gradient(to right, #b9dafb calc(var(--p, 0) * 100%), transparent 0); }
 
 /* Ручні налаштування: перемикач відповіді і статистика в один ряд */
 .input-row { display: flex; gap: 8px; align-items: stretch; }
@@ -675,3 +683,141 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 .review-btn .ok { color: var(--ok); font-weight: 700; font-size: .85rem; }
 .review-btn .muted { font-size: .8rem; }
 .review-btn.is-done { border-color: var(--ok); background: var(--ok-soft); }
+
+@keyframes pulse { 50% { opacity: .55; } }
+
+/* ===== Повноекранний режим: гра на все вікно браузера ===== */
+body { padding: 0; display: block; background: var(--card); }
+#app.card {
+  max-width: none; min-height: 100dvh; border: 0; border-radius: 0; box-shadow: none;
+  padding: max(14px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+#app > .screen:not(#screen-map) { max-width: 760px; margin-inline: auto; }
+#screen-game { min-height: calc(100dvh - 40px); }
+
+/* Карта — на весь екран, шапка плаває зверху */
+#screen-map { position: fixed; inset: 0; z-index: 2; background: #cfe6f5; }
+#screen-map > .bar {
+  position: absolute; z-index: 6; top: max(10px, env(safe-area-inset-top)); left: 10px; right: 10px;
+  padding: 8px 10px; border: 0; border-radius: 18px;
+  background: rgba(255,255,255,.88); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0,0,0,.12);
+}
+#screen-map .stage--map { position: absolute; inset: 0; width: auto; aspect-ratio: auto; margin: 0; border-radius: 0; min-width: 0; background: #cfe6f5; }
+#screen-map .stage-note { position: absolute; z-index: 5; left: 50%; translate: -50% 0; top: calc(max(10px, env(safe-area-inset-top)) + 78px);
+  margin: 0; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.9); color: var(--ink); font-weight: 700; white-space: nowrap; }
+#screen-map .stage-note:empty { display: none; }
+#screen-map .version { position: absolute; z-index: 5; left: 12px; bottom: max(8px, env(safe-area-inset-bottom)); margin: 0; opacity: .7; }
+#screen-map .gmap__total { top: auto; bottom: max(12px, env(safe-area-inset-bottom)); left: 50%; translate: -50% 0; right: auto; }
+#screen-map .gmap__ctrl { bottom: max(14px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right)); }
+
+/* ===== Карта гри: смуга картинок уроків ===== */
+.wmap__world { right: auto; bottom: auto; }
+.wpanel { position: absolute; left: 0; overflow: hidden; }
+.wpanel__img { width: 100%; height: 100%; display: block; pointer-events: none; user-select: none; }
+/* сіра карта; пройдений урок — кольоровий */
+.wpanel--open .wpanel__img, .wpanel--locked .wpanel__img { filter: grayscale(1) contrast(.92) brightness(1.06); }
+.wpanel--locked .wpanel__img { filter: grayscale(1) contrast(.85) brightness(.97); }
+.wpanel--done .wpanel__img { filter: none; }
+/* кольорова «пляма»: той самий шматок кольорової картинки з м'яким краєм */
+.wspot {
+  position: absolute; border-radius: 50%; background-repeat: no-repeat; pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle, #000 58%, transparent 71%); mask-image: radial-gradient(circle, #000 58%, transparent 71%);
+}
+.wspot.is-current { animation: spot-pulse 2.2s ease-in-out infinite; }
+@keyframes spot-pulse { 0%, 100% { transform: scale(1); filter: saturate(1); } 50% { transform: scale(1.12); filter: saturate(1.35) brightness(1.06); } }
+
+/* мітки: менші, підпис-номер на вході */
+.wmap .gpin { width: 50px; height: 60px; scale: var(--pin, 1); transform-origin: 0 0; }   /* вістря краплі лишається на місці */
+.wmap .gpin__in .node__emoji { font-size: 1.3rem; }
+.gpin--locked .gpin__head { background: #9aa1aa; }
+.gpin--locked .gpin__in { filter: grayscale(1); opacity: .75; }
+.gpin--gate { width: 58px; height: 70px; }
+.gpin--gate .gpin__head { background: #7c3aed; }
+.gpin--gate.gpin--done .gpin__head { background: #1e9e57; }
+.gpin--gate.gpin--locked .gpin__head { background: #9aa1aa; }
+.gpin__label { position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px;
+  background: #fff; color: var(--ink); font: 800 .78rem/22px var(--font-fun); box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+
+/* вікно мітки — завжди по центру екрана, нічого не обрізається */
+.wdlg { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; padding: 16px; background: rgba(20,30,45,.35); }
+.wdlg .wdlg__card { position: relative; transform: none; left: auto; top: auto; width: min(440px, 100%); max-height: calc(100% - 24px); overflow: auto;
+  flex-wrap: wrap; justify-content: center; animation: dlg-in .18s ease-out; }
+.wdlg .wdlg__card::after { display: none; }
+.gbubble__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.gbubble__btns .btn { margin-top: 8px; }
+@keyframes dlg-in { from { opacity: 0; transform: scale(.94); } }
+@media (max-width: 380px) { .wdlg .wdlg__card { flex-direction: column; text-align: center; } .wdlg .gbubble__body { text-align: center; justify-items: center; } }
+@media (prefers-reduced-motion: reduce) { .wspot.is-current, .wdlg__card { animation: none; } }
+
+/* перемикач курсів (ручний режим) */
+.course-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.course-btn { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 2px solid var(--line); background: #fff; font-weight: 700; }
+.course-btn[aria-checked="true"] { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
+.course-btn__icon { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); font: 800 1.2rem var(--font-fun); }
+
+/* переходи між картинками уроків (малює гра): дорожка або місток; закритий урок — сірий */
+.wlinks { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.wlinks path { fill: none; stroke-linecap: butt; }
+.wlink { filter: grayscale(1) opacity(.75); }
+.wlink.is-open { filter: none; }
+.wlink__road { stroke: #e3c48d; stroke-width: 64; stroke-linecap: round; }
+.wlink__dash { stroke: #fff6dc; stroke-width: 9; stroke-dasharray: 26 30; }
+.wlink__rail { stroke: #7a4e26; stroke-width: 78; }
+.wlink__deck { stroke: #c9965c; stroke-width: 64; }
+.wlink__planks { stroke: #9a6a3a; stroke-width: 64; stroke-dasharray: 5 24; }
+/* м'які краї картинок — переходять у фон проміжку */
+.wpanel { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 3%, #000 97%, transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 3%, #000 97%, transparent 100%); }
+/* стик без проміжку: з того боку край не розмиваємо */
+.wpanel--seam-l { -webkit-mask-image: linear-gradient(to right, #000 97%, transparent 100%); mask-image: linear-gradient(to right, #000 97%, transparent 100%); }
+.wpanel--seam-r { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 3%); mask-image: linear-gradient(to right, transparent 0, #000 3%); }
+.wpanel--seam-l.wpanel--seam-r { -webkit-mask-image: none; mask-image: none; }
+
+/* Карта завжди кольорова: стан показують лише мітки
+   (сіра — закрито, помаранчева — відкрито, зелена — пройдено, поточна — блимає) */
+.wpanel .wpanel__img, .wpanel--open .wpanel__img, .wpanel--locked .wpanel__img { filter: none; }
+.wspot { display: none; }
+.wmap .gpin__head { padding: 6px; }                 /* ширший кольоровий обідок навколо картинки мітки */
+.wmap .gpin--gate .gpin__head { padding: 7px; }
+.wmap .gpin--current .gpin__head { animation: pin-blink 1.1s ease-in-out infinite; }
+@keyframes pin-blink {
+  0%, 100% { scale: 1; filter: none; box-shadow: -2px 4px 8px rgba(0,0,0,.35), 0 0 0 0 rgba(246,177,59,.8); }
+  50% { scale: 1.14; filter: brightness(1.15); box-shadow: -2px 4px 8px rgba(0,0,0,.35), 0 0 0 12px rgba(246,177,59,0); }
+}
+@media (prefers-reduced-motion: reduce) { .wmap .gpin--current .gpin__head { animation: none; } }
+
+/* Екран тренування — рівно на висоту вікна: кнопки внизу завжди видно без прокрутки.
+   Картинка/відео історії стискаються під вільне місце, решта — свого розміру. */
+#app.card { --pad-t: max(14px, env(safe-area-inset-top)); --pad-b: max(20px, env(safe-area-inset-bottom)); }
+#screen-game:not([hidden]) {
+  display: flex; flex-direction: column; height: calc(100dvh - var(--pad-t) - var(--pad-b)); min-height: 0;
+}
+#screen-game > * { flex: none; }
+#screen-game > .hud { margin: 8px 0; }
+#screen-game > .hint-bar { margin: 8px 0; }
+#screen-game > .question { flex: 1 1 auto; min-height: 120px; overflow: hidden; padding: 12px; }
+#screen-game .question > .story-pic, #screen-game .question > .story-video {
+  flex: 1 1 0; min-height: 0; display: flex; align-items: center; justify-content: center;
+}
+#screen-game .question > .story-pic:not(:has(.story:not([hidden]))) { display: none; }
+#screen-game .question .story { width: auto; height: auto; max-width: 100%; max-height: 100%; min-height: 0; }
+#screen-game .question > .text-hint { flex: none; max-height: 30%; overflow: auto; }
+@media (max-height: 700px) {
+  #screen-game > .bar { padding-bottom: 8px; }
+  #screen-game .keypad button { height: 46px; }
+  #screen-game .expr { font-size: clamp(2rem, 9vw, 3rem); }
+}
+
+/* стрілочки напрямку на доріжках */
+.warrows { position: absolute; left: 0; top: 0; pointer-events: none; }
+.warrow path { fill: #fff; stroke: #8a5a2b; stroke-width: 3; stroke-linejoin: round; opacity: .95; }
+
+/* маршрут по доріжках: майбутній — напівпрозорий, пройдений — синій */
+.wroute { position: absolute; left: 0; top: 0; pointer-events: none; }
+.wroute path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.wroute__next { stroke: rgba(255, 255, 255, .6); stroke-width: 12; }
+.wroute__done { stroke: #2563eb; stroke-width: 12; }
+/* крапля-мітка: центр кружечка — точно в центрі галявинки на карті */
+.wmap .gpin { transform: translate(-30px, -26px); }
+.wmap .gpin--gate { transform: translate(-30px, -26px); }
+.wmap .gpin::after { display: none; }
+.wmap .gpin { transform-origin: 30px 26px; }   /* масштаб — довкола центру кружечка */

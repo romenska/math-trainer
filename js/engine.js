@@ -1,7 +1,8 @@
 // Ігрова логіка без DOM: черга прикладів, перевірка відповідей, бали, життя, результат.
 // Завдяки цьому її можна тестувати окремо (див. tests/engine.test.mjs).
 
-import { SCORING } from './config.js?v=4.21';
+import { SCORING, OP } from './config.js?v=4.43';
+import { nearChoices } from './ops.js?v=4.43';
 
 export function shuffle(arr, rng = Math.random) {
   const a = arr.slice();
@@ -12,19 +13,17 @@ export function shuffle(arr, rng = Math.random) {
   return a;
 }
 
-const makeQuestion = (a, b) => ({ a, b, answer: a * b, key: `${a}x${b}` });
+/** З нулем у множенні лишаємо тільки 0×0, 0×1 і 1×0 — інші «×0» не пропонуємо. */
+export const allowedPair = (a, b) => OP.allowed(a, b);
 
-/** З нулем лишаємо тільки 0×0, 0×1 і 1×0 — інші «×0» не пропонуємо. */
-export const allowedPair = (a, b) => a * b !== 0 || (a <= 1 && b <= 1);
-
+/** Усі приклади уроку для дії курсу (js/ops.js). */
 export function buildQueue(factors, rng = Math.random) {
-  const all = [];
-  for (const f of factors) for (let n = 0; n <= 9; n++) if (allowedPair(f, n)) all.push(makeQuestion(f, n));
-  return shuffle(all, rng);
+  return shuffle(factors.flatMap(f => OP.pairs(f)), rng);
 }
 
 /** Три правдоподібні неправильні варіанти: сусіди в таблиці множення, а не випадкове ±5. */
 export function makeChoices(q, rng = Math.random) {
+  if (OP.sign !== '×') return shuffle(nearChoices(q, rng), rng);   // додавання, віднімання, ділення
   const near = [
     [q.a, q.b + 1], [q.a, q.b - 1], [q.a + 1, q.b], [q.a - 1, q.b],
     [q.a, q.b + 2], [q.a, q.b - 2], [q.a + 1, q.b + 1], [q.a - 1, q.b - 1],
@@ -69,14 +68,14 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
     passed: false,
     startedAt: now(),
     endedAt: null,
-    stats: { score: 0, questions: 0, correct: 0, errors: 0, hints: 0 },
+    stats: { score: 0, questions: 0, correct: 0, clean: 0, errors: 0, hints: 0 },   // clean — правильно без підказки
   };
 
   function randomQuestion() {
     let q;
     do {
       const f = lesson.factors[Math.floor(rng() * lesson.factors.length)];
-      q = makeQuestion(f, Math.floor(rng() * 10));
+      q = OP.random(f, Math.floor(rng() * 10));
     } while ((s.question && q.key === s.question.key) || !allowedPair(q.a, q.b));   // без повтору підряд
     return q;
   }
@@ -85,7 +84,7 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
     if (s.finished) return;
     s.finished = true;
     s.passed = passed;
-    s.endedAt = now();
+    s.endedAt = s.endedAt ?? now();
     s.question = null;
   }
 
@@ -97,7 +96,13 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
     s.wrongOnCurrent = false;
     s.question = endless ? randomQuestion() : queue.shift() || null;
     // strict («Повторення»): зараховано, лише якщо не було жодної помилки і жодної підказки
-    if (!s.question) { end(mode.strict ? s.stats.errors === 0 && s.stats.hints === 0 : mode.lives === 0 || s.lives > 0); return null; }
+    if (!s.question) {
+      // passPct (екзамен): зараховано, якщо правильних не менше passPct від усіх прикладів
+      end(mode.strict ? s.stats.errors === 0 && s.stats.hints === 0
+        : mode.passPct ? passedByPct()
+        : mode.lives === 0 || s.lives > 0);
+      return null;
+    }
     s.stats.questions += 1;
     return s.question;
   }
@@ -128,8 +133,9 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
 
     if (isRight) {
       s.stats.correct += 1;
+      if (!s.hintOnCurrent) s.stats.clean += 1;
       if (!s.hintOnCurrent && !s.wrongOnCurrent) s.stats.score += SCORING.clean;
-      return { right: true, reveal: false, then: 'next', correctAnswer: q.answer };
+      return { right: true, hinted: s.hintOnCurrent, reveal: false, then: 'next', correctAnswer: q.answer };
     }
 
     s.stats.errors += 1;
@@ -158,6 +164,20 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
 
   const elapsedMs = () => (s.endedAt ?? now()) - s.startedAt;
 
+  /** Прохідний бал: правильні БЕЗ підказок від усіх прикладів (без відповіді — як неправильні). */
+  function passedByPct() { return s.stats.clean >= Math.ceil(s.total * mode.passPct); }
+
+  /** Ліміт часу (екзамен: secPerQuestion × кількість прикладів), мс; 0 — без ліміту. */
+  const limitMs = () => (mode.timeLimit && mode.secPerQuestion ? mode.secPerQuestion * s.total * 1000 : 0);
+  const leftMs = () => (limitMs() ? Math.max(0, limitMs() - elapsedMs()) : Infinity);
+  /** Час вийшов — гра закінчується; рахуються лише правильні без підказок від усіх прикладів. */
+  function timeUp() {
+    if (s.finished) return;
+    s.timedOut = true;
+    if (s.endedAt === null) s.endedAt = Math.min(now(), s.startedAt + limitMs());
+    end(mode.passPct ? passedByPct() : false);
+  }
+
   function progress() {
     const remaining = queue.length + (s.question ? 1 : 0);
     return { total: s.total, remaining, done: s.total - remaining };
@@ -168,6 +188,7 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
     return {
       ...s.stats,
       passed: s.passed,
+      timedOut: Boolean(s.timedOut),
       time: Math.round(elapsedMs() / 1000),
       perMinute: Math.round((s.stats.correct / secs) * 60 * 10) / 10,
       speed: Math.round((s.stats.correct / secs) * 100) / 100, // прикладів/с — як у старій таблиці
@@ -175,7 +196,7 @@ export function createGame({ lesson, mode, questions = null, rng = Math.random, 
   }
 
   return {
-    mode, lesson, next, answer, judge, useHint, finish, progress, result, elapsedMs,
+    mode, lesson, next, answer, judge, useHint, finish, progress, result, elapsedMs, limitMs, leftMs, timeUp,
     get question() { return s.question; },
     get lives() { return s.lives; },
     get finished() { return s.finished; },

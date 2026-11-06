@@ -1,13 +1,16 @@
+import { COURSE_ID } from './config.js?v=4.43';
 // Локальне збереження. Ключі ті самі, що в старій версії, — прогрес учнів не загубиться.
 // При виході видаляються ЛИШЕ ці ключі (localStorage.clear() стирав би дані
 // всіх інших сайтів на romenska.github.io — у них спільне сховище).
 
+// Прогрес і налаштування — окремо для кожного курсу (основний курс — старі назви, щоб нічого не загубилось)
+const P = COURSE_ID === 'multiplication' ? 'math_trainer_' : `course_${COURSE_ID}_`;
 const KEYS = {
   deviceId: 'math_trainer_device_id',
   nickname: 'math_trainer_nickname',
-  records: 'math_trainer_records',
+  records: `${P}records`,
   progress: 'math_trainer_combined_level', // більше не використовується (прогрес рахується з рекордів); лишився, щоб «Вийти» його прибрав
-  settings: 'math_trainer_settings',
+  settings: `${P}settings`,
   avatar: 'math_trainer_avatar',   // номер аватарки 0–13 (assets/avatars) або «photo»
   photo: 'math_trainer_photo',     // фото обличчя (data:image/jpeg;base64,…)
 };
