@@ -1,17 +1,17 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, TEXTS, HEROES_CFG, MAP_CFG, COURSE, COURSE_ID, OP, getLesson, getMode, modesFor } from './config.js?v=4.52';
-import { createGame, makeChoices, isBetter } from './engine.js?v=4.52';
-import { mulPair } from './ops.js?v=4.52';
-import { storage } from './storage.js?v=4.52';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.52';
-import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.52';
-import { discoverMedia } from './media.js?v=4.52';
-import { confetti } from './confetti.js?v=4.52';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.52';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, TEXTS, HEROES_CFG, MAP_CFG, COURSE, COURSE_ID, OP, getLesson, getMode, modesFor } from './config.js?v=4.58';
+import { createGame, makeChoices, isBetter } from './engine.js?v=4.58';
+import { mulPair } from './ops.js?v=4.58';
+import { storage } from './storage.js?v=4.58';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.58';
+import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.58';
+import { discoverMedia } from './media.js?v=4.58';
+import { confetti } from './confetti.js?v=4.58';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.58';
 
 const $ = sel => document.querySelector(sel);
-const withV = url => (url.includes('?') ? url : `${url}?v=4.52`);   // версія для кешу, якщо в адресі її ще немає
+const withV = url => (url.includes('?') ? url : `${url}?v=4.58`);   // версія для кешу, якщо в адресі її ще немає
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
 
 // Темп екзамену й повторень: секунд на одне питання (налаштування в ручному режимі; за замовчуванням — з course.json)
@@ -202,7 +202,7 @@ let courseList = null;
 async function renderCourses() {
   const box = $('#course-list');
   if (!courseList) {
-    try { courseList = (await (await fetch('courses/index.json?v=4.52')).json()).courses || []; } catch { courseList = []; }
+    try { courseList = (await (await fetch('courses/index.json?v=4.58')).json()).courses || []; } catch { courseList = []; }
   }
   box.hidden = courseList.length < 2;
   box.previousElementSibling.hidden = box.hidden;
@@ -362,7 +362,7 @@ function nextQuestion() {
   app.slots = [null, null, null];
   app.marks = [null, null, null];
   app.active = 0;
-  app.bank = ['recall', 'story'].includes(app.game.mode.kind) ? recallBank(q) : [];
+  app.bank = ['recall', 'story'].includes(app.game.mode.kind) ? recallBank(q, 9) : [];
   $('#question').classList.remove('is-right', 'is-wrong');
   hideHints();
   // Підказка «картинки» в тренуванні діє лише на один приклад
@@ -419,8 +419,8 @@ function renderQuestion(reveal = false) {
 /** «Вгадай цифру» і «Вгадай число»: велика картинка = ? */
 function renderPicture(q, reveal) {
   const ans = reveal ? q.answer : (app.typed || '?');
-  $('#expr').innerHTML = `<span class="factor factor--huge">${tileHTML(q.pic[0], q.pic[1])}</span>
-    <span class="op">=</span><span class="ans${reveal ? ' reveal' : ''}">${ans}</span>`;
+  // картинка-загадка без «= ?»: відповідь — одна з 9 кнопок унизу (після відповіді число з'являється під картинкою)
+  $('#expr').innerHTML = `<span class="factor factor--huge">${tileHTML(q.pic[0], q.pic[1])}${reveal ? `<span class="ans reveal">${q.answer}</span>` : ''}</span>`;
   $('#expr').setAttribute('aria-label', 'Яке число на картинці?');
   if (!$('#choices').hidden) renderChoices();
 }
@@ -492,8 +492,9 @@ function renderPuzzle(reveal = false) {
     };
     $('#expr').innerHTML = `${col(0)}<span class="op">${OP.sign}</span>${col(1)}<span class="op">=</span>${col(2)}`;
     const placed = new Set(app.slots.filter(Boolean).map(p => p.id));
-    $('#puzzle').innerHTML = `<div class="bank">${app.bank.map(p => `<button type="button" class="bank__item"
-      data-piece="${p.id}"${placed.has(p.id) ? ' hidden' : ''}${off ? ' disabled' : ''}>${tileHTML(p.r, p.c)}</button>`).join('')}</div>
+    // вибрана картинка лишається на своєму місці, але стає чорно-білою (натиснути ще раз — повернути її з завдання)
+    $('#puzzle').innerHTML = `<div class="bank">${app.bank.map(p => `<button type="button" class="bank__item${placed.has(p.id) ? ' is-used' : ''}"
+      data-piece="${p.id}"${off ? ' disabled' : ''}>${tileHTML(p.r, p.c)}</button>`).join('')}</div>
       <button class="btn btn--primary btn--block" type="button" data-check ${off || app.slots.includes(null) || app.storyWatching ? 'disabled' : ''}>${app.storyWatching ? '🎬 Спочатку подивись історію' : 'Перевірити'}</button>`;
   }
 }
@@ -536,6 +537,8 @@ $('#puzzle').addEventListener('click', e => {
   const b = e.target.closest('[data-piece]');
   if (!b) return;
   const piece = app.bank.find(p => p.id === Number(b.dataset.piece));
+  const at = app.slots.findIndex(x => x?.id === piece.id);
+  if (at !== -1) { app.slots[at] = null; app.marks[at] = null; app.active = at; renderPuzzle(); return; }   // уже в завданні — повернути
   const i = app.slots[app.active] ? firstEmpty() : app.active;
   app.slots[i] = piece;
   app.marks[i] = null;
@@ -597,6 +600,8 @@ function checkPuzzle() {
 function renderChoices(revealValue = null, wrongValue = null) {
   const tiles = app.game.mode.tileChoices;
   $('#choices').classList.toggle('choices--tiles', Boolean(tiles));
+  $('#choices').classList.toggle('choices--nine', app.choices.length === 9);
+  $('#question').classList.toggle('is-riddle', Boolean(app.game.question?.pic));
   $('#question').classList.toggle('is-assoc', Boolean(tiles));
   $('#choices').replaceChildren(...app.choices.map((c, i) => {
     const b = el('button', { type: 'button', className: 'choice' });
@@ -869,6 +874,7 @@ $('#story-sound').addEventListener('click', () => {
 /** Підказка після помилки — не рахується як «взята», бал за приклад і так втрачено. */
 function showAutoHint() {
   const q = app.game.question;
+  if (app.game.mode.kind === 'story') return;   // «Історії»: після помилки відео/картинка лишаються, текст не показуємо
   hideHints();
   if (q.pic) return; // у «Вгадай цифру/число» підказок немає
   // після помилки — лише текстова підказка (картинку і відео дитина може відкрити окремими кнопками-підказками)
@@ -1092,7 +1098,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.52');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.58');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -1148,7 +1154,7 @@ $('#stats-body').addEventListener('click', e => {
 
 // ---------- Карта гри ----------
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.52" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.58" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -1177,7 +1183,8 @@ const fmtDur = secs => {
 const lessonTime = l => modesFor(l.id).reduce((t, m) => t + (Number(app.profile.records[recordKey(l.id, m.id)]?.time) || 0), 0);
 
 // ---------- Сторінка екзамену: графік спроб ----------
-const EXAM_KEY = 'math_trainer_exam_history';
+// спроби екзамену — окремо для кожного курсу (множення — стара назва, щоб не загубити історію)
+const EXAM_KEY = COURSE_ID === 'multiplication' ? 'math_trainer_exam_history' : `course_${COURSE_ID}_exam_history`;
 function loadExamHistory() {
   try { const v = JSON.parse(localStorage.getItem(EXAM_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; }
 }
@@ -1421,6 +1428,10 @@ function lessonPathHTML(l, pIdx) {
 /** Кнопка тренування: своя для уроку (lvl-<тренування>-<урок>), інакше спільна (lvl-<тренування>), інакше значок. */
 function stopPic(l, s) {
   const own = `lvl-${s.mode}-${s.mode === 'review' ? `r${s.lesson}` : l.id}`;
+  if (!hasArt(own) && (s.mode === 'review' || s.mode === 'exam')) {   // повторення — картинка свого уроку, екзамен — картинка екзамену
+    const loc = `loc${s.mode === 'review' ? s.lesson : l.id}`;
+    if (hasArt(loc)) return artImg(loc, '');
+  }
   return hasArt(own) ? artImg(own, '') : hasArt(`lvl-${s.mode}`) ? artImg(`lvl-${s.mode}`, '') : `<span class="node__emoji">${s.icon}</span>`;
 }
 
@@ -1507,7 +1518,7 @@ function refreshScreen() {
 const HERO_NAMES = HEROES_CFG?.names || [];   // персонажі-аватарки — з course.json
 const DEFAULT_AVATAR = HEROES_CFG?.default ?? 0;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `${ASSETS.hero(n)}?v=4.52`;
+const heroUrl = n => `${ASSETS.hero(n)}?v=4.58`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1842,6 +1853,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.52'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.58'; });
 }
 boot();

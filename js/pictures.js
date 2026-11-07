@@ -1,13 +1,13 @@
 // Картинки таблиці множення: що на якій клітинці і як збирати завдання з картинок.
-import { OP, LESSONS } from './config.js?v=4.52';
-import { mulPair } from './ops.js?v=4.52';
+import { OP, LESSONS } from './config.js?v=4.58';
+import { mulPair } from './ops.js?v=4.58';
 //
 // Спрайт — таблиця 9×9: перший рядок/стовпчик — картинки ЧИСЕЛ (1 — маяк, 2 — дракон, …, 9 — глобус),
 // клітинка на перетині (r, c) — картинка-асоціація ДОБУТКУ. Нуль — сонечко.
 // Таблиця симетрична, і добутки з множниками ≥ 2 мають спільну картинку (2×6 і 3×4 — крокодил з вудкою).
 // А от «число 6» (1×6, равлик) і «добуток 2×3» (свисток) — різні картинки. Тому порівнюємо не числа, а картинки.
 
-import { shuffle } from './engine.js?v=4.52';
+import { shuffle } from './engine.js?v=4.58';
 
 /** Ідентифікатор картинки клітинки (r, c). */
 export function pictureId(r, c) {
@@ -149,9 +149,9 @@ export function guessQuestions(lessons, lessonId) {
 const ALL_VALUES = [...new Set([...Array(10).keys(), ...numberQuestions().map(x => x.answer), 4, 6, 8, 9])].sort((x, y) => x - y);
 export function makeGuessChoices(q, rng = Math.random) {
   const i = ALL_VALUES.indexOf(q.answer);
-  const near = [i - 1, i + 1, i - 2, i + 2, i - 3, i + 3].filter(j => j >= 0 && j < ALL_VALUES.length).map(j => ALL_VALUES[j]);
-  const wrong = shuffle(near.slice(0, 5), rng).slice(0, 3);
-  return shuffle([q.answer, ...wrong], rng).map(value => ({ value }));
+  // 9 варіантів (сітка 3×3): правильне число + 8 найближчих серед чисел-картинок
+  const near = ALL_VALUES.filter(v => v !== q.answer).sort((x, y) => Math.abs(ALL_VALUES.indexOf(x) - i) - Math.abs(ALL_VALUES.indexOf(y) - i));
+  return shuffle([q.answer, ...near.slice(0, 8)], rng).map(value => ({ value }));
 }
 
 // ---------- «Знайди картинку»: відповідь на питання історії — картинка добутку ----------

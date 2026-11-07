@@ -1,10 +1,10 @@
 // Запуск: node tests/engine.test.mjs  (потрібен Node 18+)
 import assert from 'node:assert/strict';
-import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=4.52';
-import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=4.52';
-import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=4.52';
-import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=4.52';
-import { STORIES } from '../js/stories.js?v=4.52';
+import { createGame, makeChoices, buildQueue, isBetter } from '../js/engine.js?v=4.58';
+import { getLesson, getMode, SEQUENCE, LESSONS } from '../js/config.js?v=4.58';
+import { textHint, storyImage, storyVideo, applyStories } from '../js/hints.js?v=4.58';
+import { pictureId, neededPieces, recallBank, digitQuestions, numberQuestions, makeNumberChoices, storyQuestions, examQuestions, guessQuestions, makeGuessChoices, picChoices } from '../js/pictures.js?v=4.58';
+import { STORIES } from '../js/stories.js?v=4.58';
 
 let seed = 42;
 const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -103,7 +103,7 @@ test('марафон: перша помилка — зійшов з дистан
 });
 
 test('історії: у кожної назва, текст, озвучка, правильна і 2 неправильні підказки; підказка тренування = правильна', async () => {
-  const { STORIES } = await import('../js/stories.js?v=4.52');
+  const { STORIES } = await import('../js/stories.js?v=4.58');
   assert.equal(Object.keys(STORIES).length, 37);
   for (const [k, st] of Object.entries(STORIES)) {
     assert.ok(st.title && st.text && st.voice && st.hint, k);
@@ -155,7 +155,7 @@ test('«Вгадай число»: картинки поділено на 4 ур
   for (const q of per.flat()) {
     assert.equal(q.answer, q.pic[0] * q.pic[1]);
     const c = makeGuessChoices(q, rng).map(x => x.value);
-    assert.equal(c.length, 4); assert.equal(new Set(c).size, 4); assert.ok(c.includes(q.answer));
+    assert.equal(c.length, 9); assert.equal(new Set(c).size, 9); assert.ok(c.includes(q.answer));
   }
 });
 
@@ -245,7 +245,7 @@ test('екзамен: 81 приклад 1×1…9×9, без повторів; п
 });
 
 await (async () => {
-  const { shareCode } = await import('../js/cloud.js?v=4.52');
+  const { shareCode } = await import('../js/cloud.js?v=4.58');
   const c = await shareCode('dev_k3j9x2mq81');
   assert.match(c, /^[0-9a-f]{16}$/); assert.equal(c, await shareCode('dev_k3j9x2mq81'));
   assert.notEqual(c, await shareCode('dev_k3j9x2mq82'));
@@ -275,7 +275,7 @@ test('applyStories: тексти з таблиці накладаються, п�
 });
 
 test('медіа з GitHub: назви з «х» і «x», будь-який порядок, ×0/×1 → zero-one', async () => {
-  const { parseMediaName, indexFiles } = await import('../js/media.js?v=4.52');
+  const { parseMediaName, indexFiles } = await import('../js/media.js?v=4.58');
   assert.deepEqual(parseMediaName('5х7.mp4'), { key: '5x7', ext: 'mp4' });
   assert.deepEqual(parseMediaName('7X5.MP4'), { key: '7x5', ext: 'mp4' });
   assert.deepEqual(parseMediaName('1х0.mp4'), { key: 'zero-one', ext: 'mp4' });
@@ -341,7 +341,7 @@ test('екзамен: прохідний бал 60 % (без підказок), 
   assert.ok(res.right && res.hinted); assert.equal(rv.result().clean, 0);
 });
 
-import { OPERATIONS, nearChoices, mulPair } from '../js/ops.js?v=4.52';
+import { OPERATIONS, nearChoices, mulPair } from '../js/ops.js?v=4.58';
 test('ділення: приклади, пара множення і картинки', () => {
   const div = OPERATIONS.div.pairs(3);
   assert.equal(div.length, 9); assert.ok(div.every(q => q.answer * q.b === q.a && q.b === 3 && q.answer >= 1));

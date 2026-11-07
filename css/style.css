@@ -213,12 +213,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=4.52");
+  background-image: url("../assets/tiles.webp?v=4.58");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=4.52"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=4.58"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -981,3 +981,27 @@ body:has(#screen-map:not([hidden])) { background: #fff; }
 .choices--tiles { --sq: min(calc((100vw - 52px) / 2), calc((100dvh - 330px) / 2), 230px); grid-template-columns: repeat(2, var(--sq)); justify-content: center; gap: 10px; }
 .choices--tiles .choice { width: var(--sq); height: var(--sq); min-height: 0; padding: 6px; aspect-ratio: 1; }
 .choices--tiles .choice .tile { --tile: calc(var(--sq) - 22px); border-radius: 12px; }
+
+/* «Вгадай число»: картинка-загадка вгорі, внизу 9 варіантів 3×3 */
+#screen-game > .question.is-riddle { justify-content: flex-start; padding-top: 18px; }
+.question.is-riddle .factor--huge .tile { --tile: min(56vw, 34dvh, 300px); }
+.question.is-riddle .factor--huge { display: grid; justify-items: center; gap: 4px; }
+.question.is-riddle .ans { font: 800 2.2rem var(--font-fun); }
+.choices--nine { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.choices--nine .choice { min-height: clamp(52px, 9dvh, 76px); font-size: 1.6rem; padding: 4px; }
+.question.is-riddle .factor--huge .tile { --tile: min(72vw, 40dvh, 360px); }
+.choices--nine { margin-top: 10px; }
+/* «Асоціації»: поле завдання трохи вище */
+#screen-game > .question.is-assoc { padding: 18px 12px; }
+.question.is-assoc .factor--big .tile { --tile: clamp(64px, 17dvh, 124px); }
+.choices--tiles { --sq: min(calc((100vw - 52px) / 2), calc((100dvh - 380px) / 2), 230px); }
+.question.is-assoc .factor--big .tile { --tile: min(28vw, 17dvh, 124px); }
+.bank__item.is-used .tile { filter: grayscale(1); opacity: .45; }
+.bank__item.is-used { background: var(--soft); }
+.bank__item.is-used:focus-visible, .bank__item:focus { outline: none; } .bank__item.is-used { border-color: var(--line); }
+/* відкрите, але ще не пройдене — блакитний обідок (зелений — лише пройдене) */
+.dnode.is-open .dnode__ring, .dnode--lesson.is-open .dnode__ring { background: #1cb0f6; }
+/* «Пригадай» / «Історії»: 9 картинок-варіантів 3×3 — на пів екрана */
+#puzzle .bank { --bq: min(calc((100vw - 56px) / 3), calc((50dvh - 70px) / 3), 170px); grid-template-columns: repeat(3, var(--bq)); justify-content: center; gap: 8px; }
+#puzzle .bank__item { width: var(--bq); height: var(--bq); padding: 6px; }
+#puzzle .bank__item .tile { --tile: calc(var(--bq) - 20px); border-radius: 12px; }

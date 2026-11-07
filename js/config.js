@@ -1,4 +1,4 @@
-import { OPERATIONS } from './ops.js?v=4.52';
+import { OPERATIONS } from './ops.js?v=4.58';
 // Налаштування гри. Увесь вміст курсу (уроки, рівні, тексти, історії, персонажі, карта, картинки)
 // лежить окремо — у courses/<курс>/course.json. Цей файл лише завантажує його і дає решті коду
 // ті самі назви, що й раніше (LESSONS, MODES, ASSETS, …).
@@ -21,7 +21,7 @@ function pickCourse() {
 }
 
 export const COURSE_ID = pickCourse();
-const courseUrl = new URL(`../courses/${COURSE_ID}/course.json?v=4.52`, import.meta.url);
+const courseUrl = new URL(`../courses/${COURSE_ID}/course.json?v=4.58`, import.meta.url);
 
 async function loadCourse() {
   if (typeof window === 'undefined') {                      // тести в Node: читаємо файл з диска
@@ -32,7 +32,7 @@ async function loadCourse() {
   const res = await fetch(courseUrl);
   if (!res.ok && COURSE_ID !== DEFAULT_COURSE) {             // такого курсу немає — відкриваємо основний
     try { localStorage.removeItem('math_trainer_course'); } catch { /* */ }
-    return (await fetch(new URL(`../courses/${DEFAULT_COURSE}/course.json?v=4.52`, import.meta.url))).json();
+    return (await fetch(new URL(`../courses/${DEFAULT_COURSE}/course.json?v=4.58`, import.meta.url))).json();
   }
   return res.json();
 }
@@ -77,15 +77,15 @@ const A = COURSE.assets || {};
 export const ASSETS = {
   tiles: A.tiles,
   zero: A.zero,
-  story: (a, b) => `${fill(A.story, { key: `${a}x${b}` })}?v=4.52`,
-  storyZeroOne: `${fill(A.story, { key: 'zero-one' })}?v=4.52`,
+  story: (a, b) => `${fill(A.story, { key: `${a}x${b}` })}?v=4.58`,
+  storyZeroOne: `${fill(A.story, { key: 'zero-one' })}?v=4.58`,
   art: A.artList || [],
   artUrl: name => fill(A.art, { name }),
   videos: A.videos || [],
   video: key => fill(A.video, { key }),
   audioStory: A.audioStory || [],
   audioHint: A.audioHint || [],
-  audio: (kind, key) => `${fill(A.audio, { kind, key })}?v=4.52`,
+  audio: (kind, key) => `${fill(A.audio, { kind, key })}?v=4.58`,
   stories: A.stories || [],
   mediaDirs: A.mediaDirs || {},
   mapImage: id => fill(MAP_CFG.image || 'assets/map/lesson{id}.webp', { id }),

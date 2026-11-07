@@ -1,8 +1,8 @@
 // Ігрова логіка без DOM: черга прикладів, перевірка відповідей, бали, життя, результат.
 // Завдяки цьому її можна тестувати окремо (див. tests/engine.test.mjs).
 
-import { SCORING, OP } from './config.js?v=4.52';
-import { nearChoices } from './ops.js?v=4.52';
+import { SCORING, OP } from './config.js?v=4.58';
+import { nearChoices } from './ops.js?v=4.58';
 
 export function shuffle(arr, rng = Math.random) {
   const a = arr.slice();
