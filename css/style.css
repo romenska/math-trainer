@@ -213,12 +213,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=4.58");
+  background-image: url("../assets/tiles.webp?v=4.65");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=4.58"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=4.65"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -1005,3 +1005,74 @@ body:has(#screen-map:not([hidden])) { background: #fff; }
 #puzzle .bank { --bq: min(calc((100vw - 56px) / 3), calc((50dvh - 70px) / 3), 170px); grid-template-columns: repeat(3, var(--bq)); justify-content: center; gap: 8px; }
 #puzzle .bank__item { width: var(--bq); height: var(--bq); padding: 6px; }
 #puzzle .bank__item .tile { --tile: calc(var(--bq) - 20px); border-radius: 12px; }
+/* «Історії»: відео/картинка на всю ширину, 8 варіантів 4×2 */
+#screen-game > .question.is-story { padding-left: 0; padding-right: 0; border-left: 0; border-right: 0; border-radius: 0; background: none; }
+.question.is-story .story-pic, .question.is-story .story-video { max-width: none; width: 100%; }
+#screen-game .question.is-story .story { width: 100%; max-width: 100%; height: auto; border-radius: 12px; }
+.question.is-story ~ #puzzle .bank { --bq: min(calc((100vw - 64px) / 4), calc((32dvh - 20px) / 2), 140px); grid-template-columns: repeat(4, var(--bq)); }
+
+/* кнопка-мініатюра диплома */
+.dip { display: block; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 6px; overflow: hidden; line-height: 0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18); filter: grayscale(1) opacity(.55); transition: transform .15s; }
+.dip img { width: 100%; height: auto; display: block; }
+.dip__ph { display: block; width: 100%; aspect-ratio: 842 / 595; background: #eee; }
+.dip.is-earned { filter: none; animation: dipGlow 2.2s ease-in-out infinite; }
+@keyframes dipGlow { 0%, 100% { transform: scale(1) rotate(0); box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+  50% { transform: scale(1.05) rotate(-1.5deg); box-shadow: 0 6px 22px rgba(255,190,40,.7); } }
+.dip--map { width: min(240px, 62vw); }
+.dip--stats { width: 92px; flex: none; }
+@media (prefers-reduced-motion: reduce) { .dip.is-earned { animation: none; } }
+/* вікно тренування: кнопка «Грати» / «Повторити» на всю ширину, блакитна, як заголовки карти */
+.dmodal .gbubble__btns { display: grid; gap: 8px; width: 100%; grid-column: 1 / -1; }
+.dmodal .gbubble__body { width: 100%; }
+.dmodal .gbubble__btns .btn { width: 100%; margin: 6px 0 0; justify-content: center; }
+.dmodal .gbubble__btns .btn--primary { background: #1cb0f6; border-color: #1cb0f6; color: #fff; box-shadow: 0 4px 0 #1899d6; font-size: 1.15rem; padding: 14px; }
+.dmodal .gbubble__btns .btn--primary:hover { background: #1aa5e8; }
+.dmodal .gbubble__btns .btn--primary:active { transform: translateY(3px); box-shadow: 0 1px 0 #1899d6; }
+
+/* екзамен: напівпрозоре хмаринка над кружком — не пройдено: закриває ~80 %, пройдено: ~10 %,
+   відпливає в той бік, де стояла аватарка (далі від краю екрана) */
+.dcloud { position: absolute; z-index: 3; top: 4%; left: 6%; width: 88%; height: 80%; pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 62%, rgba(255,255,255,.92) 0 26%, transparent 27%),
+    radial-gradient(circle at 52% 42%, rgba(255,255,255,.92) 0 31%, transparent 32%),
+    radial-gradient(circle at 74% 60%, rgba(255,255,255,.92) 0 25%, transparent 26%),
+    radial-gradient(ellipse at 50% 72%, rgba(255,255,255,.92) 0 44%, transparent 45%);
+  opacity: .85; filter: drop-shadow(0 4px 6px rgba(80,120,160,.25)); transition: transform 1.2s ease, opacity 1.2s ease;
+  animation: dcloud 4s ease-in-out infinite; }
+@keyframes dcloud { 50% { translate: 0 -4px; } }
+.dcloud--r.is-gone { transform: translateX(86%) scale(.8); opacity: .7; }
+.dcloud--l.is-gone { transform: translateX(-86%) scale(.8); opacity: .7; }
+@media (prefers-reduced-motion: reduce) { .dcloud { animation: none; } }
+.dcloud { top: 10%; left: 4%; width: 92%; height: 72%;
+  background:
+    radial-gradient(circle at 26% 64%, rgba(255,255,255,.95) 0 21%, rgba(255,255,255,0) 25%),
+    radial-gradient(circle at 46% 44%, rgba(255,255,255,.95) 0 27%, rgba(255,255,255,0) 31%),
+    radial-gradient(circle at 70% 50%, rgba(255,255,255,.95) 0 23%, rgba(255,255,255,0) 27%),
+    radial-gradient(circle at 82% 68%, rgba(255,255,255,.95) 0 15%, rgba(255,255,255,0) 19%),
+    radial-gradient(ellipse 42% 18% at 54% 74%, rgba(255,255,255,.95) 0 90%, rgba(255,255,255,0) 100%); }
+/* хмаринка — блакитна і вдвічі більша */
+.dcloud { top: -26%; left: -46%; width: 184%; height: 144%;
+  background:
+    radial-gradient(circle at 26% 64%, rgba(150,210,248,.9) 0 21%, rgba(150,210,248,0) 25%),
+    radial-gradient(circle at 46% 44%, rgba(150,210,248,.9) 0 27%, rgba(150,210,248,0) 31%),
+    radial-gradient(circle at 70% 50%, rgba(150,210,248,.9) 0 23%, rgba(150,210,248,0) 27%),
+    radial-gradient(circle at 82% 68%, rgba(150,210,248,.9) 0 15%, rgba(150,210,248,0) 19%),
+    radial-gradient(ellipse 42% 18% at 54% 74%, rgba(150,210,248,.9) 0 90%, rgba(150,210,248,0) 100%);
+  filter: drop-shadow(0 6px 10px rgba(40,110,170,.25)); }
+.dcloud--r.is-gone { transform: translateX(62%) scale(.8); }
+.dcloud--l.is-gone { transform: translateX(-62%) scale(.8); }
+.dmap, #screen-map { overflow-x: clip; }
+
+/* хмаринка завжди відпливає праворуч: на скільки відсотків пройдено повторення — на стільки відкрита картинка */
+.dcloud { transform: translateX(calc(var(--open, 0) * 62%)) scale(calc(1 - var(--open, 0) * .2)); }
+
+/* кінець смуги часу — кружечок на кульці, до якої «за часом» треба дійти */
+.exam-dots span.is-now { background:
+  radial-gradient(circle closest-side, var(--dot) 0 52%, transparent 58%),
+  radial-gradient(circle closest-side, #1cb0f6 0 92%, transparent 98%),
+  linear-gradient(to right, #b9dafb 50%, transparent 50%); }
+.exam-dots span.cur.is-now { background:
+  radial-gradient(circle closest-side, #fff 0 44%, var(--primary) 48% 60%, transparent 64%),
+  radial-gradient(circle closest-side, #1cb0f6 0 92%, transparent 98%),
+  linear-gradient(to right, #b9dafb 50%, transparent 50%); }

@@ -7,7 +7,7 @@
 // Назва — два множники через «x» (можна й українською «х» або «×»): 5x7, 5х7, 7x5 — одна історія.
 // Список файлів береться з GitHub API (один запит на папку) і зберігається на пристрої на 10 хвилин.
 
-import { GITHUB_REPO, ASSETS } from './config.js?v=4.58';
+import { GITHUB_REPO, ASSETS } from './config.js?v=4.65';
 
 const CACHE_KEY = 'math_trainer_media';
 const TTL_MS = 10 * 60 * 1000;

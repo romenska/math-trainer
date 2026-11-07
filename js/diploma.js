@@ -1,8 +1,8 @@
 // Диплом: малюємо на canvas (персонажі зі спрайту, ім'я, за що, дата, ID, QR) і зберігаємо як PDF.
 // PDF збираємо самі: одна сторінка A4 (альбомна) з картинкою JPEG — без сторонніх бібліотек.
 
-import qrcode from './vendor/qrcode.mjs?v=4.58';
-import { ASSETS, TEXTS, COURSE, HEROES_CFG } from './config.js?v=4.58';
+import qrcode from './vendor/qrcode.mjs?v=4.65';
+import { ASSETS, TEXTS, COURSE, HEROES_CFG } from './config.js?v=4.65';
 
 const W = 2339, H = 1654;           // A4 альбомна, ~200 dpi
 const GOLD = '#d9962b', GOLD_DARK = '#a8691a', INK = '#3b2f2a', MUTED = '#8a7b70';
@@ -115,7 +115,7 @@ export async function drawDiploma(d) {
 
   // персонажі уроку зверху (0 — сонечко, 1–9 — герої-цифри зі спрайту)
   try {
-    const [tiles, sun] = await Promise.all([loadImg(`${ASSETS.tiles}?v=4.58`), loadImg(`${ASSETS.zero}?v=4.58`)]);
+    const [tiles, sun] = await Promise.all([loadImg(`${ASSETS.tiles}?v=4.65`), loadImg(`${ASSETS.zero}?v=4.65`)]);
     const T = tiles.naturalWidth / 9;
     const heroes = d.heroes?.length ? d.heroes : [3, 2, 0, 6, 8];
     const size = heroes.length <= 2 ? 300 : heroes.length === 3 ? 280 : 250, gap = 60;
