@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=4.47">
-  <script type="module" src="js/app.js?v=4.47"></script>
+  <link rel="stylesheet" href="css/style.css?v=4.52">
+  <script type="module" src="js/app.js?v=4.52"></script>
 </head>
 <body>
   <!-- Фон вікна входу: бліді приклади і цифри -->
@@ -86,7 +86,7 @@
       <div class="stage stage--map" id="map-stage"></div>
       <p class="stage-note muted" id="map-note"></p>
       <div class="dmodal" id="dmodal" hidden><div class="dmodal__card gbubble" role="dialog" aria-modal="true"></div></div>
-      <p class="version">версія 4.47</p>
+      <p class="version">версія 4.52</p>
     </section>
 
     <!-- Довідник: таблиця множення в картинках -->
@@ -123,7 +123,7 @@
         <p class="muted exam-page__note">Як екзамен, але з підказками. Зараховується без жодної помилки і без підказок.</p>
         <div class="review-list" id="review-list"></div>
         <h2 class="exam-page__title">Мої спроби екзамену</h2>
-        <p class="muted exam-page__note" data-text="examNote">81 приклад, на все — 27 хвилин (по 20 секунд на приклад). Під кульками видно, як іде час. Прохідний бал — 60% правильних відповідей. Якщо час вийде, рахуються відповіді, дані до того.</p>
+        <p class="muted exam-page__note" id="exam-rules" data-text="examNote">81 приклад, на все — 27 хвилин (по 20 секунд на приклад). Під кульками видно, як іде час. Прохідний бал — 60% правильних відповідей. Якщо час вийде, рахуються відповіді, дані до того.</p>
         <div class="exam-chart" id="exam-chart"></div>
         <button class="btn btn--primary btn--big btn--block" id="btn-exam-start" type="button">🎓 Почати екзамен</button>
       </div>
@@ -158,8 +158,13 @@
         </div>
       </div>
 
+      <h2 class="label">Екзамен і повторення</h2>
+      <label class="pace-row">Секунд на одне питання
+        <input class="field pace-input" id="pace-input" type="number" min="2" max="60" step="1" inputmode="numeric">
+      </label>
+
       <button class="btn btn--primary btn--block btn--big" id="btn-start" type="button">Старт</button>
-      <p class="version">версія 4.47</p>
+      <p class="version">версія 4.52</p>
     </section>
 
     <!-- 5. Гра -->
@@ -321,7 +326,7 @@
     <div class="stats__who"><span class="stats__ava" id="stats-ava"></span><b id="stats-name"></b></div>
     <div class="id-box">
       <span class="muted">Твій пароль для входу на іншому пристрої (нікому не показуй):</span>
-      <div class="id-row"><code id="stats-id"></code><button class="btn btn--small" type="button" data-copy-id>Копіювати</button></div>
+      <div class="id-row"><code id="stats-id" class="is-secret"></code><button class="icon-btn icon-btn--sm" type="button" data-show-id aria-label="Показати пароль" title="Показати пароль"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="icon-btn icon-btn--sm" type="button" data-copy-id aria-label="Скопіювати пароль" title="Скопіювати пароль"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
     </div>
     <div id="stats-body" class="stats"></div>
   </dialog>
@@ -331,7 +336,7 @@
     <div class="result__icon">⚠️</div>
     <h2 class="title">Вийти з акаунта?</h2>
     <p class="muted">Збережи пароль, щоб потім повернутись до свого прогресу:</p>
-    <div class="id-row"><code id="logout-id"></code><button class="btn btn--small" type="button" data-copy-id>Копіювати</button></div>
+    <div class="id-row"><code id="logout-id" class="is-secret"></code><button class="icon-btn icon-btn--sm" type="button" data-show-id aria-label="Показати пароль" title="Показати пароль"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="icon-btn icon-btn--sm" type="button" data-copy-id aria-label="Скопіювати пароль" title="Скопіювати пароль"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
     <div class="result__actions result__actions--2">
       <button class="btn" type="button" data-close>Скасувати</button>
       <button class="btn btn--danger" id="logout-confirm" type="button">Вийти</button>

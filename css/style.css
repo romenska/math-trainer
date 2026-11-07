@@ -213,12 +213,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=4.47");
+  background-image: url("../assets/tiles.webp?v=4.52");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=4.47"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=4.52"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -889,3 +889,95 @@ body:has(#screen-map:not([hidden])) { background: #fff; }
 .dnode__me .avatar-img { width: 100%; height: 100%; object-fit: contain; }
 @keyframes dpeek { 50% { rotate: -6deg; } }
 @media (prefers-reduced-motion: reduce) { .dnode.is-current, .dnode__me { animation: none; } }
+
+/* ===== Карта: заголовки, більші кружки, пунктир з часом, кубок ===== */
+.dnode { --size: 108px; }
+.dnode--lesson { --size: 148px; }
+.dnode__me { width: var(--me, 108px); height: var(--me, 108px); translate: calc(-50% - var(--me, 108px) * .8) 0; }
+.dnode__me--lesson { --me: 148px; width: 148px; height: 148px; translate: calc(-50% - 148px * .8) 0; }
+.dbanner { position: sticky; top: 76px; }
+.dpath { position: relative; gap: 56px; }
+.dlinks { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+.dpath .dstep { z-index: auto; }
+.dlinks svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.dlink { stroke: #9fd8f7; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 2 14; fill: none; }
+.dlink.is-done { stroke: #1cb0f6; }
+.dlink__time { position: absolute; translate: 12px -50%; white-space: nowrap; font: 700 .75rem var(--font); color: #1899d6;
+  background: #fff; border: 2px solid #d7effd; border-radius: 999px; padding: 2px 8px; }
+.dpath { isolation: isolate; }
+.dnode--cup .dnode__ring { background: #ffc800; }
+.dnode--cup.is-locked .dnode__ring { background: #e5e5e5; }
+.dnode--cup .dnode__pic { background: #fff7d6; }
+.dnode--cup .node__emoji { font-size: 3.4rem; }
+.dnode--cup.is-locked .node__emoji { filter: grayscale(1); opacity: .5; }
+.pace-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 600; }
+.pace-input { width: 90px; text-align: center; }
+.dpath { gap: 96px; }
+.dstep:has(.dstart) { margin-top: 30px; }
+.dlink__time { translate: 14px -50%; }
+.dstep:has(.dnode.is-current) .dlabel { margin-top: 12px; }
+
+/* «Запам’ятай»: кнопка вибору числа і таблиця множення */
+.pick-btn { min-width: 64px; height: 52px; margin-top: 6px; border-radius: 14px; border: 2px solid var(--primary); background: #fff;
+  color: var(--primary); font: 800 1.6rem var(--font-fun); cursor: pointer; }
+.pick-btn.is-empty { border-style: dashed; color: var(--muted); border-color: #c9c2b6; }
+.pz-col.is-ok .pick-btn { border-color: var(--ok); color: var(--ok); }
+.pz-col.is-bad .pick-btn { border-color: var(--bad); color: var(--bad); }
+.dlg-pick { width: min(560px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); padding: 12px; border-radius: 20px; border: 0; }
+.dlg-pick::backdrop { background: rgba(20,30,45,.45); }
+.dlg-pick__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font: 700 1.1rem var(--font-fun); }
+.pt-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+.pt-grid--row { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.pt-cell { position: relative; aspect-ratio: 1; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden; cursor: pointer; --tile: 100%; }
+.pt-cell .tile { width: 100%; height: 100%; --tile: 100%; display: block; }
+.pt-cell b { position: absolute; right: 2px; bottom: 1px; font: 800 .72rem var(--font); background: rgba(255,255,255,.85); border-radius: 4px; padding: 0 3px; }
+.pt-grid--row .pt-cell b { font-size: 1rem; }
+.pt-cell.is-off { background: var(--soft); cursor: default; opacity: .75; }
+.pt-cell:not(.is-off):active { transform: scale(.94); }
+.pt-grid { grid-template-columns: repeat(10, var(--pt)); --pt: min(52px, calc((100vw - 64px) / 10)); justify-content: center; }
+.pt-grid--row { grid-template-columns: repeat(5, var(--pt)); --pt: min(92px, calc((100vw - 90px) / 5)); }
+.pt-cell { width: var(--pt); height: var(--pt); --tile: var(--pt); aspect-ratio: auto; }
+.pt-cell .tile { --tile: var(--pt); width: var(--pt); height: var(--pt); border-radius: 0; }
+.stats__row { grid-template-columns: 1.7fr .7fr .7fr .8fr .8fr .9fr; gap: 4px; }
+.stats__row.head { font-size: .6rem; letter-spacing: 0; }
+.stats__row { grid-template-columns: minmax(0, 1fr) 34px 34px 44px 46px 42px; text-align: center; }
+.stats__row > :first-child { text-align: left; }
+.stats__row.head { font-size: .52rem; }
+.stats__row > :first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; }
+.stats__row { grid-template-columns: minmax(0, 1fr) 30px 30px 38px 40px 40px; font-size: .78rem; }
+
+/* «Запам’ятай»: таблиця множення 9×9 з числами під завданням */
+.tkeys { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+.tkey { height: clamp(30px, 4.6dvh, 42px); border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 700 clamp(.8rem, 3.6vw, 1rem) var(--font); padding: 0; cursor: pointer; }
+.tkey.is-hero { background: var(--warn-soft); }
+.tkey:active:not(:disabled) { transform: scale(.94); background: var(--primary-soft); }
+.tkeys-row { display: grid; grid-template-columns: 1fr 3fr; gap: 6px; margin-top: 6px; }
+.tkey--zero { height: auto; background: var(--warn-soft); }
+.pick-btn.is-active { box-shadow: 0 0 0 4px rgba(47,111,237,.25); border-style: solid; border-color: var(--primary); color: var(--primary); }
+/* пароль прихований */
+.id-row code.is-secret { -webkit-text-security: disc; color: transparent; text-shadow: 0 0 0 var(--ink); letter-spacing: .12em; }
+.id-row code.is-secret::before { content: '••••••••••••'; color: var(--ink); }
+.id-row code.is-secret { font-size: 0; }
+.id-row code.is-secret::before { font-size: .9rem; }
+.icon-btn--sm { width: 38px; height: 38px; flex: none; }
+.icon-btn--sm[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); }
+
+/* завдання в процесі: синій обідок, що заповнюється зеленим (прогрес) */
+.dnode.is-current .dnode__ring, .dnode--lesson.is-current .dnode__ring { background: conic-gradient(#58cc02 calc(var(--p, 0) * 1%), #1cb0f6 0); }
+/* аватарка за поточним кружком — то зліва, то справа; то визирає наполовину, то майже повністю виходить */
+.dnode__me { --me: 108px; width: var(--me); height: var(--me); top: 0; left: 50%; translate: none; animation: peek-l 2.6s ease-in-out infinite; }
+.dnode__me--lesson { --me: 148px; }
+.dnode__me--r { animation-name: peek-r; }
+@keyframes peek-l { 0%, 100% { transform: translateX(calc(-50% - var(--me) * .5)); } 50% { transform: translateX(calc(-50% - var(--me) * .92)) rotate(-6deg); } }
+@keyframes peek-r { 0%, 100% { transform: translateX(calc(-50% + var(--me) * .5)); } 50% { transform: translateX(calc(-50% + var(--me) * .92)) rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .dnode__me { animation: none; transform: translateX(calc(-50% - var(--me) * .8)); } .dnode__me--r { transform: translateX(calc(-50% + var(--me) * .8)); } }
+#screen-map, .dmap { overflow-x: clip; }
+
+/* домик «на головну» — блакитний */
+.icon-btn--home { color: #1cb0f6; }
+/* «Асоціації»: нижче поле завдання, квадратні кнопки з великими картинками */
+#screen-game > .question.is-assoc { flex: 0 0 auto; min-height: 0; padding: 8px 12px; }
+.question.is-assoc .factor--big .tile { --tile: clamp(52px, 14dvh, 96px); }
+.choices--tiles { --sq: min(calc((100vw - 52px) / 2), calc((100dvh - 330px) / 2), 230px); grid-template-columns: repeat(2, var(--sq)); justify-content: center; gap: 10px; }
+.choices--tiles .choice { width: var(--sq); height: var(--sq); min-height: 0; padding: 6px; aspect-ratio: 1; }
+.choices--tiles .choice .tile { --tile: calc(var(--sq) - 22px); border-radius: 12px; }

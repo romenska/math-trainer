@@ -1,12 +1,13 @@
 // Картинки таблиці множення: що на якій клітинці і як збирати завдання з картинок.
-import { OP, LESSONS } from './config.js?v=4.47';
+import { OP, LESSONS } from './config.js?v=4.52';
+import { mulPair } from './ops.js?v=4.52';
 //
 // Спрайт — таблиця 9×9: перший рядок/стовпчик — картинки ЧИСЕЛ (1 — маяк, 2 — дракон, …, 9 — глобус),
 // клітинка на перетині (r, c) — картинка-асоціація ДОБУТКУ. Нуль — сонечко.
 // Таблиця симетрична, і добутки з множниками ≥ 2 мають спільну картинку (2×6 і 3×4 — крокодил з вудкою).
 // А от «число 6» (1×6, равлик) і «добуток 2×3» (свисток) — різні картинки. Тому порівнюємо не числа, а картинки.
 
-import { shuffle } from './engine.js?v=4.47';
+import { shuffle } from './engine.js?v=4.52';
 
 /** Ідентифікатор картинки клітинки (r, c). */
 export function pictureId(r, c) {
@@ -20,6 +21,10 @@ export const PRODUCTS = [...new Set(Array.from({ length: 100 }, (_, i) => Math.f
 
 /** Три потрібні картинки: рядок (a), стовпчик (b), перетин (a×b). */
 export function neededPieces(q) {
+  if (q.m) {   // ділення: ділене — картинка добутку, дільник і відповідь — картинки чисел
+    const [x, y] = q.m;
+    return [{ r: x, c: y, pid: pictureId(x, y) }, { r: 1, c: y, pid: pictureId(1, y) }, { r: x, c: 1, pid: pictureId(x, 1) }];
+  }
   return [
     { r: q.a, c: 1, pid: pictureId(q.a, 1) },
     { r: 1, c: q.b, pid: pictureId(1, q.b) },
@@ -35,6 +40,7 @@ export function neededPieces(q) {
 export function recallBank(q, size = 8, rng = Math.random) {
   const need = neededPieces(q);
   const used = new Set(need.map(p => p.pid));
+  q = { a: mulPair(q)[0], b: mulPair(q)[1] };
   const p = q.a * q.b;
   const traps = [
     [1, p], [1, p % 10], [1, Math.floor(p / 10)],              // «число = картинка» і цифри добутку
@@ -102,7 +108,7 @@ export function storyQuestions(factors, rng = Math.random) {
       out.push({ a, b, answer: a * b, key: `${a}x${b}` });
     }
   }
-  return out;
+  return OP.fromMul ? out.map(OP.fromMul) : out;   // ділення: ті самі історії, приклад — навпаки
 }
 
 // ---------- Екзамен ----------

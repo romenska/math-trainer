@@ -1,9 +1,15 @@
 {
   "$about": "Список курсів для перемикача «Курс» у ручному режимі. Новий курс — папка з course.json і рядок тут.",
   "courses": [
-    { "id": "multiplication", "title": "Множення", "icon": "×" },
-    { "id": "addition", "title": "Додавання", "icon": "+" },
-    { "id": "subtraction", "title": "Віднімання", "icon": "−" },
-    { "id": "division", "title": "Ділення", "icon": "÷" }
+    {
+      "id": "multiplication",
+      "title": "Множення",
+      "icon": "×"
+    },
+    {
+      "id": "division",
+      "title": "Ділення",
+      "icon": "÷"
+    }
   ]
 }

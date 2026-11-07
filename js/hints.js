@@ -1,5 +1,5 @@
-import { STORIES } from './stories.js?v=4.47';
-import { ASSETS, COURSE, OP } from './config.js?v=4.47';
+import { STORIES } from './stories.js?v=4.52';
+import { ASSETS, COURSE, OP } from './config.js?v=4.52';
 // Текстові підказки-асоціації — у courses/<курс>/course.json → hints (ключ — менший×більший множник).
 export const HINTS = COURSE.hints || {};
 export const ZERO_ONE_HINT = COURSE.zeroOneHint || '';
@@ -32,7 +32,6 @@ export const storyOf = (a, b) => STORIES[storyKey(a, b)] || null;
  * («У що грали два дракончики?»). Для ×0 і ×1 — питання про маяк і сонечко. Або null.
  */
 export function textHint(a, b) {
-  if (OP.hint) return OP.hint(a, b);   // додавання, віднімання, ділення — підказка-порада
   if (isZeroOne(a, b)) {
     return a === 0 || b === 0
       ? 'Пригадай історію: хто завжди перемагає — маяк чи сонечко? А сонечко — це нуль…'
@@ -61,7 +60,6 @@ function found(kind, a, b) {
 
 /** Адреса картинки-історії для a×b або null (тоді кнопку просто не показуємо). */
 export function storyImage(a, b) {
-  if (OP.sign !== '×') return null;   // історії — лише для множення
   const auto = found('image', a, b);
   if (auto) return auto;
   if (isZeroOne(a, b)) return ASSETS.storyZeroOne;
@@ -73,7 +71,6 @@ export function storyImage(a, b) {
 /** Адреса відео-історії для a×b або null. */
 /** Аудіо до історії: kind 'story' — озвучка історії, 'hint' — озвучка підказки. Або null. */
 export function storyAudio(a, b, kind = 'story') {
-  if (OP.sign !== '×') return null;   // історії — лише для множення
   const auto = found(kind === 'hint' ? 'audioHint' : 'audioStory', a, b);
   if (auto) return auto;
   const key = storyKey(a, b);
@@ -81,7 +78,6 @@ export function storyAudio(a, b, kind = 'story') {
 }
 
 export function storyVideo(a, b) {
-  if (OP.sign !== '×') return null;   // історії — лише для множення
   const auto = found('video', a, b);
   if (auto) return auto;
   if (isZeroOne(a, b)) return ASSETS.videos.includes('zero-one') ? ASSETS.video('zero-one') : null;
