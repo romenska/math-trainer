@@ -1,17 +1,17 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, TEXTS, HEROES_CFG, MAP_CFG, COURSE, COURSE_ID, OP, getLesson, getMode, modesFor } from './config.js?v=4.70';
-import { createGame, makeChoices, isBetter } from './engine.js?v=4.70';
-import { mulPair } from './ops.js?v=4.70';
-import { storage } from './storage.js?v=4.70';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.70';
-import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.70';
-import { discoverMedia } from './media.js?v=4.70';
-import { confetti } from './confetti.js?v=4.70';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.70';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, TEXTS, HEROES_CFG, MAP_CFG, COURSE, COURSE_ID, OP, getLesson, getMode, modesFor } from './config.js?v=4.72';
+import { createGame, makeChoices, isBetter } from './engine.js?v=4.72';
+import { mulPair } from './ops.js?v=4.72';
+import { storage } from './storage.js?v=4.72';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.72';
+import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.72';
+import { discoverMedia } from './media.js?v=4.72';
+import { confetti } from './confetti.js?v=4.72';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.72';
 
 const $ = sel => document.querySelector(sel);
-const withV = url => (url.includes('?') ? url : `${url}?v=4.70`);   // версія для кешу, якщо в адресі її ще немає
+const withV = url => (url.includes('?') ? url : `${url}?v=4.72`);   // версія для кешу, якщо в адресі її ще немає
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
 
 // Темп екзамену й повторень: секунд на одне питання (налаштування в ручному режимі; за замовчуванням — з course.json)
@@ -203,7 +203,7 @@ let courseList = null;
 async function renderCourses() {
   const box = $('#course-list');
   if (!courseList) {
-    try { courseList = (await (await fetch('courses/index.json?v=4.70')).json()).courses || []; } catch { courseList = []; }
+    try { courseList = (await (await fetch('courses/index.json?v=4.72')).json()).courses || []; } catch { courseList = []; }
   }
   box.hidden = courseList.length < 2;
   box.previousElementSibling.hidden = box.hidden;
@@ -221,7 +221,7 @@ const COURSE_CHOSEN_KEY = 'math_trainer_course_chosen', COURSE_AUTO_KEY = 'math_
 async function renderCourseSwitch() {
   const box = $('#course-switch');
   if (!courseList) {
-    try { courseList = (await (await fetch('courses/index.json?v=4.70')).json()).courses || []; } catch { courseList = []; }
+    try { courseList = (await (await fetch('courses/index.json?v=4.72')).json()).courses || []; } catch { courseList = []; }
   }
   box.hidden = courseList.length < 2;
   box.innerHTML = courseList.map(c => `<button type="button" role="radio" aria-checked="${c.id === COURSE_ID}" data-course="${c.id}">${c.title}</button>`).join('');
@@ -315,13 +315,8 @@ $('#mode-list').addEventListener('click', e => {
 });
 // Довідник: як показувати історію — 'video' (відео, якщо є) або 'image' (лише картинки). На тренування не впливає.
 const VIEW_KEY = 'math_trainer_story_view';
-function storyView() { try { return localStorage.getItem(VIEW_KEY) === 'image' ? 'image' : 'video'; } catch { return 'video'; } }
-$('#story-view').addEventListener('click', e => {
-  const b = e.target.closest('[data-view]');
-  if (!b) return;
-  try { localStorage.setItem(VIEW_KEY, b.dataset.view); } catch { /* сховище недоступне */ }
-  renderRef();
-});
+// довідник завжди показує відео; якщо відео немає — картинку
+function storyView() { return 'video'; }
 $('#input-mode').addEventListener('click', e => {
   const b = e.target.closest('[data-input]');
   if (!b) return;
@@ -1137,7 +1132,7 @@ async function dipThumb(id) {
   dipCache.set(id, null);
   try {
     const lesson = getLesson(id);
-    const { lessonDiploma, examCertificate } = await import('./diploma.js?v=4.70');
+    const { lessonDiploma, examCertificate } = await import('./diploma.js?v=4.72');
     const name = app.profile.nickname || 'Учень', date = new Date();
     const canvas = lesson.exam ? await examCertificate({ name, rec: app.profile.records[recordKey(id, 'exam')] || { correct: 0, totalQuestions: 81, time: 0 }, date, code: '' })
       : await lessonDiploma({ name, lesson, date, code: '' });
@@ -1159,7 +1154,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.70');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.72');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -1242,7 +1237,7 @@ $('#stats-body').addEventListener('click', e => {
 
 // ---------- Карта гри ----------
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.70" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.72" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
@@ -1321,13 +1316,21 @@ function examChartHTML() {
 
 /** «00:09:23» — години:хвилини:секунди. */
 const fmtHMS = secs => { secs = Math.round(secs || 0); const p2 = v => String(v).padStart(2, '0'); return `${p2(Math.floor(secs / 3600))}:${p2(Math.floor(secs / 60) % 60)}:${p2(secs % 60)}`; };
+/** Швидкість спроби: секунд на приклад. Більше 9 — равлик, 7–9 — самокат, менше 7 — ракета. */
+function speedIcon(a) {
+  const s = a.total ? (Number(a.time) || 0) / a.total : 0;
+  const v = s.toFixed(1).replace('.', ',');
+  if (s > 9) return { icon: '🐌', title: `Повільно: ${v} с на приклад` };
+  if (s >= 7) return { icon: '🛴', title: `Середньо: ${v} с на приклад` };
+  return { icon: '🚀', title: `Швидко: ${v} с на приклад` };
+}
 /**
  * Стовпчики спроб екзамену: висота — % правильних відповідей, на стовпчику — за скільки часу здано (00:09:23),
  * пунктир — прохідний бал. Зелений стовпчик — склав, жовтий — ні. По X — дати спроб.
  */
 function examChart(list, pct) {
   list = list.slice(-10);
-  const W = 340, H = 240, L = 32, R = 8, T = 24, B = 30;
+  const W = 340, H = 250, L = 32, R = 8, T = 34, B = 30;
   const iw = W - L - R, ih = H - T - B, n = list.length;
   const pass = Math.round((getMode('exam').passPct || 0) * 100);
   const slot = iw / Math.max(n, 3), bw = Math.min(46, slot * 0.72);
@@ -1345,13 +1348,18 @@ function examChart(list, pct) {
     g += `<rect class="bar${ok ? ' is-ok' : ''}" x="${f(x0)}" y="${f(top)}" width="${f(bw)}" height="${f(Math.max(h, 2))}" rx="6"><title>${v}% (${a.correct} з ${a.total}) · ${fmtHMS(a.time)}</title></rect>
       <text class="val val--pct" x="${f(cx)}" y="${f(top - 6)}" text-anchor="middle">${v}%</text>
       <text class="axis" x="${f(cx)}" y="${H - B + 16}" text-anchor="middle">${lab(a)}</text>`;
-    const t = fmtHMS(a.time);
-    if (bw >= 42 && h >= 22) g += `<text class="bar__time" x="${f(cx)}" y="${f(top + 15)}" text-anchor="middle">${t}</text>`;
-    else if (h >= 52) g += `<text class="bar__time" transform="translate(${f(cx + 3.5)} ${f(top + 6)}) rotate(90)">${t}</text>`;
-    else g += `<text class="bar__time bar__time--out" transform="translate(${f(cx + 3.5)} ${f(top - 20)}) rotate(-90)">${t}</text>`;
+    const t = fmtHMS(a.time), sp = speedIcon(a);
+    if (bw >= 42 && h >= 44) {
+      g += `<text class="bar__speed" x="${f(cx)}" y="${f(top + 20)}" text-anchor="middle">${sp.icon}<title>${sp.title}</title></text>`;
+      g += `<text class="bar__time" x="${f(cx)}" y="${f(top + 35)}" text-anchor="middle">${t}</text>`;
+    } else {
+      g += `<text class="bar__speed" x="${f(cx)}" y="${f(top - 22)}" text-anchor="middle">${sp.icon}<title>${sp.title}</title></text>`;
+      if (h >= 52) g += `<text class="bar__time" transform="translate(${f(cx + 3.5)} ${f(top + 6)}) rotate(90)">${t}</text>`;
+      else g += `<text class="bar__time bar__time--out" transform="translate(${f(cx + 3.5)} ${f(top - 40)}) rotate(-90)">${t}</text>`;
+    }
   });
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Спроби екзамену">${g}</svg>
-    <div class="exam-legend"><span><i class="k-bar"></i>правильних відповідей, % · на стовпчику — час</span><span><i class="k-pass"></i>прохідний бал ${pass}%</span></div>`;
+    <div class="exam-legend"><span><i class="k-bar"></i>правильних відповідей, % · на стовпчику — час</span><span><i class="k-pass"></i>прохідний бал ${pass}%</span><span>швидкість: 🐌 більше 9 с · 🛴 7–9 с · 🚀 менше 7 с на приклад</span></div>`;
 }
 
 // Одна карта гри (js/worldmap.js): картинки уроків одна за одною, на кожній — усі тренування уроку.
@@ -1650,7 +1658,7 @@ function refreshScreen() {
 const HERO_NAMES = HEROES_CFG?.names || [];   // персонажі-аватарки — з course.json
 const DEFAULT_AVATAR = HEROES_CFG?.default ?? 0;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `${ASSETS.hero(n)}?v=4.70`;
+const heroUrl = n => `${ASSETS.hero(n)}?v=4.72`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1815,12 +1823,11 @@ $('#editor-save').addEventListener('click', () => {
 
 // ---------- Довідник: таблиця множення в картинках ----------
 const HERO_TITLES = ['Сонечко', 'Маяк', 'Дракончик', 'Метелик', 'Кораблик', 'Самокат', 'Равлик', 'Прапорець', 'Свинка', 'Глобус'];
-let refView = (() => { try { return localStorage.getItem('math_trainer_ref_view') || 'both'; } catch { return 'both'; } })();
+let refView = (() => { try { return localStorage.getItem('math_trainer_ref_view') === 'num' ? 'num' : 'pic'; } catch { return 'pic'; } })();
 
 function openRef() { renderRef(); show('screen-ref'); }
 function renderRef() {
   document.querySelectorAll('#ref-modes [data-view]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.view === refView)));
-  document.querySelectorAll('#story-view [data-view]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.view === storyView())));
   const cells = [];
   for (let r = 1; r <= 9; r++) for (let c = 1; c <= 9; c++) {
     const hero = r === 1 || c === 1;
@@ -1985,6 +1992,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.70'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.72'; });
 }
 boot();

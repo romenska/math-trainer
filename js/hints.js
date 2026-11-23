@@ -1,5 +1,5 @@
-import { STORIES } from './stories.js?v=4.70';
-import { ASSETS, COURSE, OP } from './config.js?v=4.70';
+import { STORIES } from './stories.js?v=4.72';
+import { ASSETS, COURSE, OP } from './config.js?v=4.72';
 // Текстові підказки-асоціації — у courses/<курс>/course.json → hints (ключ — менший×більший множник).
 export const HINTS = COURSE.hints || {};
 export const ZERO_ONE_HINT = COURSE.zeroOneHint || '';

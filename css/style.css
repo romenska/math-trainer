@@ -213,12 +213,12 @@ body:has(#screen-login:not([hidden])) .page-bg { display: block; }
 /* Картинки-плитки з одного спрайта 9×9 */
 .tile {
   display: inline-block; width: var(--tile); height: var(--tile); border-radius: 10px; flex: none;
-  background-image: url("../assets/tiles.webp?v=4.70");
+  background-image: url("../assets/tiles.webp?v=4.72");
   background-size: calc(var(--tile) * 9) calc(var(--tile) * 9);
   background-position: calc(var(--c) * var(--tile) * -1) calc(var(--r) * var(--tile) * -1);
   background-color: var(--soft);
 }
-.tile--zero { background-image: url("../assets/zero.webp?v=4.70"); background-size: cover; background-position: center; }
+.tile--zero { background-image: url("../assets/zero.webp?v=4.72"); background-size: cover; background-position: center; }
 
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
@@ -1077,7 +1077,7 @@ body:has(#screen-map:not([hidden])) { background: #fff; }
   radial-gradient(circle closest-side, #1cb0f6 0 92%, transparent 98%),
   linear-gradient(to right, #b9dafb 50%, transparent 50%); }
 
-/* ===== Карта 4.70: кружки по черзі зліва/справа, пунктир по діагоналі, мініатюри завдань ===== */
+/* ===== Карта 4.72: кружки по черзі зліва/справа, пунктир по діагоналі, мініатюри завдань ===== */
 #screen-map .stage--map.zmap { position: static; inset: auto; height: auto; background: #fff; border-radius: 0; box-shadow: none; margin: 0; overflow: visible; display: flex; flex-direction: column; gap: 16px; padding: 12px 0 28px; font-family: "Nunito", var(--font); color: #3c3c3c; }
 .zbanner { position: sticky; top: 76px; z-index: 6; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 18px; background: #1cb0f6; color: #fff; box-shadow: 0 5px 0 #1899d6; }
 .zbanner > div { flex: 1; min-width: 0; }
@@ -1275,7 +1275,7 @@ body:has(#screen-map:not([hidden])) { background: #fff; }
 .zbest--banner { flex: none; background: rgba(255,255,255,.55); color: #4a3200; padding: 5px 12px; font-size: 1.05rem; }
 .zbest--banner svg { color: #4a3200; }
 .zbanner--exam b { font-size: 1.3rem; }
-/* 4.70: меню не ширше за тренування; табличка по центру; живі аватарка і табличка */
+/* 4.72: меню не ширше за тренування; табличка по центру; живі аватарка і табличка */
 #app > #screen-map { max-width: 760px; margin-inline: auto; }
 .zpath { padding-top: 64px; }
 .znode { scroll-margin-top: 280px; scroll-margin-bottom: 40px; }
@@ -1293,7 +1293,7 @@ body:has(#screen-map:not([hidden])) { background: #fff; }
 #app > #screen-map { max-width: 480px; }
 @media (max-width: 480px) { .bar--map .user__sync { display: none; } }
 .bar--map { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); } .bar--map .user--btn { min-width: 0; }
-/* 4.70: хрестик праворуч, перемикач курсів, мої спроби */
+/* 4.72: хрестик праворуч, перемикач курсів, мої спроби */
 .bar--3 { display: grid; grid-template-columns: 76px minmax(0, 1fr) 76px; }
 .bar--3 > :first-child { justify-self: start; }
 .bar--3 > :last-child { justify-self: end; }
@@ -1314,3 +1314,9 @@ body:has(#screen-map:not([hidden])) { background: #fff; }
 .att__tag { border-radius: 999px; padding: 3px 10px; font-size: .75rem; font-weight: 900; background: #fff4c2; color: #a06c00; white-space: nowrap; }
 .att__tag.is-ok { background: #e5f6d6; color: #3d7a00; }
 .exam-chart--page { border: 2px solid #ffd27a; background: #fffbea; border-radius: 20px; padding: 10px; }
+.stats-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.stats-head .stats-logout { width: 40px; height: 40px; flex: none; }
+
+.exam-chart .bar__speed { font-size: 15px; }
+.ref-switch { margin: 12px 0; }
+.ref-switch button { font-size: .95rem; }
