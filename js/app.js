@@ -1,17 +1,17 @@
 // Контролер: стан застосунку, екрани, обробка подій.
 
-import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, TEXTS, HEROES_CFG, MAP_CFG, COURSE, COURSE_ID, OP, getLesson, getMode, modesFor } from './config.js?v=4.65';
-import { createGame, makeChoices, isBetter } from './engine.js?v=4.65';
-import { mulPair } from './ops.js?v=4.65';
-import { storage } from './storage.js?v=4.65';
-import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.65';
-import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.65';
-import { discoverMedia } from './media.js?v=4.65';
-import { confetti } from './confetti.js?v=4.65';
-import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.65';
+import { LESSONS, MODES, SEQUENCE, FEEDBACK_MS, ASSETS, COURSE_LESSONS, TEXTS, HEROES_CFG, MAP_CFG, COURSE, COURSE_ID, OP, getLesson, getMode, modesFor } from './config.js?v=4.69';
+import { createGame, makeChoices, isBetter } from './engine.js?v=4.69';
+import { mulPair } from './ops.js?v=4.69';
+import { storage } from './storage.js?v=4.69';
+import { loadProfile, pushResult, newDeviceId, looksLikeId, shareCode, loadStories, logLogin } from './cloud.js?v=4.69';
+import { textHint, storyImage, storyVideo, storyOf, applyStories, storyAudio, applyMedia } from './hints.js?v=4.69';
+import { discoverMedia } from './media.js?v=4.69';
+import { confetti } from './confetti.js?v=4.69';
+import { neededPieces, recallBank, PRODUCTS, guessQuestions, makeGuessChoices, storyQuestions, examQuestions, picChoices } from './pictures.js?v=4.69';
 
 const $ = sel => document.querySelector(sel);
-const withV = url => (url.includes('?') ? url : `${url}?v=4.65`);   // версія для кешу, якщо в адресі її ще немає
+const withV = url => (url.includes('?') ? url : `${url}?v=4.69`);   // версія для кешу, якщо в адресі її ще немає
 const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, html ? { innerHTML: html } : {});
 
 // Темп екзамену й повторень: секунд на одне питання (налаштування в ручному режимі; за замовчуванням — з course.json)
@@ -132,6 +132,7 @@ $('#logout-confirm').addEventListener('click', () => {
   storage.clear();
   app.profile = storage.load();
   $('#dlg-logout').close();
+  if ($('#dlg-stats').open) $('#dlg-stats').close();
   $('#login-input').value = '';
   show('screen-login');
 });
@@ -202,7 +203,7 @@ let courseList = null;
 async function renderCourses() {
   const box = $('#course-list');
   if (!courseList) {
-    try { courseList = (await (await fetch('courses/index.json?v=4.65')).json()).courses || []; } catch { courseList = []; }
+    try { courseList = (await (await fetch('courses/index.json?v=4.69')).json()).courses || []; } catch { courseList = []; }
   }
   box.hidden = courseList.length < 2;
   box.previousElementSibling.hidden = box.hidden;
@@ -299,6 +300,7 @@ $('#input-mode').addEventListener('click', e => {
   renderMenu();
 });
 document.querySelectorAll('[data-open-stats]').forEach(b => b.addEventListener('click', openStats));
+document.querySelectorAll('[data-open-exam]').forEach(b => b.addEventListener('click', () => { const ex = LESSONS.find(l => l.exam); if (ex) { app.mapLesson = ex.id; renderMap(); $('#screen-map').scrollTo?.(0, 0); } }));
 $('#btn-start').addEventListener('click', () => {
   if (app.sel.mode === 'review' && isExamLesson(app.sel.lesson)) { const n = app.sel.review; app.returnTo = 'menu'; startGame(n, 'review'); return; }
   if (getLesson(app.sel.lesson).exam) { openExam('menu'); return; }   // екзамен — через сторінку з графіком спроб
@@ -1063,7 +1065,7 @@ function showResult(r, { newBest, oldScore, idx }) {
 
   const dip = $('#res-diploma');
   // диплом — після марафону (від 1 бала), сертифікат — після екзамену
-  dip.hidden = !((mode.id === 'records' || mode.id === 'exam') && r.passed);   // сертифікат — лише за складений екзамен
+  dip.hidden = !(mode.id === 'exam' && r.passed);   // сертифікат — лише за складений екзамен
   dip.parentElement.classList.toggle('has-diploma', !dip.hidden);
   dip.title = mode.id === 'exam' ? 'Отримати сертифікат' : 'Отримати диплом';
   dip.setAttribute('aria-label', dip.title);
@@ -1105,7 +1107,7 @@ async function dipThumb(id) {
   dipCache.set(id, null);
   try {
     const lesson = getLesson(id);
-    const { lessonDiploma, examCertificate } = await import('./diploma.js?v=4.65');
+    const { lessonDiploma, examCertificate } = await import('./diploma.js?v=4.69');
     const name = app.profile.nickname || 'Учень', date = new Date();
     const canvas = lesson.exam ? await examCertificate({ name, rec: app.profile.records[recordKey(id, 'exam')] || { correct: 0, totalQuestions: 81, time: 0 }, date, code: '' })
       : await lessonDiploma({ name, lesson, date, code: '' });
@@ -1127,7 +1129,7 @@ async function openAward(lessonId) {
   btn.disabled = true;
   $('#dlg-diploma').showModal();
   try {
-    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.65');
+    const { lessonDiploma, examCertificate, parseRecordDate, downloadPdf } = await import('./diploma.js?v=4.69');
     const code = await shareCode(app.profile.deviceId);
     const recKey = recordKey(lesson.id, lesson.exam ? 'exam' : 'records');
     const rec = app.profile.records[recKey] || {};
@@ -1144,53 +1146,80 @@ async function openAward(lessonId) {
 
 $('#dlg-result').addEventListener('cancel', e => e.preventDefault()); // Esc не закриває без вибору
 
-// ---------- Статистика ----------
+// ---------- Статистика («Мої успіхи») ----------
 function openStats() {
+  normalizeProgress();
+  const pIdx = progressIdx();
   $('#stats-id').textContent = app.profile.deviceId;
   $('#stats-ava').innerHTML = avatarImg();
   $('#stats-name').textContent = app.profile.nickname || 'Учень';
-  // рядок статистики: ✓ / ✗ — зараховано чи ні; усього питань, правильно, помилки, підказки, час
+  const recs = app.profile.records;
+  const lessons = LESSONS.filter(l => !l.exam), ex = EXAM_LESSON();
+  const states = lessons.map(l => lessonState(l, pIdx));
+  const doneN = states.filter(s => s.done).length;
+  const passedN = states.reduce((n, s) => n + s.passedN, 0), allN = states.reduce((n, s) => n + s.stops.length, 0);
+  const reviewPcts = lessons.map(l => (isPassed(l.id, 'review') ? 100 : recPct(recs[recordKey(l.id, 'review')])));
+  const totalTime = Object.values(recs).reduce((t, r) => t + (Number(r?.time) || 0), 0);
+  const tile = (v, cap, cls = '') => `<div class="stile"><b class="${cls}">${v}</b><span>${cap}</span></div>`;
+  const tiles = `<div class="stiles">${tile(`${doneN} з ${lessons.length}`, 'уроків пройдено', 'is-g')}${tile(`${passedN} / ${allN}`, 'завдань виконано', 'is-b')}
+    ${tile(`${Math.max(0, ...reviewPcts)}%`, 'найкраще повторення', 'is-o')}${tile(fmtDur(totalTime), 'часу в грі')}</div>`;
+  // рядок завдання: ✓ / ✗ / ще не грали; вірно, помилки, підказки, час
   const row = (lessonId, modeId, name) => {
-    const r = app.profile.records[recordKey(lessonId, modeId)];
-    if (!r) return `<div class="stats__row"><span>${name}</span><span class="stats__empty" style="grid-column:span 5">ще не грали</span></div>`;
+    const r = recs[recordKey(lessonId, modeId)];
+    if (!r) return `<div class="srow is-none"><span class="srow__st"></span><span class="srow__name">${name}</span><span class="srow__none">ще не грали</span></div>`;
     const ok = isPassed(lessonId, modeId);
-    return `<div class="stats__row" title="${String(r.date || '').replace(/"/g, '')}"><span>${ok ? '<span class="ok">✓</span>' : '<span class="bad">✗</span>'} ${name}</span>
-      <span>${Number(r.totalQuestions) || 0}</span><span class="ok">${Number(r.correct) || 0}</span><span class="bad">${Number(r.errors) || 0}</span>
-      <span>${Number(r.hintsCount) || 0}</span><span>${fmtTime(Number(r.time) || 0)}</span></div>`;
+    return `<div class="srow" title="${String(r.date || '').replace(/"/g, '')}"><span class="srow__st ${ok ? 'is-ok' : 'is-bad'}">${ok ? '✓' : '✕'}</span><span class="srow__name">${name}</span>
+      <span class="srow__ch"><i class="g">${Number(r.correct) || 0}</i><i class="r">${Number(r.errors) || 0}</i><i class="y">${Number(r.hintsCount) || 0}</i><i class="n">${fmtTime(Number(r.time) || 0)}</i></span></div>`;
   };
-  const head = '<div class="stats__row head"><span>Рівень</span><span>Усього</span><span>Вірно</span><span>Помил.</span><span>Підк.</span><span>Час</span></div>';
-  $('#stats-body').replaceChildren(...LESSONS.map(l => {
-    const box = el('section', { className: 'stats__lesson' });
-    let rows = modesFor(l.id).map(m => row(l.id, m.id, m.name)).join('');
-    if (l.exam) rows = LESSONS.filter(x => !x.exam).map(x => row(x.id, 'review', `Повторення ${x.id}`)).join('') + rows;   // результати повторень
-    const earned = l.exam ? isPassed(l.id, 'exam') : modesFor(l.id).every(m => isPassed(l.id, m.id));
-    box.innerHTML = `<h3 class="stats__title"><span>${l.name}</span>${dipButton(l, earned, 'dip--stats')}</h3>${head}${rows}`;
-    if (l.exam) {   // графік усіх спроб екзамену
-      const box2 = el('div', { className: 'exam-chart' });
-      box2.innerHTML = examChartHTML();
-      box.append(el('h4', { className: 'stats__sub' }, 'Мої спроби екзамену'), box2);
-    }
-    return box;
-  }));
+  const head = '<div class="srow srow--head"><span></span><span>Завдання</span><span class="srow__ch"><i class="g">вірно</i><i class="r">помил.</i><i class="y">підк.</i><i class="n">час</i></span></div>';
+  const cards = lessons.map((l, i) => {
+    const st = states[i];
+    const pic = hasArt(`loc${l.id}`) ? artImg(`loc${l.id}`, '') : '';
+    const state = !st.open ? 'locked' : st.done ? 'done' : 'open';
+    const kicker = st.done ? `УРОК ${l.id} · ПРОЙДЕНО` : st.current ? `УРОК ${l.id} · ЗАРАЗ` : `УРОК ${l.id}`;
+    const headHTML = `<span class="slesson__pic is-${state}" style="${ringStyle(st.passedN, st.stops.length)}">${pic}</span>
+      <span class="slesson__t"><small>${kicker}</small><b>${factorsText(l)}</b></span>
+      <span class="slesson__n">${st.open ? `${st.passedN} / ${st.stops.length}` : 'ще не почали'}</span>`;
+    if (!st.open) return `<div class="scard slesson is-locked">${headHTML}</div>`;
+    return `<details class="scard slesson"${st.current ? ' open' : ''}><summary>${headHTML}</summary>
+      ${head}${st.stops.map(s => row(l.id, s.mode, s.title)).join('')}</details>`;
+  }).join('');
+  let exam = '';
+  if (ex) {
+    const passed = isPassed(ex.id, 'exam'), best = bestExamPct();
+    const bars = lessons.map((l, i) => {
+      const has = isPassed(l.id, 'review') || recs[recordKey(l.id, 'review')];
+      return `<span>${factorsText(l)}</span><span class="sbar"><i style="width:${has ? reviewPcts[i] : 0}%" class="${reviewPcts[i] >= 80 ? 'is-g' : ''}"></i></span><span class="sbar__v">${has ? `${reviewPcts[i]}%` : '—'}</span>`;
+    }).join('');
+    exam = `<div class="scard sexam">
+      <div class="slesson__head"><span class="slesson__pic is-exam">${hasArt(`loc${ex.id}`) ? artImg(`loc${ex.id}`, '') : ''}</span>
+        <span class="slesson__t"><small>ЕКЗАМЕН І ПІДГОТОВКА</small><b>${passed ? `Складено · ${best}%` : best ? `Найкраще: ${best}%` : 'Ще не складено'}</b></span></div>
+      <div class="ssub">ПОВТОРЕННЯ</div><div class="sbars">${bars}</div>
+      <div class="ssub">МОЇ СПРОБИ ЕКЗАМЕНУ</div><div class="exam-chart">${examChartHTML()}</div>
+      <div class="scert">${dipButton(ex, passed, 'dip--stats')}<span>${passed ? 'Твій сертифікат — натисни, щоб завантажити' : 'Сертифікат з’явиться тут, коли складеш екзамен'}</span></div>
+    </div>`;
+  }
+  $('#stats-body').innerHTML = tiles + cards + exam;
   $('#dlg-stats').showModal();
 }
+$('#dlg-stats').addEventListener('click', e => { if (e.target.closest('[data-edit-avatar]')) openAvatarDialog(); });
 $('#stats-body').addEventListener('click', e => {
   const b = e.target.closest('[data-cup]');
   if (!b) return;
   if (b.classList.contains('is-earned')) openAward(Number(b.dataset.cup));
-  else toast(getLesson(Number(b.dataset.cup)).exam ? '🎓 Склади екзамен — і отримаєш сертифікат' : '🏆 Пройди всі тренування уроку — і отримаєш диплом');
+  else toast('🎓 Склади екзамен — і отримаєш сертифікат');
 });
 
 // ---------- Карта гри ----------
 const hasArt = name => ASSETS.art.includes(name);
-const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.65" alt="${alt}" loading="lazy" decoding="async">`;
+const artImg = (name, alt = '') => `<img src="${ASSETS.artUrl(name)}?v=4.69" alt="${alt}" loading="lazy" decoding="async">`;
 const stageIdx = (lesson, mode) => SEQUENCE.indexOf(stageKey(lesson, mode));
 const progressIdx = () => Math.max(0, SEQUENCE.indexOf(app.profile.progress));
 
 function updateUser() {
   const name = app.profile.nickname || 'Учень';
   document.querySelectorAll('[data-user-name]').forEach(n => { n.textContent = name; });
-  document.querySelectorAll('[data-user-avatar]').forEach(n => { n.innerHTML = avatarImg(); });
+  document.querySelectorAll('[data-user-avatar], [data-user-pic]').forEach(n => { n.innerHTML = avatarImg(); });
   document.querySelectorAll('[data-sync]').forEach(n => { if (!n.textContent) n.textContent = '💾 Збережено на пристрої'; });
 }
 
@@ -1263,51 +1292,39 @@ function examChartHTML() {
     : '<div class="exam-empty">Ще немає жодної спроби.<br>Склади екзамен — і тут з’явиться графік твоїх результатів!</div>';
 }
 
+/** «00:09:23» — години:хвилини:секунди. */
+const fmtHMS = secs => { secs = Math.round(secs || 0); const p2 = v => String(v).padStart(2, '0'); return `${p2(Math.floor(secs / 3600))}:${p2(Math.floor(secs / 60) % 60)}:${p2(secs % 60)}`; };
 /**
- * Два графіки на одній сітці: % правильних відповідей (зелений, ліва шкала 0–100%)
- * і тривалість спроби (синій пунктир, права шкала у хвилинах). По X — спроби в порядку дат.
+ * Стовпчики спроб екзамену: висота — % правильних відповідей, на стовпчику — за скільки часу здано (00:09:23),
+ * пунктир — прохідний бал. Зелений стовпчик — склав, жовтий — ні. По X — дати спроб.
  */
 function examChart(list, pct) {
-  const W = 340, H = 230, L = 34, Rr = 36, T = 18, B = 40;
-  const iw = W - L - Rr, ih = H - T - B, n = list.length;
-  const pad = 16;                                        // відступ точок від осей, щоб підписи не налазили
-  const x = i => L + (n === 1 ? iw / 2 : pad + ((iw - 2 * pad) * i) / (n - 1));
-  const yPct = v => T + ih - (ih * v) / 100;
-  const mins = list.map(a => a.time / 60);
-  const step = [1, 2, 5, 10, 15, 20, 30, 60].find(s => s * 4 >= Math.max(...mins)) || 60;
-  const tMax = step * 4;                                  // права шкала: 4 поділки, як і ліва (0–25–50–75–100%)
-  const yTime = v => T + ih - (ih * v) / tMax;
+  list = list.slice(-10);
+  const W = 340, H = 240, L = 32, R = 8, T = 24, B = 30;
+  const iw = W - L - R, ih = H - T - B, n = list.length;
+  const pass = Math.round((getMode('exam').passPct || 0) * 100);
+  const slot = iw / Math.max(n, 3), bw = Math.min(46, slot * 0.72);
+  const x = i => L + slot * i + (slot - bw) / 2 + (n < 3 ? (iw - slot * n) / 2 : 0);
+  const y = v => T + ih - (ih * v) / 100;
   const f = v => v.toFixed(1);
   let g = '';
-  for (let k = 0; k <= 4; k++) {
-    const y = T + (ih * k) / 4;
-    g += `<line class="grid" x1="${L}" x2="${L + iw}" y1="${f(y)}" y2="${f(y)}"/>
-      <text class="axis axis--pct" x="${L - 5}" y="${f(y + 4)}" text-anchor="end">${100 - k * 25}%</text>
-      <text class="axis axis--time" x="${L + iw + 5}" y="${f(y + 4)}">${tMax - k * step} хв</text>`;
-  }
+  for (const v of [0, 50, 100]) if (Math.abs(v - pass) > 6) g += `<line class="grid" x1="${L}" x2="${L + iw}" y1="${f(y(v))}" y2="${f(y(v))}"/><text class="axis" x="${L - 5}" y="${f(y(v) + 4)}" text-anchor="end">${v}%</text>`;
+  g += `<line class="pass" x1="${L}" x2="${L + iw}" y1="${f(y(pass))}" y2="${f(y(pass))}"/><text class="pass__t" x="${L - 5}" y="${f(y(pass) + 4)}" text-anchor="end">${pass}%</text>`;
   const d0 = new Date(list[0].date), oneDay = list.every(a => new Date(a.date).toDateString() === d0.toDateString());
-  const lab = a => { const d = new Date(a.date), p2 = v => String(v).padStart(2, '0');
-    return oneDay ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : `${p2(d.getDate())}.${p2(d.getMonth() + 1)}`; };
-  const every = Math.ceil(n / 7);                          // підписів по X — не більше 7
+  const p2 = v => String(v).padStart(2, '0');
+  const lab = a => { const d = new Date(a.date); return oneDay ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : `${p2(d.getDate())}.${p2(d.getMonth() + 1)}`; };
   list.forEach((a, i) => {
-    if (i % every && i !== n - 1) return;
-    g += `<text class="axis" x="${f(x(i))}" y="${H - B + 16}" text-anchor="middle">${lab(a)}</text>`;
+    const v = pct(a), x0 = x(i), top = y(v), h = T + ih - top, cx = x0 + bw / 2, ok = v >= pass;
+    g += `<rect class="bar${ok ? ' is-ok' : ''}" x="${f(x0)}" y="${f(top)}" width="${f(bw)}" height="${f(Math.max(h, 2))}" rx="6"><title>${v}% (${a.correct} з ${a.total}) · ${fmtHMS(a.time)}</title></rect>
+      <text class="val val--pct" x="${f(cx)}" y="${f(top - 6)}" text-anchor="middle">${v}%</text>
+      <text class="axis" x="${f(cx)}" y="${H - B + 16}" text-anchor="middle">${lab(a)}</text>`;
+    const t = fmtHMS(a.time);
+    if (bw >= 42 && h >= 22) g += `<text class="bar__time" x="${f(cx)}" y="${f(top + 15)}" text-anchor="middle">${t}</text>`;
+    else if (h >= 52) g += `<text class="bar__time" transform="translate(${f(cx + 3.5)} ${f(top + 6)}) rotate(90)">${t}</text>`;
+    else g += `<text class="bar__time bar__time--out" transform="translate(${f(cx + 3.5)} ${f(top - 20)}) rotate(-90)">${t}</text>`;
   });
-  g += `<text class="axis" x="${L + iw / 2}" y="${H - 6}" text-anchor="middle">${oneDay ? 'час спроби' : 'дата спроби'}</text>`;
-  const path = (fy, vals) => vals.map((v, i) => `${i ? 'L' : 'M'}${f(x(i))},${f(fy(v))}`).join(' ');
-  const pv = list.map(pct);
-  g += `<path class="line line--time" d="${path(yTime, mins)}"/><path class="line line--pct" d="${path(yPct, pv)}"/>`;
-  const showVals = n <= 8;
-  list.forEach((a, i) => {
-    g += `<circle class="dot--time" cx="${f(x(i))}" cy="${f(yTime(mins[i]))}" r="4"><title>${fmtTime(a.time)}</title></circle>
-      <circle class="dot--pct" cx="${f(x(i))}" cy="${f(yPct(pv[i]))}" r="4.5"><title>${pv[i]}% (${a.correct} з ${a.total})</title></circle>`;
-    if (showVals) {
-      g += `<text class="val val--pct" x="${f(x(i))}" y="${f(yPct(pv[i]) - 8)}" text-anchor="middle">${pv[i]}%</text>
-        <text class="val val--time" x="${f(x(i))}" y="${f(yTime(mins[i]) + 15)}" text-anchor="middle">${fmtTime(a.time)}</text>`;
-    }
-  });
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Графік спроб екзамену">${g}</svg>
-    <div class="exam-legend"><span><i class="k-pct"></i>правильних відповідей, %</span><span><i class="k-time"></i>тривалість, хв</span></div>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Спроби екзамену">${g}</svg>
+    <div class="exam-legend"><span><i class="k-bar"></i>правильних відповідей, % · на стовпчику — час</span><span><i class="k-pass"></i>прохідний бал ${pass}%</span></div>`;
 }
 
 // Одна карта гри (js/worldmap.js): картинки уроків одна за одною, на кожній — усі тренування уроку.
@@ -1315,7 +1332,6 @@ function examChart(list, pct) {
 // На картинці екзамену — 4 «Повторення» (відкриті разом з нею) і сам екзамен.
 const EXAM_LESSON = () => LESSONS.find(l => l.exam);
 const lessonDone = l => modesFor(l.id).every(m => isPassed(l.id, m.id));
-const mapPic = (pic, emoji) => pic || `<span class="node__emoji">${emoji}</span>`;
 
 /** Тренування на карті уроку l: [{ key, mode, lesson (з якого грати), title, icon, idx у проходженні }]. */
 function mapStops(l) {
@@ -1328,11 +1344,9 @@ function mapStops(l) {
   ];
 }
 
-// Карта в стилі Duolingo Kids: білий фон, великі круглі картинки уроків «змійкою» згори вниз;
-// у уроці — так само змійкою його тренування. Тренування відкриваються по черзі,
-// наступний урок — після проходження попереднього. Кільце навколо картинки — прогрес.
-// аватарка — завжди з того боку кружка, що далі від краю екрана (кружок ліворуч — аватарка праворуч)
-const snakeX = (i, amp) => Math.round(Math.sin(i * 0.95) * amp);   // зсув вбік: змійка
+// Карта в стилі Duolingo Kids: великі круглі кнопки по черзі зліва і справа, між ними — пунктир по діагоналі,
+// підпис — з протилежного боку від кружка. Урок — картинка острова, завдання уроку — мініатюра самого завдання.
+// Уроки відкриваються по черзі; блок «Екзамен» (повторення + екзамен) — внизу і відкритий завжди.
 const ringStyle = (done, total) => `--p:${total ? Math.round((done / total) * 100) : 0}`;
 
 function lessonState(l, pIdx) {
@@ -1351,125 +1365,176 @@ function stopState(l, s, pIdx) {
   const current = !passed && unlocked && !l.exam && s.idx === pIdx;
   return { passed, unlocked, current, state: current ? 'current' : passed ? 'done' : unlocked ? 'open' : 'locked' };
 }
+/** Частка правильних відповідей у записі (0–100). */
+const recPct = r => (r && Number(r.totalQuestions) ? Math.min(100, Math.round((Number(r.correct) || 0) / Number(r.totalQuestions) * 100)) : 0);
 /** Прогрес незавершеного завдання: частка правильних відповідей в останній спробі (0–100). */
-function stopProgress(s) {
-  const r = app.profile.records[recordKey(s.lesson, s.mode)];
-  return r && Number(r.totalQuestions) ? Math.min(100, Math.round((Number(r.correct) || 0) / Number(r.totalQuestions) * 100)) : 0;
-}
-/** Наскільки хмаринка відкриває картинку (0…1): частка правильних відповідей у найкращій спробі повторення / екзамену. */
-function cloudOpen(s) {
-  const r = app.profile.records[recordKey(s.lesson, s.mode)];
-  if (!r) return 0;
-  if (isPassed(s.lesson, s.mode)) return 1;
-  const t = Number(r.totalQuestions) || 0;
-  return t ? Math.max(0, Math.min(1, (Number(r.correct) || 0) / t)).toFixed(2) : 0;
-}
+const stopProgress = s => recPct(app.profile.records[recordKey(s.lesson, s.mode)]);
 const timeOfStop = s => Number(app.profile.records[recordKey(s.lesson, s.mode)]?.time) || 0;
+/** Найкращий результат екзамену, % (0 — ще не складали). */
+function bestExamPct() {
+  const list = loadExamHistory().filter(a => a.total > 0).map(a => Math.min(100, Math.round((a.correct / a.total) * 100)));
+  const ex = EXAM_LESSON();
+  if (ex) list.push(recPct(app.profile.records[recordKey(ex.id, 'exam')]));
+  return list.length ? Math.max(...list) : 0;
+}
+/** «×3 ×4» — числа уроку. */
+const factorsText = l => l.factors.map(f => `${OP.sign}${f}`).join(' ');
+const ICON_CAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg>';
+const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
 
 function renderMap() {
   normalizeProgress();
   const pIdx = progressIdx();
   const box = $('#map-stage');
-  box.className = 'dmap';
+  box.className = 'zmap';
   const l = app.mapLesson ? getLesson(app.mapLesson) : null;
-  box.innerHTML = l ? lessonPathHTML(l, pIdx) : coursePathHTML(pIdx);
-  const doneN = LESSONS.filter(lessonDone).length;
-  $('#map-note').textContent = l ? '' : doneN === LESSONS.length ? '🏆 Курс пройдено, екзамен складено!'
-    : doneN === COURSE_LESSONS ? '🎓 Усі уроки пройдено — час для екзамену!' : '';
+  box.innerHTML = !l ? coursePathHTML(pIdx) : l.exam ? examPathHTML(l, pIdx) : lessonPathHTML(l, pIdx);
+  $('#map-note').textContent = '';
   requestAnimationFrame(() => {
     drawLinks(box);
-    box.querySelector('.dnode.is-current')?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    box.querySelector('.znode.is-current')?.scrollIntoView({ block: 'center', behavior: 'instant' });
   });
 }
 
-/** Блакитний пунктир між кружечками і час біля нього (скільки тривало попереднє завдання). */
+/** Сірий пунктир по діагоналі — від центру одного кружка до центру наступного (під кружками). */
 function drawLinks(box) {
-  const path = box.querySelector('.dpath');
-  if (!path) return;
-  path.querySelector('.dlinks')?.remove();
-  const pr = path.getBoundingClientRect();
-  const steps = [...path.querySelectorAll('.dstep')];
-  const R = e => e.getBoundingClientRect();
-  let svg = '', labels = '';
-  for (let i = 1; i < steps.length; i++) {
-    const pn = steps[i - 1].querySelector('.dnode, .dip'), pl = steps[i - 1].querySelector('.dlabel') || pn, nn = steps[i].querySelector('.dnode, .dip');
-    const top = steps[i].querySelector('.dstart') || nn;
-    const x1 = R(pn).left + R(pn).width / 2 - pr.left, y1 = R(pl).bottom - pr.top + 8;
-    const x2 = R(nn).left + R(nn).width / 2 - pr.left, y2 = R(top).top - pr.top - 8;
-    if (y2 - y1 < 10) continue;
-    const done = pn.classList.contains('is-done');
-    const my = (y1 + y2) / 2;
-    svg += `<path class="dlink${done ? ' is-done' : ''}" d="M${x1.toFixed(1)},${y1.toFixed(1)} C${x1.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}"/>`;
-    const t = Number(pn.dataset.time) || 0;
-    if (t) labels += `<span class="dlink__time" style="left:${((x1 + x2) / 2).toFixed(0)}px;top:${my.toFixed(0)}px">🕒 ${fmtDur(t)}</span>`;
-  }
-  path.insertAdjacentHTML('afterbegin', `<div class="dlinks"><svg width="${pr.width}" height="${pr.height}">${svg}</svg>${labels}</div>`);
+  box.querySelectorAll('.zpath').forEach(path => {
+    path.querySelector('.zlinks')?.remove();
+    const pr = path.getBoundingClientRect();
+    const c = [...path.querySelectorAll('.znode')].map(n => { const r = n.getBoundingClientRect(); return [r.left + r.width / 2 - pr.left, r.top + r.height / 2 - pr.top]; });
+    let lines = '';
+    for (let i = 1; i < c.length; i++) lines += `<line x1="${c[i - 1][0].toFixed(1)}" y1="${c[i - 1][1].toFixed(1)}" x2="${c[i][0].toFixed(1)}" y2="${c[i][1].toFixed(1)}"/>`;
+    path.insertAdjacentHTML('afterbegin', `<svg class="zlinks" width="${pr.width}" height="${pr.height}" aria-hidden="true">${lines}</svg>`);
+  });
 }
 addEventListener('resize', () => { if (!$('#screen-map').hidden) drawLinks($('#map-stage')); });
 
-const BLUE = '#1cb0f6';
-const banner = (small, big, extra = '', back = false) => `<div class="dbanner" style="--c:${BLUE}">
-  ${back ? '<button type="button" class="dbanner__back" data-lesson-close aria-label="До уроків">‹</button>' : ''}
-  <div><small>${small}</small><b>${big}</b></div>${extra}</div>`;
+/** Один крок «змійки»: кружок зліва/справа і підпис з протилежного боку. */
+const zstep = (i, node, label, bubble = '') => `<div class="zstep zstep--${i % 2 ? 'R' : 'L'}">
+  <div class="znode-wrap">${bubble ? `<div class="zbubble">${bubble}</div>` : ''}${node}</div><div class="zlabel">${label}</div></div>`;
 
-/** Список уроків курсу. */
+/** Карта курсу: уроки по черзі, внизу — екзамен. */
 function coursePathHTML(pIdx) {
-  const total = LESSONS.reduce((n, l) => n + lessonState(l, pIdx).passedN, 0), all = LESSONS.reduce((n, l) => n + mapStops(l).length, 0);
-  return banner('КУРС', COURSE.subject || COURSE.title, `<span class="dbanner__stars">⭐ ${total}/${all}</span>`)
-    + `<div class="dpath">${LESSONS.map((l, i) => {
+  const lessons = LESSONS.filter(l => !l.exam);
+  const total = lessons.reduce((n, l) => n + lessonState(l, pIdx).passedN, 0), all = lessons.reduce((n, l) => n + mapStops(l).length, 0);
+  const steps = lessons.map((l, i) => {
     const st = lessonState(l, pIdx);
     const state = !st.open ? 'locked' : st.current ? 'current' : st.done ? 'done' : 'open';
-    const pic = hasArt(`loc${l.id}`) ? artImg(`loc${l.id}`, '') : `<span class="node__emoji">${l.exam ? '🎓' : '🗺️'}</span>`;
-    return `<div class="dstep" style="--x:${snakeX(i, 70)}px">
-      ${st.current ? '<div class="dstart">Вперед!</div>' : ''}
-      ${st.current ? `<span class="dnode__me dnode__me--lesson${snakeX(i, 70) < 0 ? ' dnode__me--r' : ''}">${avatarImg()}</span>` : ''}
-      <button type="button" class="dnode dnode--lesson is-${state}" data-lesson-open="${l.id}" data-time="${st.done ? lessonTime(l) : 0}" style="${ringStyle(st.passedN, st.stops.length)}" aria-label="${l.place.name}">
-        <span class="dnode__ring"></span><span class="dnode__pic">${pic}</span>
-        ${st.done ? '<span class="dnode__badge">✓</span>' : ''}
-      </button>
-      <div class="dlabel"><b>${l.place.name}</b><small>${l.exam ? (TEXTS.examRange || '') : `${OP.sign} ${l.factors.join(', ')}`} · ⭐ ${st.passedN}/${st.stops.length}</small></div>
-    </div>`;
-  }).join('')}</div>`;
+    const pic = hasArt(`loc${l.id}`) ? artImg(`loc${l.id}`, '') : `<span class="node__emoji">🗺️</span>`;
+    const prev = lessons[i - 1];
+    const kicker = st.done ? `УРОК ${l.id} · ПРОЙДЕНО` : st.open ? `УРОК ${l.id}` : `УРОК ${l.id} · ПІСЛЯ УРОКУ ${prev?.id ?? ''}`;
+    return zstep(i,
+      `<button type="button" class="znode znode--lesson is-${state}" data-lesson-open="${l.id}" style="${ringStyle(st.passedN, st.stops.length)}" aria-label="Урок ${l.id}: ${l.place.name}">
+        <span class="znode__pic">${pic}</span>${st.done ? `<span class="znode__ok">${ICON_OK}</span>` : ''}</button>`,
+      `<small class="is-${state}">${kicker}</small><b>${factorsText(l)}</b><span>${l.place.name}</span>${st.current ? `<em>${st.passedN} з ${st.stops.length} завдань</em>` : ''}`,
+      st.current ? 'ТИ ТУТ!' : '');
+  });
+  const ex = EXAM_LESSON();
+  const exam = ex ? `<div class="zdots" aria-hidden="true"></div>
+    <button type="button" class="zexam" data-lesson-open="${ex.id}">
+      <span class="zexam__pic">${hasArt(`loc${ex.id}`) ? artImg(`loc${ex.id}`, '') : `<span class="node__emoji">🎓</span>`}</span>
+      <span class="zexam__txt"><b>Екзамен</b><small>Перевір свої знання</small></span>
+      <span class="zexam__right"><span class="zbest">${ICON_CAP}${bestExamPct()}%</span><span class="zexam__go">ПОЧАТИ</span></span></button>` : '';
+  return `<div class="zbanner"><div><small>КУРС</small><b>${COURSE.subject || COURSE.title}</b></div><span class="zbanner__pill">${total} / ${all}</span></div>
+    <div class="zpath">${steps.join('')}</div>${exam}`;
 }
 
-/** Тренування одного уроку, а в кінці — кубок з рекордом (клік — диплом). */
+// ---------- Мініатюри завдань: маленький «знімок» того, що чекає в завданні ----------
+/** Приклад уроку для мініатюр: перші два числа уроку, більші за 1 (урок 2 — 3×4). */
+function lessonSample(l) {
+  const f = l.factors.filter(n => n > 1);
+  const a = f[0] ?? 2, b = f[1] ?? Math.min(9, a + 1);
+  return OP.random(a, b);
+}
+const mt = p => `<span class="mini__t">${tileHTML(p.r, p.c)}</span>`;
+const mslot = (inner = '', cls = '') => `<span class="mini__slot ${cls}">${inner}</span>`;
+const mkeys = n => `<span class="mini__keys">${'<i></i>'.repeat(n)}</span>`;
+function miniHTML(l, mode) {
+  const q = lessonSample(l), [p1, p2, p3] = neededPieces(q), S = OP.sign;
+  const ex = `${q.a} ${S} ${q.b}`;
+  switch (mode) {
+    case 'guess': {
+      const opts = [q.answer - 4, q.answer - 2, q.answer + 3, q.answer, q.answer + 4, q.answer - 1, q.answer + 6, q.answer + 2, q.answer - 3].map(v => Math.max(0, v));
+      return `<span class="mini__big">${mt(p3)}</span><span class="mini__grid">${opts.map(v => `<i${v === q.answer ? ' class="is-ok"' : ''}>${v}</i>`).join('')}</span>`;
+    }
+    case 'stories': {
+      const img = storyImage(...mulPair(q));
+      return `<span class="mini__video">${img ? `<img src="${withV(img)}" alt="" loading="lazy">` : ''}<i class="mini__play"></i></span>
+        <span class="mini__row mini__nums"><i>${q.a}</i><u></u><i>${q.b}</i><u></u><i>${q.answer}</i></span>
+        <span class="mini__row">${mslot(mt(p1))}<u>${S}</u>${mslot()}<u>=</u>${mslot()}</span>`;
+    }
+    case 'associations':
+      return `<span class="mini__row">${mt(p1)}<u>${S}</u>${mt(p2)}</span><span class="mini__txt">${ex} = ?</span>
+        <span class="mini__row">${mslot(mt(p3), 'is-ok')}${mslot(mt({ r: 1, c: Math.max(1, (q.answer % 9) || 1) }))}${mslot(mt({ r: 1, c: 2 }))}</span>`;
+    case 'remember':
+      return `<span class="mini__row">${mt(p1)}<u>${S}</u>${mt(p2)}<u>=</u>${mt(p3)}</span>
+        <span class="mini__row mini__boxes"><b class="is-ok">${q.a}</b><b class="is-on">?</b><b>?</b></span>${mkeys(9)}`;
+    case 'recall':
+      return `<span class="mini__txt">${ex} = ${q.answer}</span><span class="mini__row">${mslot(mt(p1), 'is-on')}${mslot()}${mslot()}</span>
+        <span class="mini__row">${mt({ r: 1, c: 2 })}${mt(p3)}${mt({ r: 1, c: 1 })}${mt(p2)}</span>`;
+    case 'training':
+      return `<span class="mini__bulb"></span><span class="mini__txt mini__txt--big">${ex} = <em>?</em></span><span class="mini__field"></span>${mkeys(9)}`;
+    case 'speed':
+      return `<span class="mini__hearts"><i></i><i></i><i></i></span><span class="mini__txt mini__txt--big">${ex} = <em class="is-g">?</em></span><span class="mini__field is-g"></span>${mkeys(6)}`;
+    default: return `<span class="node__emoji">${MODE_ICONS[mode] || '⭐'}</span>`;
+  }
+}
+
+/** Урок: його завдання «змійкою», кожне — з мініатюрою. */
 function lessonPathHTML(l, pIdx) {
   const st = lessonState(l, pIdx);
-  const big = l.exam ? ' dnode--lesson' : '';                      // в екзамені — великі кружки, як уроки
   const steps = st.stops.map((s, i) => {
     const ss = stopState(l, s, pIdx);
-    return `<div class="dstep" style="--x:${snakeX(i, 60)}px">
-      ${ss.current ? '<div class="dstart">Почати</div>' : ''}
-      ${ss.current ? `<span class="dnode__me${big ? ' dnode__me--lesson' : ''}${snakeX(i, 60) < 0 ? ' dnode__me--r' : ''}">${avatarImg()}</span>` : ''}
-      <button type="button" class="dnode${big} is-${ss.state}" data-stop="${l.id}:${s.key}" style="--p:${ss.current ? stopProgress(s) : 0}" data-time="${ss.passed ? timeOfStop(s) : 0}" aria-label="${s.title}">
-        <span class="dnode__ring"></span><span class="dnode__pic">${stopPic(l, s)}</span>
-        ${ss.passed ? '<span class="dnode__badge">✓</span>' : ''}
-        ${l.exam ? `<span class="dcloud" style="--open:${cloudOpen(s)}" aria-hidden="true"></span>` : ''}
-      </button>
-      <div class="dlabel"><b>${s.title}</b>${s.sub ? `<small>${s.sub}</small>` : ''}</div>
-    </div>`;
+    return zstep(i,
+      `<button type="button" class="znode znode--task is-${ss.state}" data-stop="${l.id}:${s.key}" style="--p:${ss.current ? stopProgress(s) : 0}" aria-label="${s.title}">
+        <span class="znode__pic"><span class="mini">${miniHTML(l, s.mode)}</span></span>${ss.passed ? `<span class="znode__ok">${ICON_OK}</span>` : ''}</button>`,
+      `<b class="zlabel__name">${s.title}</b><span>${getMode(s.mode).purpose || ''}</span>`,
+      ss.current ? 'СТАРТ' : '');
   });
-  // кубок: рекорд уроку (загальний час; для екзамену — найкращий %), клік — диплом / сертифікат
-  const recEx = app.profile.records[recordKey(l.id, 'exam')];
-  const record = l.exam ? (recEx ? `${Math.round(((Number(recEx.correct) || 0) / Math.max(1, Number(recEx.totalQuestions) || 1)) * 100)}%` : '—')
-    : (lessonTime(l) ? fmtDur(lessonTime(l)) : '—');
-  const marathon = !l.exam && app.profile.records[recordKey(l.id, 'records')];
-  steps.push(`<div class="dstep" style="--x:${snakeX(st.stops.length, 60)}px">
-    ${dipButton(l, st.done, 'dip--map')}
-    <div class="dlabel"><b>${l.exam ? 'Сертифікат' : 'Диплом'} · ${record}</b>${marathon?.passed ? `<small>🏃 рекорд марафону ${fmtTime(Number(marathon.time) || 0)}</small>` : ''}</div>
-  </div>`);
-  return banner(l.exam ? 'ЕКЗАМЕН' : `УРОК ${l.id}`, l.place.name, `<span class="dbanner__stars">⭐ ${st.passedN}/${st.stops.length}</span>`, true)
-    + `<div class="dpath">${steps.join('')}</div>`;
+  const lessons = LESSONS.filter(x => !x.exam), next = lessons[lessons.indexOf(l) + 1];
+  return `<div class="zbanner"><button type="button" class="zbanner__back" data-lesson-close aria-label="До карти">‹</button>
+      ${hasArt(`loc${l.id}`) ? `<span class="zbanner__pic">${artImg(`loc${l.id}`, '')}</span>` : ''}
+      <div><small>УРОК ${l.id}</small><b>${factorsText(l)}</b></div><span class="zbanner__pill">${st.passedN} / ${st.stops.length}</span></div>
+    <div class="zpath">${steps.join('')}</div>
+    <p class="znote">${next ? `Пройди перевірку — і відкриється урок ${next.id}` : 'Пройди перевірку — і вперед на екзамен!'}</p>`;
 }
 
-/** Кнопка тренування: своя для уроку (lvl-<тренування>-<урок>), інакше спільна (lvl-<тренування>), інакше значок. */
+/** Екзамен і підготовка: повторення по уроках і сам екзамен. Відкрито завжди. */
+function examPathHTML(l, pIdx) {
+  const st = lessonState(l, pIdx);
+  const reviews = st.stops.filter(s => s.mode === 'review').map((s, i) => {
+    const c = getLesson(s.lesson), rec = app.profile.records[recordKey(s.lesson, 'review')];
+    const passed = isPassed(s.lesson, 'review'), pct = passed ? 100 : recPct(rec);
+    const cls = passed ? 'is-done' : rec ? 'is-part' : 'is-open';
+    return zstep(i,
+      `<button type="button" class="znode znode--review ${cls}" data-stop="${l.id}:${s.key}" style="--p:${pct}" aria-label="Повторення: урок ${c.id}">
+        <span class="znode__pic">${hasArt(`loc${c.id}`) ? artImg(`loc${c.id}`, '') : `<span class="node__emoji">🔁</span>`}</span>
+        ${rec ? `<span class="zpct">${pct}%</span>` : ''}</button>`,
+      `<small>ПОВТОРЕННЯ ${c.id}</small><b>${factorsText(c)}</b>${rec ? '' : '<span>Ще не грали — можна!</span>'}`);
+  });
+  const passed = isPassed(l.id, 'exam'), n = examCount(), pass = Math.round((getMode('exam').passPct || 0) * 100);
+  return `<div class="zbanner zbanner--exam"><button type="button" class="zbanner__back" data-lesson-close aria-label="До карти">‹</button>
+      <div><small>ПЕРЕВІР СВОЇ ЗНАННЯ</small><b>Екзамен і підготовка</b></div><span class="zbest zbest--banner" title="Найкращий результат екзамену">${ICON_CAP}${bestExamPct()}%</span></div>
+    <div class="zsay"><span class="zsay__ava">${avatarImg()}</span><p>Повторюй будь-який урок, коли хочеш. Готовий? Тоді на екзамен!</p></div>
+    <div class="zsec">ПІДГОТОВКА · ПО УРОКАХ</div>
+    <div class="zpath">${reviews.join('')}</div>
+    <div class="zexamcard">
+      <button type="button" class="zexamcard__pic" data-stop="${l.id}:exam" aria-label="Екзамен">${hasArt(`loc${l.id}`) ? artImg(`loc${l.id}`, '') : '<span class="node__emoji">🎓</span>'}</button>
+      <b class="zexamcard__title">Екзамен</b><span class="zexamcard__sub">${TEXTS.examRange || `Уся таблиця: ${COURSE.subject || ''}`}</span>
+      <div class="zexamcard__facts"><span><b>${n}</b>${plural(n, ['приклад', 'приклади', 'прикладів'])}</span><span><b>${pace()} с</b>на кожен</span><span><b>${pass}%</b>щоб скласти</span></div>
+      <button type="button" class="btn btn--primary zexamcard__go" data-stop="${l.id}:exam">ПОЧАТИ</button>
+      <div class="zexamcard__foot">${passed ? `${dipButton(l, true, 'dip--map')}<span>Твій сертифікат — натисни, щоб завантажити</span>` : '<span>Склав — отримуєш сертифікат</span>'}
+        <button type="button" class="zlink" data-open-exam-page>Мої спроби</button></div>
+    </div>`;
+}
+
+/** Кнопка тренування в діалозі: своя картинка, інакше картинка уроку (повторення/екзамен), інакше мініатюра. */
 function stopPic(l, s) {
-  const own = `lvl-${s.mode}-${s.mode === 'review' ? `r${s.lesson}` : l.id}`;
-  if (!hasArt(own) && (s.mode === 'review' || s.mode === 'exam')) {   // повторення — картинка свого уроку, екзамен — картинка екзамену
+  if (s.mode === 'review' || s.mode === 'exam') {
     const loc = `loc${s.mode === 'review' ? s.lesson : l.id}`;
     if (hasArt(loc)) return artImg(loc, '');
   }
-  return hasArt(own) ? artImg(own, '') : hasArt(`lvl-${s.mode}`) ? artImg(`lvl-${s.mode}`, '') : `<span class="node__emoji">${s.icon}</span>`;
+  return `<span class="mini">${miniHTML(l, s.mode)}</span>`;
 }
 
 /** Вікно тренування — по центру екрана. */
@@ -1507,11 +1572,12 @@ $('#map-stage').addEventListener('click', e => {
   if (e.target.closest('[data-lesson-close]')) { app.mapLesson = null; renderMap(); return; }
   const st = e.target.closest('[data-stop]');
   if (st) { openStopDialog(st.dataset.stop); return; }
+  if (e.target.closest('[data-open-exam-page]')) { openExam('map'); return; }
   const cup = e.target.closest('[data-cup]');
   if (cup) {
     const l = getLesson(Number(cup.dataset.cup));
     if (cup.classList.contains('is-earned')) openAward(l.id);
-    else toast(l.exam ? '🎓 Склади екзамен — і отримаєш сертифікат' : '🏆 Пройди всі тренування уроку — і отримаєш диплом');
+    else toast('🎓 Склади екзамен — і отримаєш сертифікат');
   }
 });
 $('#dmodal').addEventListener('click', e => {
@@ -1555,7 +1621,7 @@ function refreshScreen() {
 const HERO_NAMES = HEROES_CFG?.names || [];   // персонажі-аватарки — з course.json
 const DEFAULT_AVATAR = HEROES_CFG?.default ?? 0;
 const HEROES = [DEFAULT_AVATAR, ...HERO_NAMES.map((_, i) => i).filter(i => i !== DEFAULT_AVATAR)]; // у виборі — першим
-const heroUrl = n => `${ASSETS.hero(n)}?v=4.65`;
+const heroUrl = n => `${ASSETS.hero(n)}?v=4.69`;
 const usesPhoto = () => app.profile.avatar === 'photo' && app.profile.photo;
 function avatarImg() {
   if (usesPhoto()) return `<img class="avatar-img" src="${app.profile.photo}" alt="">`;
@@ -1890,6 +1956,6 @@ function boot() {
   openMap();        // одразу показуємо карту з локальних даних…
   sync();           // …а хмару підтягуємо фоном
   // Підвантажити спрайт картинок, поки дитина обирає урок
-  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.65'; });
+  (window.requestIdleCallback || setTimeout)(() => { new Image().src = 'assets/tiles.webp?v=4.69'; });
 }
 boot();
